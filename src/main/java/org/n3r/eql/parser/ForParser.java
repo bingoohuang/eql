@@ -11,7 +11,7 @@ public class ForParser implements PartParser {
     private String index = "index";
     private String collection;
     private String open = "";
-    private String seperator = "";
+    private String separator = "";
     private String close = "";
     private LiteralPart part = new LiteralPart("");
 
@@ -22,7 +22,7 @@ public class ForParser implements PartParser {
         if (optionsMap.containsKey("index")) index = optionsMap.get("index");
         if (optionsMap.containsKey("collection")) collection = optionsMap.get("collection");
         if (optionsMap.containsKey("open")) open = optionsMap.get("open");
-        if (optionsMap.containsKey("seperator")) seperator = optionsMap.get("seperator");
+        if (optionsMap.containsKey("separator")) separator = optionsMap.get("separator");
         if (optionsMap.containsKey("close")) close = optionsMap.get("close");
 
         if (ParserUtils.isBlank(collection))
@@ -31,7 +31,7 @@ public class ForParser implements PartParser {
 
     @Override
     public SqlPart createPart() {
-        return new ForPart(part, item, index, collection, open, seperator, close);
+        return new ForPart(part, item, index, collection, open, separator, close);
     }
 
     @Override

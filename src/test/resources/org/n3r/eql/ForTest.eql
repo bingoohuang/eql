@@ -2,6 +2,9 @@
 
 -- [for1]
 SELECT 'x'
-FROM $$
-WHERE 'x' in /* for item=item index=index collection=list open=( separator=, close=)  */ #item# /* end */
+FROM DUAL
+WHERE 'x' in
+-- for item=item index=index collection=list open=( separator=, close=)
+#item#
+-- end
 
