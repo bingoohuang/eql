@@ -1,17 +1,12 @@
 package org.n3r.eql;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import org.n3r.eql.config.Configable;
 import org.n3r.eql.config.EqlConfigManager;
 import org.n3r.eql.ex.EqlExecuteException;
-import org.n3r.eql.impl.DbTypeFactory;
-import org.n3r.eql.impl.EqlBatch;
-import org.n3r.eql.impl.EqlRsRetriever;
-import org.n3r.eql.impl.SqlResourceLoader;
+import org.n3r.eql.impl.*;
 import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.SqlBlock;
 import org.n3r.eql.util.EqlUtils;
@@ -24,6 +19,7 @@ import java.util.List;
 
 public class Eql implements Closeable {
     public static final String DEFAULT_CONN_NAME = "DEFAULT";
+
     private Logger logger = LoggerFactory.getLogger(Eql.class);
     private Object connectionNameOrConfigable;
     private SqlBlock sqlBlock;
@@ -51,8 +47,6 @@ public class Eql implements Closeable {
         connection = internalTran != null ? internalTran.getConn() : externalTran.getConn();
         dbType = DbTypeFactory.parseDbType(connection);
     }
-
-
 
     @SuppressWarnings("unchecked")
     public <T> T execute(String... directSqls) {
@@ -250,46 +244,14 @@ public class Eql implements Closeable {
                 return rsRetriever.convert(rs, eqlRun);
             }
 
-            if (EqlUtils.isProcedure(eqlRun.getSqlType())) {
-                CallableStatement cs = (CallableStatement) ps;
-                return execAndRetrieveProcedureRet(eqlRun, cs);
-            }
+            if (EqlUtils.isProcedure(eqlRun.getSqlType()))
+                return new EqlProc(eqlRun, rsRetriever).dealProcedure(ps);
 
             return ps.executeUpdate();
 
         } finally {
             EqlUtils.closeQuietly(rs, ps);
         }
-    }
-
-    private Object execAndRetrieveProcedureRet(EqlRun subSql, CallableStatement cs) throws SQLException {
-        cs.execute();
-
-        if (subSql.getOutCount() == 0) return null;
-
-        if (subSql.getOutCount() == 1)
-            for (int i = 0, ii = subSql.getPlaceHolders().length; i < ii; ++i)
-                if (subSql.getPlaceHolders()[i].getInOut() != EqlParamPlaceholder.InOut.IN) return cs.getObject(i + 1);
-
-        switch (subSql.getPlaceHolderOutType()) {
-            case AUTO_SEQ:
-                return retrieveAutoSeqOuts(subSql, cs);
-            case VAR_NAME:
-                return rsRetriever.getCallableReturnMapper().mapResult(subSql, cs);
-            default:
-                break;
-        }
-
-        return null;
-    }
-
-    private Object retrieveAutoSeqOuts(EqlRun subSql, CallableStatement cs) throws SQLException {
-        List<Object> objects = Lists.newArrayList();
-        for (int i = 0, ii = subSql.getPlaceHolders().length; i < ii; ++i)
-            if (subSql.getPlaceHolders()[i].getInOut() != EqlParamPlaceholder.InOut.IN)
-                objects.add(cs.getObject(i + 1));
-
-        return objects;
     }
 
     public PreparedStatement prepareSql(EqlRun eqlRun) throws SQLException {
