@@ -1,0 +1,87 @@
+-- [test1 returnType=string]
+select 1;
+
+-- 这里是注释
+-- [getInt returnType=int]
+SELECT 1
+FROM DUAL
+
+-- [getStringWithOneParam]
+SELECT 'x'
+FROM DUAL
+WHERE 'x' = ##
+
+
+-- AutoSeq
+-- [getStringWithTwoParams]
+SELECT 'x'
+FROM DUAL
+WHERE 'x' = ##
+  AND 'y' = ##
+
+-- Custome Seq
+-- [getStringWithTwoParamsAndSequence]
+SELECT 'x'
+FROM DUAL
+WHERE 'x' = #2#
+  AND 'y' = #1#
+
+
+-- [queryXY]
+select 'x' as x, 'y' as y
+  from DUAL
+
+-- [queryXY2]
+select 'x0' as x, 'y0' as y
+from DUAL
+union all
+select 'x1' as x, 'y1' as y
+from DUAL
+
+-- [createTestTable]
+CREATE TABLE ESQL_TEST (
+  A INT NOT NULL,
+  B CHAR(10),
+  C VARCHAR(10),
+  D TIMESTAMP,
+  E int
+);
+
+INSERT INTO ESQL_TEST VALUES(1, 'A', '\#AC', ##, 101);
+INSERT INTO ESQL_TEST VALUES(2, 'B', '\#BC', ##, 102);
+INSERT INTO ESQL_TEST VALUES(3, 'C', 'CC', ##, 103);
+INSERT INTO ESQL_TEST VALUES(4, 'D', 'DC', ##, 104);
+
+-- [dropTestTable onerr=resume]
+DROP TABLE ESQL_TEST;
+
+-- [getBeanList]
+SELECT A,B,C,D,E
+FROM ESQL_TEST
+
+-- [getStringList]
+SELECT C
+FROM ESQL_TEST
+
+-- [updateBean]
+UPDATE ESQL_TEST
+SET B = #2#
+WHERE A = #1#
+
+-- [selectBean]
+SELECT A,B,C,D,E
+FROM ESQL_TEST
+WHERE A = ##
+
+-- [selectByBean]
+SELECT A,B,C,D,E
+FROM ESQL_TEST
+WHERE A = #a#
+AND C = #c#
+
+-- VAR NAME AUTO INFER
+-- [selectByBean2]
+SELECT A,B,C,D,E
+FROM ESQL_TEST
+WHERE A = #?#
+AND C = #?#

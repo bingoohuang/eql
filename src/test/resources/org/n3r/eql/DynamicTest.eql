@@ -1,0 +1,59 @@
+-- import org/n3r/eql/SimpleTest.eql *TestTable
+
+-- [selectIf returnType=org.n3r.eql.SimpleTest$Bean]
+SELECT A,B,C,D,E
+FROM ESQL_TEST
+/* this my comment */
+WHERE A = #a#
+-- AND may be alone
+AND
+-- if e == 100
+ C = #c#
+-- elseif e == 200
+ C = 'AC'
+-- else
+ C = 'FALSE'
+-- end
+
+-- [selectIf2 returnType=org.n3r.eql.SimpleTest$Bean]
+SELECT A,B,C,D,E
+FROM ESQL_TEST
+WHERE A = #a#
+AND
+-- if e == 100
+C = #c#
+/* if a == 1 */ AND B = 'A' /* end */
+AND 1 = 1
+-- elseif e == 200
+C = 'AC'
+-- else
+C = 'FALSE'
+-- end
+
+-- [switchSelect returnType=org.n3r.eql.SimpleTest$Bean]
+SELECT A,B,C,D,E
+FROM ESQL_TEST
+WHERE
+-- switch a
+--   case 1
+  A = 1
+--   case 2
+  A = 2
+-- end
+
+-- [switchSelectWithDefault returnType=org.n3r.eql.SimpleTest$Bean]
+SELECT A,B,C,D,E
+FROM ESQL_TEST
+WHERE
+-- switch a
+--   case 1
+   A = 1
+--   case 2
+   A = 2
+--   default
+   A = 3
+-- end
+
+-- [getBeanList]
+SELECT A,B,C,D,E
+FROM ESQL_TEST
