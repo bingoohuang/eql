@@ -7,8 +7,8 @@ import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.io.Resources;
+import org.n3r.eql.parser.EqlParser;
 import org.n3r.eql.parser.SqlBlock;
-import org.n3r.eql.parser.SqlParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +42,7 @@ public class SqlResourceLoader {
                     return Optional.absent();
                 }
 
-                Map<String, SqlBlock> sqlBlocks = new SqlParser().parse(sqlClassPath, sqlContent);
+                Map<String, SqlBlock> sqlBlocks = new EqlParser().parse(sqlClassPath, sqlContent);
                 for (SqlBlock sqlBlock : sqlBlocks.values()) {
                     String key = cacheKey(sqlClassPath, sqlBlock.getSqlId());
                     sqlCache.put(key, sqlBlock);

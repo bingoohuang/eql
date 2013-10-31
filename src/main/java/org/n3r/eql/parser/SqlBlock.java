@@ -7,7 +7,6 @@ import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.param.EqlParamsParser;
 import org.n3r.eql.util.EqlUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -22,6 +21,7 @@ public class SqlBlock {
     private String split;
 
     private List<Sql> sqls = Lists.newArrayList();
+    private List<String> sqlLines;
 
     public SqlBlock(String sqlClassPath, String sqlId, String options, int startLineNo) {
         this.sqlClassPath = sqlClassPath;
@@ -49,6 +49,8 @@ public class SqlBlock {
     }
 
     public void parseBlock(List<String> sqlLines) {
+        this.sqlLines = sqlLines;
+
         List<String> oneSqlLines = Lists.newArrayList();
 
         // split to multiple sql
@@ -186,7 +188,7 @@ public class SqlBlock {
     public List<EqlRun> createSqlSubs(Object[] params, Object[] dynamics) {
         Object bean = EqlUtils.compositeParams(params);
 
-        ArrayList<EqlRun> eqlRuns = new ArrayList<EqlRun>();
+        List<EqlRun> eqlRuns = Lists.newArrayList();
         EqlRun lastSelectSql = null;
         for (Sql sql : sqls) {
             String sqlStr = sql.evalSql(bean);
@@ -207,13 +209,12 @@ public class SqlBlock {
     public void createRunSql(EqlRun eqlRun, Object[] dynamics) {
         String sql = new DynamicReplacer().repaceDynamics(eqlRun, dynamics);
 
-        String runSql =  EqlUtils.autoTrimLastUnusedPart(sql);
+        String runSql = EqlUtils.autoTrimLastUnusedPart(sql);
         eqlRun.setRunSql(runSql);
 
         String printSql = runSql.replaceAll("\\r?\\n", "\\\\n");
         eqlRun.setPrintSql(printSql);
     }
-
 
     public List<EqlRun> createSqlSubsByDirectSqls(Object[] dynamics, String[] sqls) {
         List<EqlRun> eqlRuns = Lists.newArrayList();
@@ -241,5 +242,9 @@ public class SqlBlock {
 
     public Map<String, String> getOptions() {
         return options;
+    }
+
+    public List<String> getSqlLines() {
+        return sqlLines;
     }
 }

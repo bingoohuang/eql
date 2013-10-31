@@ -10,11 +10,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SqlParser {
-    private static Pattern blockPattern = Pattern.compile("\\[\\s*([\\w\\.\\-\\d]+)\\b(.*)\\]");
+public class EqlParser {
+    static Pattern blockPattern = Pattern.compile("\\[\\s*([\\w\\.\\-\\d]+)\\b(.*)\\]");
 
     private Map<String, SqlBlock> blocks = Maps.newHashMap();
     private String sqlClassPath;
+    private List<String> sqlLines = null;
 
     public Map<String, SqlBlock> parse(String sqlClassPath, String str) {
         this.sqlClassPath = sqlClassPath;
@@ -22,8 +23,6 @@ public class SqlParser {
         Iterable<String> lines = Splitter.on('\n').trimResults().split(str);
 
         SqlBlock block = null;
-
-        List<String> sqlLines = null;
 
         int lineNo = 0;
         for (String line : lines) {
@@ -35,12 +34,12 @@ public class SqlParser {
             if (line.startsWith("--")) {
                 String cleanLine = ParserUtils.substr(line, "--".length());
                 if (importOtherSqlFile(cleanLine)) continue;
+                if (includeOtherSqlId(block, cleanLine)) continue;
 
                 Matcher matcher = blockPattern.matcher(cleanLine);
                 if (matcher.matches()) { // new sql block found
-                    parseBlock(block, sqlLines);
+                    parseBlock(block);
                     block = new SqlBlock(sqlClassPath, matcher.group(1), matcher.group(2), lineNo);
-                    sqlLines = Lists.newArrayList();
                     addBlock(block);
                     continue;
                 }
@@ -50,15 +49,32 @@ public class SqlParser {
             sqlLines.add(line);
         }
 
-        parseBlock(block, sqlLines);
+        parseBlock(block);
 
         return blocks;
     }
 
-    static Pattern loadPattern = Pattern.compile("import\\s+([/.\\w]+)(\\s+.*)?", Pattern.CASE_INSENSITIVE);
+    static Pattern includePattern = Pattern.compile("include\\s+([\\w\\.\\-\\d]+)",
+            Pattern.CASE_INSENSITIVE);
+    private boolean includeOtherSqlId(SqlBlock block, String cleanLine) {
+        Matcher matcher = includePattern.matcher(cleanLine);
+        if (!matcher.matches()) return false;
+
+        if (block == null) return true;
+
+        String includeSqlId = matcher.group(1);
+        SqlBlock sqlBlock = blocks.get(includeSqlId);
+        if (sqlBlock == null) throw new RuntimeException(cleanLine + " not found");
+        sqlLines.addAll(sqlBlock.getSqlLines());
+
+        return true;
+    }
+
+    static Pattern importPattern = Pattern.compile("import\\s+([/.\\w]+)(\\s+.*)?",
+            Pattern.CASE_INSENSITIVE);
 
     private boolean importOtherSqlFile(String cleanLine) {
-        Matcher matcher = loadPattern.matcher(cleanLine);
+        Matcher matcher = importPattern.matcher(cleanLine);
         if (!matcher.matches()) return false;
 
         String classPath = matcher.group(1).trim();
@@ -73,8 +89,8 @@ public class SqlParser {
         }
 
         Map<String, SqlBlock> temp = Maps.newHashMap();
-        for (String pattern : Splitter.onPattern("\\s+")
-                .omitEmptyStrings().trimResults().split(patterns)) {
+        Splitter splitter = Splitter.onPattern("\\s+").omitEmptyStrings().trimResults();
+        for (String pattern : splitter.split(patterns)) {
             for (SqlBlock sqlBlock : importRes.values()) {
                 if (wildCardMatch(sqlBlock.getSqlId(), pattern)) {
                     temp.put(sqlBlock.getSqlId(), sqlBlock);
@@ -103,11 +119,11 @@ public class SqlParser {
         }
 
         blocks.put(sqlBlock.getSqlId(), sqlBlock);
+        sqlLines = Lists.newArrayList();
     }
 
-
-    private void parseBlock(SqlBlock block, List<String> sqlLines) {
-        if (block != null && sqlLines != null) {
+    private void parseBlock(SqlBlock block) {
+        if (block != null && sqlLines != null && sqlLines.size() > 0) {
             block.parseBlock(sqlLines);
         }
     }

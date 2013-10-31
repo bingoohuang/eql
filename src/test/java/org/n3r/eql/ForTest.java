@@ -7,6 +7,9 @@ import org.junit.Test;
 import java.sql.Timestamp;
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
 public class ForTest {
     @Test
     public void test1() {
@@ -17,5 +20,6 @@ public class ForTest {
         map.put("list", ImmutableList.of("a", "b", "x"));
 
         String str = new Eql().selectFirst("for1").params(map).execute();
+        assertThat(str, is("x"));
     }
 }
