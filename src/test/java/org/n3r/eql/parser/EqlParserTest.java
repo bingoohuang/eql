@@ -479,6 +479,16 @@ public class EqlParserTest {
         assertThat(sqlPart1 instanceof ForPart, is(true));
         ForPart part = (ForPart) sqlPart1;
         assertThat(part.getSqlPart().getSql(), is("#item#"));
+    }
 
+    @Test(expected=Exception.class)
+    public void duplicatedSqlIdImportBlock() {
+        EqlParser eqlParser = new EqlParser();
+        eqlParser.parse("",
+                "-- [selectIf2 returnType=org.n3r.eql.SimpleTest$Bean]\n" +
+                        "SELECT A,B,C,D,E\n" +
+                        "FROM ESQL_TEST\n" +
+                        "-- import org/n3r/eql/DynamicTest.eql\r\n"
+        );
     }
 }

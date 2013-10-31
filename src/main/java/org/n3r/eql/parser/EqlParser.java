@@ -17,12 +17,11 @@ public class EqlParser {
     private String sqlClassPath;
     private List<String> sqlLines = null;
 
+    private SqlBlock block = null;
+
     public Map<String, SqlBlock> parse(String sqlClassPath, String str) {
         this.sqlClassPath = sqlClassPath;
-
         Iterable<String> lines = Splitter.on('\n').trimResults().split(str);
-
-        SqlBlock block = null;
 
         int lineNo = 0;
         for (String line : lines) {
@@ -34,11 +33,11 @@ public class EqlParser {
             if (line.startsWith("--")) {
                 String cleanLine = ParserUtils.substr(line, "--".length());
                 if (importOtherSqlFile(cleanLine)) continue;
-                if (includeOtherSqlId(block, cleanLine)) continue;
+                if (includeOtherSqlId(cleanLine)) continue;
 
                 Matcher matcher = blockPattern.matcher(cleanLine);
                 if (matcher.matches()) { // new sql block found
-                    parseBlock(block);
+                    parseBlock();
                     block = new SqlBlock(sqlClassPath, matcher.group(1), matcher.group(2), lineNo);
                     addBlock(block);
                     continue;
@@ -49,14 +48,14 @@ public class EqlParser {
             sqlLines.add(line);
         }
 
-        parseBlock(block);
+        parseBlock();
 
         return blocks;
     }
 
     static Pattern includePattern = Pattern.compile("include\\s+([\\w\\.\\-\\d]+)",
             Pattern.CASE_INSENSITIVE);
-    private boolean includeOtherSqlId(SqlBlock block, String cleanLine) {
+    private boolean includeOtherSqlId(String cleanLine) {
         Matcher matcher = includePattern.matcher(cleanLine);
         if (!matcher.matches()) return false;
 
@@ -76,6 +75,8 @@ public class EqlParser {
     private boolean importOtherSqlFile(String cleanLine) {
         Matcher matcher = importPattern.matcher(cleanLine);
         if (!matcher.matches()) return false;
+
+        parseBlock();
 
         String classPath = matcher.group(1).trim();
         String patterns = ParserUtils.trim(matcher.group(2));
@@ -122,9 +123,11 @@ public class EqlParser {
         sqlLines = Lists.newArrayList();
     }
 
-    private void parseBlock(SqlBlock block) {
+    private void parseBlock() {
         if (block != null && sqlLines != null && sqlLines.size() > 0) {
             block.parseBlock(sqlLines);
+            block = null;
+            sqlLines = null;
         }
     }
 
