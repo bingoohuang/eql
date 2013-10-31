@@ -13,8 +13,6 @@ import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.EqlParamsBinder;
-import org.n3r.eql.param.EqlParamsParser;
-import org.n3r.eql.parser.DynamicReplacer;
 import org.n3r.eql.parser.SqlBlock;
 import org.n3r.eql.util.EqlUtils;
 import org.slf4j.Logger;
@@ -69,7 +67,7 @@ public class Eql implements Closeable {
             if (batch == null) tranStart();
             createConn();
 
-            for (EqlRun subSql : createSqlSubs(directSqls)) {
+            for (EqlRun subSql : sqlBlock.createSqlSubs(params, dynamics, directSqls)) {
                 ret = execSub(ret, subSql);
                 executeResults.add(ret);
             }
@@ -101,7 +99,7 @@ public class Eql implements Closeable {
         tranStart();
         createConn();
 
-        List<EqlRun> sqlSubs = createSqlSubs();
+        List<EqlRun> sqlSubs = sqlBlock.createSqlSubs(params, dynamics);
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one select sql supported in this method");
 
@@ -125,7 +123,7 @@ public class Eql implements Closeable {
         tranStart();
         createConn();
 
-        List<EqlRun> sqlSubs = createSqlSubs();
+        List<EqlRun> sqlSubs = sqlBlock.createSqlSubs(params, dynamics);
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one update sql supported in this method");
 
@@ -143,31 +141,30 @@ public class Eql implements Closeable {
         return updateStmt;
     }
 
-
     private void checkPreconditions(String... directSqls) {
         if (sqlBlock != null || directSqls.length > 0) return;
 
         throw new EqlExecuteException("No sqlid defined!");
     }
 
-    private Object execSub(Object ret, EqlRun esqlRun) throws SQLException {
-        currentSql = esqlRun.getSql();
+    private Object execSub(Object ret, EqlRun eqlRun) throws SQLException {
+        currentSql = eqlRun.getSql();
 
         try {
-            return EqlUtils.isDdl(esqlRun) ? execDdl(createRealSql(esqlRun)) : pageExecute(ret, esqlRun);
+            return EqlUtils.isDdl(eqlRun) ? execDdl(eqlRun) : pageExecute(ret, eqlRun);
         } catch (EqlExecuteException ex) {
-            if (!esqlRun.getSqlBlock().isOnerrResume()) throw ex;
+            if (!eqlRun.getSqlBlock().isOnerrResume()) throw ex;
         }
 
         return 0;
     }
 
-    private boolean execDdl(String sql) {
+    private boolean execDdl(EqlRun eqlRun) {
         Statement stmt = null;
-        logger.debug("ddl sql {}: {}", getSqlId(), sql);
+        logger.debug("ddl sql {}: {}", getSqlId(), eqlRun.getPrintSql());
         try {
             stmt = connection.createStatement();
-            return stmt.execute(sql);
+            return stmt.execute(eqlRun.getRunSql());
         } catch (SQLException ex) {
             throw new EqlExecuteException(ex);
         } finally {
@@ -226,7 +223,7 @@ public class Eql implements Closeable {
     private void prepareStmt(EStmt stmt, EqlRun eqlRun) throws SQLException {
         PreparedStatement ps = null;
         try {
-            ps = prepareSql(eqlRun, createRealSql(eqlRun));
+            ps = prepareSql(eqlRun);
 
             stmt.setPreparedStatment(ps);
             stmt.setEqlRun(eqlRun);
@@ -242,7 +239,7 @@ public class Eql implements Closeable {
         ResultSet rs = null;
         PreparedStatement ps = null;
         try {
-            ps = prepareSql(eqlRun, createRealSql(eqlRun));
+            ps = prepareSql(eqlRun);
             new EqlParamsBinder().bindParams(ps, eqlRun, params, logger);
 
             if (eqlRun.getSqlType() == EqlRun.EqlType.SELECT) {
@@ -294,16 +291,10 @@ public class Eql implements Closeable {
         return objects;
     }
 
-    public PreparedStatement prepareSql(EqlRun subSql, String realSql) throws SQLException {
-        logger.debug("prepare sql {}: {} ", getSqlId(), realSql);
-        return EqlUtils.isProcedure(subSql.getSqlType())
-                ? connection.prepareCall(realSql) : connection.prepareStatement(realSql);
-    }
-
-    public String createRealSql(EqlRun eqlRun) {
-        String sql = new DynamicReplacer().repaceDynamics(eqlRun, dynamics);
-
-        return EqlUtils.autoTrimLastUnusedPart(sql);
+    public PreparedStatement prepareSql(EqlRun eqlRun) throws SQLException {
+        logger.debug("prepare sql {}: {} ", getSqlId(), eqlRun.getPrintSql());
+        return EqlUtils.isProcedure(eqlRun.getSqlType())
+                ? connection.prepareCall(eqlRun.getRunSql()) : connection.prepareStatement(eqlRun.getRunSql());
     }
 
     public Eql returnType(Class<?> returnType) {
@@ -334,27 +325,6 @@ public class Eql implements Closeable {
         sqlBlock = SqlResourceLoader.load(this.sqlClassPath, sqlId);
 
         rsRetriever.setSqlBlock(sqlBlock);
-    }
-
-    protected List<EqlRun> createSqlSubs(String... directSqls) {
-        return directSqls.length == 0
-                ? sqlBlock.createSqlSubs(params)
-                : createSqlSubsByDirectSqls(directSqls);
-    }
-
-    private List<EqlRun> createSqlSubsByDirectSqls(String[] sqls) {
-        List<EqlRun> sqlSubs = Lists.newArrayList();
-        EqlRun lastSelectSql = null;
-        for (String sql : sqls) {
-            EqlRun subSql = new EqlParamsParser().parseParams(sql, null);
-            sqlSubs.add(subSql);
-
-            if (subSql.getSqlType() == EqlRun.EqlType.SELECT) lastSelectSql = subSql;
-        }
-
-        if (lastSelectSql != null) lastSelectSql.setLastSelectSql(true);
-
-        return sqlSubs;
     }
 
     public Eql useSqlFile(Class<?> sqlBoundClass) {
@@ -459,7 +429,6 @@ public class Eql implements Closeable {
 
     public Eql params(Object... params) {
         this.params = params;
-        this.dynamics = params;
         return this;
     }
 

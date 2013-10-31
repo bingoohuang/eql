@@ -15,7 +15,7 @@ public class ForParser implements PartParser {
     private String close = "";
     private LiteralPart part = new LiteralPart("");
 
-    // foreach item=item index=index collection=list open=( separator=, close=)
+    // for item=item index=index collection=list open=( separator=, close=)
     public ForParser(String options) {
         Map<String, String> optionsMap = Splitter.on(' ').withKeyValueSeparator('=').split(options.trim());
         if (optionsMap.containsKey("item")) item = optionsMap.get("item");

@@ -42,7 +42,7 @@ public class SqlResourceLoader {
                     return Optional.absent();
                 }
 
-                Map<String, SqlBlock> sqlBlocks = SqlParser.parse(sqlClassPath, sqlContent);
+                Map<String, SqlBlock> sqlBlocks = new SqlParser().parse(sqlClassPath, sqlContent);
                 for (SqlBlock sqlBlock : sqlBlocks.values()) {
                     String key = cacheKey(sqlClassPath, sqlBlock.getSqlId());
                     sqlCache.put(key, sqlBlock);

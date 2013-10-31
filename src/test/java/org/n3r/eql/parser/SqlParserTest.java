@@ -43,7 +43,7 @@ public class SqlParserTest {
         DynamicSql dynamicSql = (DynamicSql) sqls.get(0);
         assertThat(dynamicSql.getParts().size(), is(2));
         SqlPart sqlPart = dynamicSql.getParts().part(0);
-        assertThat(sqlPart.evalSql(null), is("SELECT A,B,C,D,E FROM ESQL_TEST WHERE A = #a# AND"));
+        assertThat(sqlPart.evalSql(null), is("SELECT A,B,C,D,E\nFROM ESQL_TEST\nWHERE A = #a#\nAND"));
 
         IfPart ifPart = (IfPart) dynamicSql.getParts().part(1);
         System.out.println(ifPart);

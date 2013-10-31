@@ -8,8 +8,11 @@ import org.n3r.eql.parser.SqlBlock;
 public class EqlRun implements Cloneable {
     public static enum EqlType {
         SELECT, UPDATE, INSERT, MERGE, DELETE,
-        DROP, CREATE, TRUNCATE, CALL, COMMENT, ALTER, BEGIN, DECLARE
+        DROP, CREATE, TRUNCATE, CALL, COMMENT, ALTER, BEGIN, DECLARE;
     }
+
+    private String runSql;
+    private String printSql;
 
     private SqlBlock sqlBlock;
     private String sql;
@@ -31,6 +34,22 @@ public class EqlRun implements Cloneable {
         } catch (CloneNotSupportedException e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    public String getPrintSql() {
+        return printSql;
+    }
+
+    public void setPrintSql(String printSql) {
+        this.printSql = printSql;
+    }
+
+    public void setRunSql(String runSql) {
+        this.runSql = runSql;
+    }
+
+    public String getRunSql() {
+        return runSql;
     }
 
     public void setSql(String sql) {

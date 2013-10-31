@@ -1,11 +1,10 @@
 package org.n3r.eql.parser;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.n3r.eql.param.EqlParamsParser;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.param.EqlParamsParser;
 import org.n3r.eql.util.EqlUtils;
 
 import java.util.ArrayList;
@@ -13,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
-public class SqlBlock{
+public class SqlBlock {
     private final int startLineNo;
     private final String sqlClassPath;
     private String sqlId;
@@ -74,7 +73,6 @@ public class SqlBlock{
     }
 
 
-
     private Sql parseSql(List<String> oneSqlLines) {
         List<String> mergedLines = mergeLines(oneSqlLines);
 
@@ -89,39 +87,34 @@ public class SqlBlock{
                 if (partParser != null) {
                     i = partParser.parse(mergedLines, i + 1) - 1;
                     sqlParts.addPart(partParser.createPart());
-                } else {
-                    sqlParts.addPart(new LiteralPart(line));
                 }
+                continue;
+            }
 
+            Matcher matcher = ParserUtils.inlineComment.matcher(line);
+            if (!matcher.matches()) {
+                sqlParts.addPart(new LiteralPart(line));
+                continue;
+            }
+
+            String cleanStr = matcher.group(1);
+            PartParser partParser = PartParserFactory.tryParse(cleanStr);
+            if (partParser != null) {
+                i = partParser.parse(mergedLines, i + 1) - 1;
+                sqlParts.addPart(partParser.createPart());
             } else {
-                Matcher matcher = ParserUtils.inlineComment.matcher(line);
-                if (!matcher.matches()) {
-                    sqlParts.addPart(new LiteralPart(line));
-                    continue;
-                }
-
-                String cleanStr = matcher.group(1);
-
-                PartParser partParser = PartParserFactory.tryParse(cleanStr);
-                if (partParser != null) {
-                    i = partParser.parse(mergedLines, i + 1) - 1;
-                    sqlParts.addPart(partParser.createPart());
-                } else {
-                    sqlParts.addPart(new LiteralPart(line));
-                }
+                sqlParts.addPart(new LiteralPart(line));
             }
         }
 
-        if (sqlParts.size() == 1 && sqlParts.part(0) instanceof LiteralPart) {
-            String sql = Joiner.on(' ').join(oneSqlLines).trim();
+        if (sqlParts.size() == 0) return null;
 
-            if (sql.startsWith("--")) return null;
+        if (sqlParts.size() == 1 && sqlParts.part(0) instanceof LiteralPart) {
+            String sql = ((LiteralPart) sqlParts.part(0)).getSql();
+
             if (ParserUtils.inlineComment.matcher(sql).matches()) return null;
 
-            StaticSql staticSql = new StaticSql();
-            staticSql.setSql(sql);
-
-            return staticSql;
+            return new StaticSql(sql);
         }
 
         return new DynamicSql(sqlParts);
@@ -139,7 +132,7 @@ public class SqlBlock{
 
             // splits /* */ to seperate lines
             Matcher matcher = ParserUtils.inlineComment.matcher(line);
-            int lastStart  = 0;
+            int lastStart = 0;
             while (matcher.find()) {
                 int start = matcher.start();
                 if (start > lastStart) {
@@ -168,7 +161,7 @@ public class SqlBlock{
 
     private void appendSqlPart(List<String> merged, StringBuilder mergedLine, String line) {
         String trim = line.trim();
-        if (trim.length()  == 0) return;
+        if (trim.length() == 0) return;
 
         if (trim.startsWith("--")) {
             if (mergedLine.length() > 0) {
@@ -180,27 +173,62 @@ public class SqlBlock{
             return;
         }
 
-        if (mergedLine.length() > 0) mergedLine.append(' ');
+        if (mergedLine.length() > 0) mergedLine.append('\n');
         mergedLine.append(trim);
     }
 
-    public List<EqlRun> createSqlSubs(Object... params) {
-        Object bean =  EqlUtils.compositeParams(params);
+    public List<EqlRun> createSqlSubs(Object[] params, Object[] dynamics, String... directSqls) {
+        return directSqls.length == 0
+                ? createSqlSubs(params, dynamics)
+                : createSqlSubsByDirectSqls(dynamics, directSqls);
+    }
 
-        ArrayList<EqlRun> sqlSubs = new ArrayList<EqlRun>();
+    public List<EqlRun> createSqlSubs(Object[] params, Object[] dynamics) {
+        Object bean = EqlUtils.compositeParams(params);
+
+        ArrayList<EqlRun> eqlRuns = new ArrayList<EqlRun>();
         EqlRun lastSelectSql = null;
         for (Sql sql : sqls) {
             String sqlStr = sql.evalSql(bean);
             if (Strings.isNullOrEmpty(sqlStr)) continue;
 
             EqlRun eqlRun = new EqlParamsParser().parseParams(sqlStr, this);
-            sqlSubs.add(eqlRun);
+            eqlRuns.add(eqlRun);
+
+            createRunSql(eqlRun, dynamics);
             if (eqlRun.getSqlType() == EqlRun.EqlType.SELECT) lastSelectSql = eqlRun;
         }
 
         if (lastSelectSql != null) lastSelectSql.setLastSelectSql(true);
 
-        return sqlSubs;
+        return eqlRuns;
+    }
+
+    public void createRunSql(EqlRun eqlRun, Object[] dynamics) {
+        String sql = new DynamicReplacer().repaceDynamics(eqlRun, dynamics);
+
+        String runSql =  EqlUtils.autoTrimLastUnusedPart(sql);
+        eqlRun.setRunSql(runSql);
+
+        String printSql = runSql.replaceAll("\\r?\\n", "\\\\n");
+        eqlRun.setPrintSql(printSql);
+    }
+
+
+    public List<EqlRun> createSqlSubsByDirectSqls(Object[] dynamics, String[] sqls) {
+        List<EqlRun> eqlRuns = Lists.newArrayList();
+        EqlRun lastSelectSql = null;
+        for (String sql : sqls) {
+            EqlRun eqlRun = new EqlParamsParser().parseParams(sql, null);
+            eqlRuns.add(eqlRun);
+            createRunSql(eqlRun, dynamics);
+
+            if (eqlRun.getSqlType() == EqlRun.EqlType.SELECT) lastSelectSql = eqlRun;
+        }
+
+        if (lastSelectSql != null) lastSelectSql.setLastSelectSql(true);
+
+        return eqlRuns;
     }
 
     public boolean isOnerrResume() {
@@ -213,9 +241,5 @@ public class SqlBlock{
 
     public Map<String, String> getOptions() {
         return options;
-    }
-
-    public String getSqlClassPath() {
-        return sqlClassPath;
     }
 }

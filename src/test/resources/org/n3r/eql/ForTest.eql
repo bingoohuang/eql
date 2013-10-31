@@ -1,0 +1,7 @@
+-- import org/n3r/eql/SimpleTest.eql *TestTable
+
+-- [for1]
+SELECT 'x'
+FROM $$
+WHERE 'x' in /* for item=item index=index collection=list open=( separator=, close=)  */ #item# /* end */
+

@@ -35,15 +35,15 @@ public class EqlBatch {
         batchedMap = Maps.newHashMap();
     }
 
-    public int processBatchUpdate(EqlRun subSql) throws SQLException {
-        String realSql = eql.createRealSql(subSql);
+    public int processBatchUpdate(EqlRun eqlRun) throws SQLException {
+        String realSql = eqlRun.getRunSql();
         PreparedStatement ps = batchedMap.get(realSql);
         if (ps == null) {
-            ps = eql.prepareSql(subSql, realSql);
+            ps = eql.prepareSql(eqlRun);
             batchedMap.put(realSql, ps);
             batchedPs.add(ps);
         }
-        new EqlParamsBinder().bindParams(ps, subSql, eql.getParams(), eql.getLogger());
+        new EqlParamsBinder().bindParams(ps, eqlRun, eql.getParams(), eql.getLogger());
         ps.addBatch();
         //        ++currentBatches;
         return /*maxBatches > 0 && currentBatches >= maxBatches ? executeBatch() :*/0;

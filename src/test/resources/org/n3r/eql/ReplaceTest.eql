@@ -1,0 +1,12 @@
+-- import org/n3r/eql/SimpleTest.eql *TestTable
+
+-- [replace1]
+SELECT 'x'
+FROM $$
+WHERE 'x' = ##
+
+
+-- [replace2]
+SELECT 'x'
+FROM $table$
+WHERE 'x' = ##

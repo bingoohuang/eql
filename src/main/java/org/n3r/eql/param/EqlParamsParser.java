@@ -58,7 +58,7 @@ public class EqlParamsParser {
         }
 
         sql.append(templateSql.substring(startPos));
-        String onelineSql = sql.toString().replaceAll("\\s+", " ");
+        String onelineSql = sql.toString();
         eqlRun.setSql(hasEscape ? unescape(onelineSql) : onelineSql);
         eqlRun.setSqlBlock(sqlBlock);
         eqlRun.setPlaceholderNum(placeHolders.size());
