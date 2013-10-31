@@ -10,27 +10,25 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class EqlParserTest {
-    static String sqlClassPath = "";
-
     @Test
     public void includeSqlId() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [commondCondition]\n" +
+                "", "-- [commondCondition]\n" +
                 "A == #a#\n" +
                 "-- [lookup]\n" +
                 "select 1\n" +
                 "-- include commondCondition");
 
         SqlBlock sqlBlock = map.get("lookup");
-        assertThat(((StaticSql)sqlBlock.getSqls().get(0)).getSql(), is("select 1\nA == #a#"));
+        assertThat(((StaticSql) sqlBlock.getSqls().get(0)).getSql(), is("select 1\nA == #a#"));
     }
 
     @Test
     public void oneBlock1IfIf() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [selectIf2 returnType=org.n3r.eql.SimpleTest$Bean]\n" +
+                "", "-- [selectIf2 returnType=org.n3r.eql.SimpleTest$Bean]\n" +
                 "SELECT A,B,C,D,E\n" +
                 "FROM ESQL_TEST\n" +
                 "WHERE A = #a#\n" +
@@ -38,7 +36,7 @@ public class EqlParserTest {
                 "-- if e == 100\n" +
                 "C = #c#\n" +
                 "/* if a == 1 */ AND B = 'A' /* end */\n" +
-                "and 1 = 1\n"  +
+                "and 1 = 1\n" +
                 "-- elseif e == 200\n" +
                 "C = 'AC'\n" +
                 "-- else\n" +
@@ -67,7 +65,7 @@ public class EqlParserTest {
     public void oneBlock1StaticSql() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [queryBlog]\r\n"
+                "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG");
 
         List<SqlBlock> blocks = new ArrayList<SqlBlock>(map.values());
@@ -87,7 +85,7 @@ public class EqlParserTest {
     public void oneBlock2StaticSqls() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [queryBlog]\r\n"
+                "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG1;\r\n"
                 + "SELECT * FROM BLOG2\r\n");
 
@@ -111,7 +109,7 @@ public class EqlParserTest {
     public void twoBlock1StaticSql() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [queryBlog1]\r\n"
+                "", "-- [queryBlog1]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "-- [queryBlog2]\r\n"
                 + "SELECT * FROM BLOG"
@@ -139,7 +137,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicIfSql() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [queryBlog]\r\n"
+                "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "-- if name != null\r\n"
                 + "   where name = #name#\r\n"
@@ -156,7 +154,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicSwitchSql() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [queryBlog]\r\n"
+                "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "-- switch name\r\n"
                 + "--    case bingoo\r\n"
@@ -172,7 +170,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicSwitchSqlInline() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [queryBlog]\r\n"
+                "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "/* switch name */"
                 + "/*    case bingoo */"
@@ -215,7 +213,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicSwitchSql2() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [queryBlog]\r\n"
+                "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "-- switch name\r\n"
                 + "-- case bingoo\r\n"
@@ -234,7 +232,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicSwitchSql2Inlie() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [queryBlog]\r\n"
+                "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "/* switch name*/"
                 + "-- case bingoo\r\n"
@@ -286,7 +284,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicIfSql2() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [queryBlog]\r\n"
+                "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "/* if name != null */ where name = #name# /* end */"
         );
@@ -299,7 +297,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicIfSql3() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [queryBlog]\r\n"
+                "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "/* if name != null */ \r\n where name = #name# \r\n/* end */"
         );
@@ -340,7 +338,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicIfElseIfSql() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [queryBlog]\r\n"
+                "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "-- if name != null\r\n"
                 + "   where name = #name#\r\n"
@@ -357,7 +355,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicIfElseIfSql2() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [queryBlog]\r\n"
+                "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "/* if name != null*/"
                 + "   where name = #name#\r\n"
@@ -407,7 +405,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicIfElseSql() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [queryBlog]\r\n"
+                "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "-- if name != null\r\n"
                 + "   where name = #name#\r\n"
@@ -454,7 +452,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicForSql() {
         EqlParser eqlParser = new EqlParser();
         Map<String, SqlBlock> map = eqlParser.parse(
-                sqlClassPath, "-- [queryBlog]\r\n"
+                "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG where name in\r\n"
                 + "-- for item=item collection=names open=( close=) seperate=,\r\n"
                 + "   #item#\r\n"
