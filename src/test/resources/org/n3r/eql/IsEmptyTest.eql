@@ -1,0 +1,15 @@
+-- import org/n3r/eql/SimpleTest.eql *TestTable
+
+-- [isEmpty]
+SELECT B
+FROM ESQL_TEST
+-- isEmpty a
+WHERE A in (1,2)
+-- end
+
+-- [isNotEmpty]
+SELECT B
+FROM ESQL_TEST
+-- isNotEmpty a
+WHERE A = #a#
+-- end

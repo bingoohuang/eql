@@ -1,6 +1,7 @@
 package org.n3r.eql.parser;
 
 import com.google.common.base.Objects;
+import ognl.NoSuchPropertyException;
 import ognl.Ognl;
 import ognl.OgnlException;
 
@@ -37,7 +38,9 @@ public class SwitchPart implements SqlPart {
     public static Object eval(Object bean, String expr) {
         try {
             return Ognl.getValue(expr, bean);
-        } catch (OgnlException e) {
+        } catch (NoSuchPropertyException ex) {
+            return null;
+        } catch (Exception e) {
             throw new RuntimeException("eval " + expr + " with " + bean + " failed", e);
         }
     }
