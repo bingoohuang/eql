@@ -13,9 +13,9 @@ public class EqlRun implements Cloneable {
 
     private String runSql;
     private String printSql;
+    private Object result;
 
     private SqlBlock sqlBlock;
-    private String sql;
     private int placeholderNum;
     private EqlParamPlaceholder[] placeHolders;
     private PlaceholderType placeHolderType;
@@ -36,13 +36,22 @@ public class EqlRun implements Cloneable {
         }
     }
 
+    public void setResult(Object result) {
+        this.result = result;
+    }
+
+    public Object getResult() {
+        return result;
+    }
+
     public String getPrintSql() {
         return printSql;
     }
 
-    public void setPrintSql(String printSql) {
-        this.printSql = printSql;
+    public void createPrintSql() {
+        printSql = runSql.replaceAll("\\r?\\n", "\\\\n");
     }
+
 
     public void setRunSql(String runSql) {
         this.runSql = runSql;
@@ -50,10 +59,6 @@ public class EqlRun implements Cloneable {
 
     public String getRunSql() {
         return runSql;
-    }
-
-    public void setSql(String sql) {
-        this.sql = sql;
     }
 
     public String getSqlId() {
@@ -65,10 +70,6 @@ public class EqlRun implements Cloneable {
         outCount = 0;
         for (EqlParamPlaceholder placeHolder : placeHolders)
             if (placeHolder.getInOut() != EqlParamPlaceholder.InOut.IN) ++outCount;
-    }
-
-    public String getSql() {
-        return sql;
     }
 
     public EqlParamPlaceholder[] getPlaceHolders() {

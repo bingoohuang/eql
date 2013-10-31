@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Eql implements Closeable {
@@ -36,11 +35,11 @@ public class Eql implements Closeable {
     private EqlTran externalTran;
     private EqlTran internalTran;
     private Connection connection;
-    private ArrayList<Object> executeResults;
     private DbType dbType;
     private EqlRsRetriever rsRetriever = new EqlRsRetriever();
     private int fetchSize;
     private String currentSql;
+    private List<EqlRun> eqlRuns;
 
     public Connection getConnection() {
         return newTran(connectionNameOrConfigable).getConn();
@@ -53,23 +52,21 @@ public class Eql implements Closeable {
         dbType = DbTypeFactory.parseDbType(connection);
     }
 
-    public List<Object> getResults() {
-        return executeResults;
-    }
+
 
     @SuppressWarnings("unchecked")
     public <T> T execute(String... directSqls) {
         checkPreconditions(directSqls);
-        executeResults = new ArrayList<Object>();
 
         Object ret = null;
         try {
             if (batch == null) tranStart();
             createConn();
 
-            for (EqlRun subSql : sqlBlock.createSqlSubs(params, dynamics, directSqls)) {
-                ret = execSub(ret, subSql);
-                executeResults.add(ret);
+            eqlRuns = sqlBlock.createSqlSubs(params, dynamics, directSqls);
+            for (EqlRun eqlRun : eqlRuns) {
+                ret = execSub(ret, eqlRun);
+                eqlRun.setResult(ret);
             }
 
             if (batch == null) tranCommit();
@@ -83,6 +80,10 @@ public class Eql implements Closeable {
         }
 
         return (T) ret;
+    }
+
+    public List<EqlRun> getEqlRuns() {
+        return eqlRuns;
     }
 
     private void resetState() {
@@ -148,7 +149,7 @@ public class Eql implements Closeable {
     }
 
     private Object execSub(Object ret, EqlRun eqlRun) throws SQLException {
-        currentSql = eqlRun.getSql();
+        currentSql = eqlRun.getRunSql();
 
         try {
             return EqlUtils.isDdl(eqlRun) ? execDdl(eqlRun) : pageExecute(ret, eqlRun);
@@ -198,13 +199,13 @@ public class Eql implements Closeable {
     }
 
     private void createTotalSql(EqlRun subSql) {
-        String sql = subSql.getSql().toUpperCase();
+        String sql = subSql.getRunSql().toUpperCase();
         int fromPos1 = sql.indexOf("FROM");
 
         int fromPos2 = sql.indexOf("DISTINCT");
         fromPos2 = fromPos2 < 0 ? sql.indexOf("FROM", fromPos1 + 4) : fromPos2;
 
-        subSql.setSql(fromPos2 > 0 ? "SELECT COUNT(*) CNT__ FROM (" + sql + ")"
+        subSql.setRunSql(fromPos2 > 0 ? "SELECT COUNT(*) CNT__ FROM (" + sql + ")"
                 : "SELECT COUNT(*) AS CNT " + sql.substring(fromPos1));
         subSql.setWillReturnOnlyOneRow(true);
     }

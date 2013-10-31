@@ -7,6 +7,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -19,8 +20,10 @@ public class IsEmptyTest {
         Map<String, Object> map = Maps.newHashMap();
         map.put("a", "1");
 
-        List<String> strs = new Eql().select("isEmpty").execute();
+        Eql eql = new Eql().select("isEmpty");
+        List<String> strs = eql.execute();
         assertThat(strs.size(), is(2));
+        assertThat(eql.getEqlRuns().get(0).getRunSql(), equalTo("SELECT B\nFROM ESQL_TEST\nWHERE A in (1,2)"));
 
         strs = new Eql().select("isEmpty").params(map).execute();
         assertThat(strs.size(), is(4));

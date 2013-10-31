@@ -9,35 +9,35 @@ import org.n3r.eql.util.EqlUtils;
 import java.util.List;
 
 public class DynamicReplacer {
-    public String repaceDynamics(EqlRun eqlRun, Object[] dynamics) {
+    public void repaceDynamics(EqlRun eqlRun, Object[] dynamics) {
         if (dynamics != null && dynamics.length > 0 && eqlRun.getEqlDynamic() == null)
-            eqlRun.setEqlDynamic(new DynamicParser().parseRawSql(eqlRun.getSql()));
+            eqlRun.setEqlDynamic(new DynamicParser().parseRawSql(eqlRun.getRunSql()));
 
         EqlDynamic eqlDynamic = eqlRun.getEqlDynamic();
-        if (eqlDynamic == null) return eqlRun.getSql();
+        if (eqlDynamic == null) return;
 
         List<String> sqlPieces = eqlDynamic.getSqlPieces();
-        StringBuilder realSql = new StringBuilder(sqlPieces.get(0));
+        StringBuilder runSql = new StringBuilder(sqlPieces.get(0));
 
         switch (eqlDynamic.getPlaceholdertype()) {
             case AUTO_SEQ:
                 for (int i = 1, ii = sqlPieces.size(); i < ii; ++i)
-                    realSql.append(getDynamicByIndex(dynamics, i - 1, eqlRun.getSqlId())).append(sqlPieces.get(i));
+                    runSql.append(getDynamicByIndex(dynamics, i - 1, eqlRun.getSqlId())).append(sqlPieces.get(i));
                 break;
             case MANU_SEQ:
                 for (int i = 1, ii = sqlPieces.size(); i < ii; ++i)
-                    realSql.append(findDynamicBySeq(dynamics, eqlDynamic, i - 1, eqlRun.getSqlId())).append(
+                    runSql.append(findDynamicBySeq(dynamics, eqlDynamic, i - 1, eqlRun.getSqlId())).append(
                             sqlPieces.get(i));
                 break;
             case VAR_NAME:
                 for (int i = 1, ii = sqlPieces.size(); i < ii; ++i)
-                    realSql.append(findDynamicByName(dynamics, eqlDynamic, i - 1)).append(sqlPieces.get(i));
+                    runSql.append(findDynamicByName(dynamics, eqlDynamic, i - 1)).append(sqlPieces.get(i));
                 break;
             default:
                 break;
         }
 
-        return realSql.toString();
+        eqlRun.setRunSql(runSql.toString());
     }
 
     private Object getDynamicByIndex(Object[] dynamics, int index, String sqlId) {

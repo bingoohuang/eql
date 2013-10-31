@@ -192,6 +192,8 @@ public class SqlBlock {
         EqlRun lastSelectSql = null;
         for (Sql sql : sqls) {
             String sqlStr = sql.evalSql(bean);
+            sqlStr = EqlUtils.autoTrimLastUnusedPart(sqlStr);
+
             if (Strings.isNullOrEmpty(sqlStr)) continue;
 
             EqlRun eqlRun = new EqlParamsParser().parseParams(sqlStr, this);
@@ -206,14 +208,10 @@ public class SqlBlock {
         return eqlRuns;
     }
 
-    public void createRunSql(EqlRun eqlRun, Object[] dynamics) {
-        String sql = new DynamicReplacer().repaceDynamics(eqlRun, dynamics);
+    private void createRunSql(EqlRun eqlRun, Object[] dynamics) {
+        new DynamicReplacer().repaceDynamics(eqlRun, dynamics);
 
-        String runSql = EqlUtils.autoTrimLastUnusedPart(sql);
-        eqlRun.setRunSql(runSql);
-
-        String printSql = runSql.replaceAll("\\r?\\n", "\\\\n");
-        eqlRun.setPrintSql(printSql);
+        eqlRun.createPrintSql();
     }
 
     public List<EqlRun> createSqlSubsByDirectSqls(Object[] dynamics, String[] sqls) {
