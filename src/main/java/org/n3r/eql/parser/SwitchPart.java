@@ -1,10 +1,10 @@
 package org.n3r.eql.parser;
 
+import com.google.common.base.Objects;
 import ognl.Ognl;
 import ognl.OgnlException;
 
 import java.util.List;
-import java.util.Objects;
 
 public class SwitchPart implements SqlPart {
     private final String condition;
@@ -27,7 +27,7 @@ public class SwitchPart implements SqlPart {
 
         for (IfCondition ifCondition : cases) {
             if ("".equals(ifCondition.getExpr())
-                    || Objects.equals(strTarget, ifCondition.getExpr()))
+                    || Objects.equal(strTarget, ifCondition.getExpr()))
                 return ifCondition.getValue().evalSql(bean);
         }
 

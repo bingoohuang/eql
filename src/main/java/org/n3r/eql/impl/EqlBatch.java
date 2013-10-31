@@ -36,7 +36,7 @@ public class EqlBatch {
     }
 
     public int processBatchUpdate(EqlRun subSql) throws SQLException {
-        String realSql = eql.realSql(subSql);
+        String realSql = eql.createRealSql(subSql);
         PreparedStatement ps = batchedMap.get(realSql);
         if (ps == null) {
             ps = eql.prepareSql(subSql, realSql);

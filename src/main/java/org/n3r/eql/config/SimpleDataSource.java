@@ -226,11 +226,11 @@ public class SimpleDataSource implements DataSource {
     public int getLoginTimeout() throws SQLException {
         return DriverManager.getLoginTimeout();
     }
-
-    @Override
-    public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
-        return null;
-    }
+//
+//    @Override
+//    public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
+//        return null;
+//    }
 
     /**
      * @see javax.sql.DataSource#setLogWriter(java.io.PrintWriter)

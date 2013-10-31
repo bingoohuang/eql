@@ -154,7 +154,7 @@ public class Eql implements Closeable {
         currentSql = esqlRun.getSql();
 
         try {
-            return EqlUtils.isDdl(esqlRun) ? execDdl(realSql(esqlRun)) : pageExecute(ret, esqlRun);
+            return EqlUtils.isDdl(esqlRun) ? execDdl(createRealSql(esqlRun)) : pageExecute(ret, esqlRun);
         } catch (EqlExecuteException ex) {
             if (!esqlRun.getSqlBlock().isOnerrResume()) throw ex;
         }
@@ -226,7 +226,7 @@ public class Eql implements Closeable {
     private void prepareStmt(EStmt stmt, EqlRun eqlRun) throws SQLException {
         PreparedStatement ps = null;
         try {
-            ps = prepareSql(eqlRun, realSql(eqlRun));
+            ps = prepareSql(eqlRun, createRealSql(eqlRun));
 
             stmt.setPreparedStatment(ps);
             stmt.setEqlRun(eqlRun);
@@ -242,7 +242,7 @@ public class Eql implements Closeable {
         ResultSet rs = null;
         PreparedStatement ps = null;
         try {
-            ps = prepareSql(eqlRun, realSql(eqlRun));
+            ps = prepareSql(eqlRun, createRealSql(eqlRun));
             new EqlParamsBinder().bindParams(ps, eqlRun, params, logger);
 
             if (eqlRun.getSqlType() == EqlRun.EqlType.SELECT) {
@@ -300,7 +300,7 @@ public class Eql implements Closeable {
                 ? connection.prepareCall(realSql) : connection.prepareStatement(realSql);
     }
 
-    public String realSql(EqlRun eqlRun) {
+    public String createRealSql(EqlRun eqlRun) {
         String sql = new DynamicReplacer().repaceDynamics(eqlRun, dynamics);
 
         return EqlUtils.autoTrimLastUnusedPart(sql);
@@ -338,7 +338,7 @@ public class Eql implements Closeable {
 
     protected List<EqlRun> createSqlSubs(String... directSqls) {
         return directSqls.length == 0
-                ? sqlBlock.createSqlSubs(EqlUtils.compositeParams(params))
+                ? sqlBlock.createSqlSubs(params)
                 : createSqlSubsByDirectSqls(directSqls);
     }
 

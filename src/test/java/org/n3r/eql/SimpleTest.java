@@ -18,7 +18,7 @@ public class SimpleTest {
         String str = new Eql().selectFirst("test1").execute();
         assertThat(str, is("1"));
 
-        int i = new Eql().selectFirst("getInt").execute();
+        Integer i = new Eql().selectFirst("getInt").execute();
         assertThat(i, is(1));
 
         str = new Eql().selectFirst("getStringWithOneParam").params("x").execute();
@@ -60,7 +60,7 @@ public class SimpleTest {
         System.out.println(strs);
 
 
-        int effectedRows = new Eql().update("updateBean").params(1, "A1A1").execute();
+        Integer effectedRows = new Eql().update("updateBean").params(1, "A1A1").execute();
         assertThat(effectedRows, is(1));
 
         Bean bean = new Eql().selectFirst("selectBean").returnType(Bean.class).params(1).execute();

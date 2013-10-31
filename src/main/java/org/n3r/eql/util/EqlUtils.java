@@ -1,6 +1,7 @@
 package org.n3r.eql.util;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.io.CharStreams;
@@ -19,7 +20,9 @@ import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.sql.*;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,7 +31,7 @@ public class EqlUtils {
 
     public static <T> boolean in(T target, T... compares) {
         for (T compare : compares)
-            if (Objects.equals(target, compare)) return true;
+            if (Objects.equal(target, compare)) return true;
 
         return false;
     }
@@ -310,7 +313,6 @@ public class EqlUtils {
 
     /**
      * Load a class given its name. BL: We wan't to use a known ClassLoader--hopefully the heirarchy is set correctly.
-     *
      */
     @SuppressWarnings("unchecked")
     public static <T> Class<T> tryLoadClass(String className) {

@@ -1,5 +1,6 @@
 package org.n3r.eql.param;
 
+import com.google.common.base.Objects;
 import ognl.Ognl;
 import ognl.OgnlException;
 import org.n3r.eql.ex.EqlExecuteException;
@@ -9,7 +10,6 @@ import org.slf4j.Logger;
 
 import java.sql.*;
 import java.util.Date;
-import java.util.Objects;
 
 public class EqlParamsBinder {
     private EqlRun subSql;
@@ -111,7 +111,7 @@ public class EqlParamsBinder {
         if (property != null) return property;
 
         String propertyName = EqlUtils.convertUnderscoreNameToPropertyName(varName);
-        if (!Objects.equals(propertyName, varName))
+        if (!Objects.equal(propertyName, varName))
             property = getPropertyValue(bean, propertyName); // RBean.getPropertyQuietly(bean, propertyName);
 
         return property;

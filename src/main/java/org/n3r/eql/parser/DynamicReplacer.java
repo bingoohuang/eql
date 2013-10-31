@@ -1,12 +1,12 @@
 package org.n3r.eql.parser;
 
+import com.google.common.base.Objects;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlDynamic;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.EqlUtils;
 
 import java.util.List;
-import java.util.Objects;
 
 public class DynamicReplacer {
     public String repaceDynamics(EqlRun eqlRun, Object[] dynamics) {
@@ -58,7 +58,7 @@ public class DynamicReplacer {
         Object property = EqlUtils.getPropertyQuietly(bean, varName);
         if (property == null) {
             String propertyName = EqlUtils.convertUnderscoreNameToPropertyName(varName);
-            if (!Objects.equals(propertyName, varName))
+            if (!Objects.equal(propertyName, varName))
                 property = EqlUtils.getPropertyQuietly(bean, propertyName);
         }
         return property;

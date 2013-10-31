@@ -184,7 +184,9 @@ public class SqlBlock{
         mergedLine.append(trim);
     }
 
-    public List<EqlRun> createSqlSubs(Object bean) {
+    public List<EqlRun> createSqlSubs(Object... params) {
+        Object bean =  EqlUtils.compositeParams(params);
+
         ArrayList<EqlRun> sqlSubs = new ArrayList<EqlRun>();
         EqlRun lastSelectSql = null;
         for (Sql sql : sqls) {
