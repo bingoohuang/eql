@@ -95,7 +95,7 @@ public class EqlUtils {
         if (String.class.equals(requiredType)) {
             switch (rs.getMetaData().getColumnType(index)) {
                 case Types.BLOB: // CLOB is treated as String.
-                    value = toStr(rs.getBytes(index));
+                    value = bytesToStr(rs.getBytes(index));
                     break;
                 default:
                     value = trim(rs.getString(index));
@@ -336,17 +336,10 @@ public class EqlUtils {
         return Thread.currentThread().getContextClassLoader();
     }
 
-    public static StringBuilder clearStringBuilder(StringBuilder str) {
-        return str.replace(0, str.length(), "");
-    }
-
     public static String toStr(Object obj) {
         return isNotEmpty(obj) ? obj.toString() : "";
     }
 
-    public static boolean isNull(Object obj) {
-        return obj == null;
-    }
 
     public static boolean isNotNull(Object obj) {
         return obj != null;
