@@ -8,22 +8,22 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 
-public class DbType {
+public class DbDialect {
     private String driverName;
     private String databaseId;
 
-    public static DbType parseDbType(Connection connection) {
+    public static DbDialect parseDbType(Connection connection) {
         try {
             DatabaseMetaData metaData = connection.getMetaData();
             String driverName = metaData.getDriverName();
 
-            return new DbType(driverName);
+            return new DbDialect(driverName);
         } catch (SQLException ex) {
             throw new EqlException(ex);
         }
     }
 
-    public DbType(String driverName) {
+    public DbDialect(String driverName) {
         this.driverName = driverName;
         databaseId = tryParseDatabaseId();
     }
@@ -114,7 +114,8 @@ public class DbType {
         // find the position of DISTINCT
         if (sql.indexOf("DISTINCT") < 0) { // without DISTINCT
             if (fromPos >= 0 && sql.indexOf("FROM", fromPos + 4) < 0) { // only one from
-                if (sql.indexOf("GROUP") < 0) oneFromWoDistinctOrGroupby = true; // without GROUP BY
+                if (sql.indexOf("GROUP") < 0)
+                    oneFromWoDistinctOrGroupby = true; // without GROUP BY
             }
         }
 
@@ -122,6 +123,6 @@ public class DbType {
 
         return oneFromWoDistinctOrGroupby
                 ? "SELECT COUNT(*) AS CNT " + runSql.substring(fromPos)
-                : ("SELECT COUNT(*) CNT__ FROM (" + runSql + ")" + ("mysql".equals(databaseId) ? " total" : ""));
+                : "SELECT COUNT(*) CNT__ FROM (" + runSql + ") TOTAL";
     }
 }

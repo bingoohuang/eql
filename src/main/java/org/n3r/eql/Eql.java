@@ -35,7 +35,7 @@ public class Eql implements Closeable {
     private EqlTran externalTran;
     private EqlTran internalTran;
     private Connection connection;
-    private DbType dbType;
+    private DbDialect dbDialect;
     private EqlRsRetriever rsRetriever = new EqlRsRetriever();
     private int fetchSize;
     private List<EqlRun> eqlRuns;
@@ -50,8 +50,8 @@ public class Eql implements Closeable {
         if (connection != null) return;
 
         connection = internalTran != null ? internalTran.getConn() : externalTran.getConn();
-        dbType = DbType.parseDbType(connection);
-        executionContext.put("_databaseId", dbType.getDatabaseId());
+        dbDialect = DbDialect.parseDbType(connection);
+        executionContext.put("_databaseId", dbDialect.getDatabaseId());
     }
 
     @SuppressWarnings("unchecked")
@@ -213,7 +213,7 @@ public class Eql implements Closeable {
 
     private Object executePageSql() throws SQLException {
         EqlRun temp = currRun;
-        currRun = dbType.createPageSql(currRun, page);
+        currRun = dbDialect.createPageSql(currRun, page);
 
         Object o = execDml();
         currRun = temp;
@@ -223,7 +223,7 @@ public class Eql implements Closeable {
 
     private int executeTotalRowsSql() throws SQLException {
         EqlRun temp = currRun;
-        currRun = dbType.createTotalSql(currRun);
+        currRun = dbDialect.createTotalSql(currRun);
         Object totalRows = execDml();
         currRun = temp;
 

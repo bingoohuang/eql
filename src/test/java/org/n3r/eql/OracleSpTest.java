@@ -1,6 +1,7 @@
 package org.n3r.eql;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.n3r.eql.util.EqlUtils;
 
@@ -17,6 +18,7 @@ import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+@Ignore
 public class OracleSpTest {
     @BeforeClass
     public static void beforeClass() {
