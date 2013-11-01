@@ -1,64 +1,64 @@
 
--- [createSpEsql split=/]
-CREATE OR REPLACE PROCEDURE SP_ESQL(A VARCHAR, B OUT VARCHAR) IS
+-- [createSpEql split=/]
+CREATE OR REPLACE PROCEDURE SP_EQL(A VARCHAR, B OUT VARCHAR) IS
 BEGIN
   B := 'HELLO ' || A;
 END;
 
--- [callSpEsql]
-{call SP_ESQL(##, #:OUT#)}
+-- [callSpEql]
+{call SP_EQL(##, #:OUT#)}
 
--- [createSpEsql2 split=/]
-CREATE OR REPLACE PROCEDURE SP_ESQL2(A VARCHAR, B OUT VARCHAR, C OUT VARCHAR) IS
+-- [createSpEql2 split=/]
+CREATE OR REPLACE PROCEDURE SP_EQL2(A VARCHAR, B OUT VARCHAR, C OUT VARCHAR) IS
 BEGIN
   B := 'HELLO ' || A;
   C := 'WORLD ' || A;
 END;
 
--- [callSpEsql2]
-{call SP_ESQL2(##, #:OUT#, #:OUT#)}
+-- [callSpEql2]
+{call SP_EQL2(##, #:OUT#, #:OUT#)}
 
--- [callSpEsql3]
-{call SP_ESQL2(##, #a:OUT#, #b:OUT#)}
+-- [callSpEql3]
+{call SP_EQL2(##, #a:OUT#, #b:OUT#)}
 
--- [callSpEsql4 returnType=org.n3r.eql.OracleSpTest$Ab]
-{call SP_ESQL2(##, #a:OUT#, #b:OUT#)}
+-- [callSpEql4 returnType=org.n3r.eql.OracleSpTest$Ab]
+{call SP_EQL2(##, #a:OUT#, #b:OUT#)}
 
 -- [createSpNoOut split=/]
-CREATE OR REPLACE PROCEDURE SP_ESQL_NOOUT(A VARCHAR) IS
+CREATE OR REPLACE PROCEDURE SP_EQL_NOOUT(A VARCHAR) IS
 BEGIN
     NULL;
 END;
 
 
--- [createSpEsql12 split=/]
-CREATE OR REPLACE PROCEDURE SP_ESQL12( B OUT VARCHAR, C OUT VARCHAR) IS
+-- [createSpEql12 split=/]
+CREATE OR REPLACE PROCEDURE SP_EQL12( B OUT VARCHAR, C OUT VARCHAR) IS
 BEGIN
   B := 'HELLO';
   C := 'WORLD';
 END;
 
--- [callSpEsql12]
-{call SP_ESQL12( #:OUT#, #:OUT#)}
+-- [callSpEql12]
+{call SP_EQL12( #:OUT#, #:OUT#)}
 
--- [createSpEsqlInOut split=/]
-CREATE OR REPLACE PROCEDURE SP_ESQLInOut( B IN OUT VARCHAR, C IN OUT VARCHAR) IS
+-- [createSpEqlInOut split=/]
+CREATE OR REPLACE PROCEDURE SP_EQLInOut( B IN OUT VARCHAR, C IN OUT VARCHAR) IS
 BEGIN
   B := 'HELLO' || B;
   C := 'WORLD' || C;
 END;
 
--- [callSpEsqlInOut]
-{call SP_ESQLInOut( #:INOUT#, #:INOUT#)}
+-- [callSpEqlInOut]
+{call SP_EQLInOut( #:INOUT#, #:INOUT#)}
 
--- [createSpEsqlNULL split=/]
-CREATE OR REPLACE PROCEDURE SP_ESQLNULL( B OUT VARCHAR, C OUT VARCHAR) IS
+-- [createSpEqlNULL split=/]
+CREATE OR REPLACE PROCEDURE SP_EQLNULL( B OUT VARCHAR, C OUT VARCHAR) IS
 BEGIN
   B := NULL;
 END;
 
--- [callSpEsqlNULL]
-{call SP_ESQLNULL( #:OUT#, #:OUT#)}
+-- [callSpEqlNULL]
+{call SP_EQLNULL( #:OUT#, #:OUT#)}
 
 
 -- [prepareTable4MyProcedure onerr=resume]

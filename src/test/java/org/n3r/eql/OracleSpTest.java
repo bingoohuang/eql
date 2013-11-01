@@ -30,7 +30,7 @@ public class OracleSpTest {
         CallableStatement cs = null;
         try {
             connection = new Eqll().getConnection();
-            cs = connection.prepareCall("{call SP_ESQL(?, ?)}");
+            cs = connection.prepareCall("{call SP_EQL(?, ?)}");
             cs.setString(1, "hjb");
             cs.registerOutParameter(2, Types.VARCHAR);
             cs.execute();
@@ -105,7 +105,7 @@ public class OracleSpTest {
                 .params("hjb")
                 .limit(1);
         int ab = esql.returnType("int")
-                .execute("{CALL SP_ESQL_NOOUT(##)}", "SELECT 1 FROM DUAL");
+                .execute("{CALL SP_EQL_NOOUT(##)}", "SELECT 1 FROM DUAL");
 
         assertEquals(1, ab);
     }
@@ -134,7 +134,7 @@ public class OracleSpTest {
         new Eqll().update("createSpEqlNULL").execute();
         List<String> rets = new Eqll()
                 .procedure("callSpEqlNULL")
-                .dynamics("SP_ESQLNULL")
+                .dynamics("SP_EQLNULL")
                 .execute();
 
         assertNull(rets.get(0));
