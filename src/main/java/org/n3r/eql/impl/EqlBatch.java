@@ -46,10 +46,14 @@ public class EqlBatch {
         ++currentBatches;
 
         return maxBatches > 0 && currentBatches >= maxBatches
-                ? executeBatch() : 0;
+                ? executeBatch(false) : 0;
     }
 
     public int executeBatch() throws SQLException {
+        return executeBatch(true);
+    }
+
+    public int executeBatch(boolean cleanup) throws SQLException {
         try {
             int totalRowCount = 0;
             for (PreparedStatement ps : batchedPs) {
@@ -65,13 +69,18 @@ public class EqlBatch {
             currentBatches = 0;
 
             return totalBatches;
-        } finally {
+        } catch (SQLException ex) {
             cleanupBatch();
+            throw ex;
+        } finally {
+            if (cleanup) cleanupBatch();
         }
     }
 
     public void cleanupBatch() {
         for (PreparedStatement ps : batchedPs)
             EqlUtils.closeQuietly(ps);
+
+        batchedPs.clear();
     }
 }
