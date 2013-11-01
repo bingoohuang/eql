@@ -10,11 +10,11 @@ import java.util.Map;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.util.EqlUtils;
 
-public class EsqlBaseBeanMapper {
+public class EqlBaseBeanMapper {
     protected Class<?> mappedClass;
     protected Map<String, PropertyDescriptor> mappedFields;
 
-    public EsqlBaseBeanMapper(Class<?> mappedClass) {
+    public EqlBaseBeanMapper(Class<?> mappedClass) {
         initialize(mappedClass);
     }
 

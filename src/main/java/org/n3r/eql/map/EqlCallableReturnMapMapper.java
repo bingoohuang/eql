@@ -8,7 +8,7 @@ import java.sql.CallableStatement;
 import java.sql.SQLException;
 import java.util.Map;
 
-public class EqlCallableReturnMapMapper implements EsqlCallableReturnMapper {
+public class EqlCallableReturnMapMapper implements EqlCallableReturnMapper {
 
     @Override
     public Object mapResult(EqlRun eqlRun, CallableStatement cs) throws SQLException {

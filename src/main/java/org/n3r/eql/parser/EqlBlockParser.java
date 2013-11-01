@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 public class EqlBlockParser {
-    private List<Eql> eqls = Lists.newArrayList();
+    private List<Sql> sqls = Lists.newArrayList();
 
     public void parse(EqlBlock block, List<String> sqlLines) {
         List<String> oneSqlLines = Lists.newArrayList();
@@ -23,20 +23,20 @@ public class EqlBlockParser {
 
         addSql(oneSqlLines);
 
-        block.setEqls(eqls);
+        block.setSqls(sqls);
         block.setSqlLines(sqlLines);
     }
 
     private void addSql(List<String> oneSqlLines) {
         if (oneSqlLines.size() == 0) return;
 
-        Eql eql = parseSql(oneSqlLines);
-        if (eql != null) eqls.add(eql);
+        Sql sql = parseSql(oneSqlLines);
+        if (sql != null) sqls.add(sql);
         oneSqlLines.clear();
     }
 
 
-    private Eql parseSql(List<String> oneSqlLines) {
+    private Sql parseSql(List<String> oneSqlLines) {
         List<String> stdLines = standardLines(oneSqlLines);
 
         MultiPart multiPart = new MultiPart();
@@ -77,10 +77,10 @@ public class EqlBlockParser {
 
             if (ParserUtils.inlineComment.matcher(sql).matches()) return null;
 
-            return new StaticEql(sql);
+            return new StaticSql(sql);
         }
 
-        return new DynamicEql(multiPart);
+        return new DynamicSql(multiPart);
     }
 
 

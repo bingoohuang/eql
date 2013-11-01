@@ -1,6 +1,7 @@
 package org.n3r.eql;
 
 import com.google.common.collect.Maps;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.sql.Timestamp;
@@ -12,11 +13,14 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class IsEmptyTest {
-    @Test
-    public void test1() {
+    @BeforeClass
+    public static void beforeClass() {
         new Eql().id("dropTestTable").execute();
         new Eql().id("createTestTable").params(new Timestamp(1383122146000l)).execute();
+    }
 
+    @Test
+    public void test1() {
         Map<String, Object> map = Maps.newHashMap();
         map.put("a", "1");
 

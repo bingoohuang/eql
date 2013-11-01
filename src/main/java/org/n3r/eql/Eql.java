@@ -1,6 +1,8 @@
 package org.n3r.eql;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.n3r.eql.config.EqlConfigManager;
 import org.n3r.eql.config.EqlConfigable;
 import org.n3r.eql.ex.EqlExecuteException;
@@ -10,12 +12,14 @@ import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.HostAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.sql.*;
 import java.util.List;
+import java.util.Map;
 
 public class Eql implements Closeable {
     public static final String DEFAULT_CONN_NAME = "DEFAULT";
@@ -36,6 +40,7 @@ public class Eql implements Closeable {
     private int fetchSize;
     private List<EqlRun> eqlRuns;
     private EqlRun currRun;
+    private Map<String, Object> executionContext;
 
     public Connection getConnection() {
         return newTran(connectionNameOrConfigable).getConn();
@@ -45,36 +50,63 @@ public class Eql implements Closeable {
         if (connection != null) return;
 
         connection = internalTran != null ? internalTran.getConn() : externalTran.getConn();
-        dbType = DbTypeFactory.parseDbType(connection);
+        dbType = DbType.parseDbType(connection);
+        executionContext.put("_databaseId", dbType.getDatabaseId());
     }
 
     @SuppressWarnings("unchecked")
     public <T> T execute(String... directSqls) {
         checkPreconditions(directSqls);
 
+        newExecutionContext();
         Object ret = null;
         try {
             if (batch == null) tranStart();
             createConn();
 
-            eqlRuns = eqlBlock.createSqlSubs(params, dynamics, directSqls);
+            eqlRuns = eqlBlock.createEqlRuns(executionContext, params, dynamics, directSqls);
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
                 ret = runEql();
-                eqlRun.setResult(ret);
+                updateLastResultToExecutionContext(ret);
+                currRun.setResult(ret);
             }
 
             if (batch == null) tranCommit();
         } catch (SQLException e) {
             logger.error("sql exception", e);
             if (batch != null) batch.cleanupBatch();
-            throw new EqlExecuteException("exec sql failed[" + currRun.getPrintSql() + "]" + e.getMessage());
+            throw new EqlExecuteException("exec sql failed["
+                    + currRun.getPrintSql() + "]" + e.getMessage());
         } finally {
             resetState();
             close();
         }
 
         return (T) ret;
+    }
+
+    private void updateLastResultToExecutionContext(Object ret) {
+        Object lastResult = ret;
+        if (ret instanceof List) {
+            List list = (List)ret;
+            if (list.size() == 0) lastResult = null;
+            else if (list.size() == 1) lastResult = list.get(0);
+        }
+
+        executionContext.put("_lastResult", lastResult);
+    }
+
+    private void newExecutionContext() {
+        executionContext = Maps.newHashMap();
+        executionContext.put("_time", new Timestamp(System.currentTimeMillis()));
+        executionContext.put("_date", new java.util.Date());
+        executionContext.put("_host", HostAddress.getHost());
+        executionContext.put("_ip", HostAddress.getIp());
+        executionContext.put("_results", Lists.newArrayList());
+        executionContext.put("_lastResult", "");
+        executionContext.put("_params", params);
+        executionContext.put("_dynamics", dynamics);
     }
 
     public List<EqlRun> getEqlRuns() {
@@ -95,7 +127,7 @@ public class Eql implements Closeable {
         tranStart();
         createConn();
 
-        List<EqlRun> sqlSubs = eqlBlock.createSqlSubs(params, dynamics);
+        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(executionContext, params, dynamics);
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one select sql supported in this method");
 
@@ -119,7 +151,7 @@ public class Eql implements Closeable {
         tranStart();
         createConn();
 
-        List<EqlRun> sqlSubs = eqlBlock.createSqlSubs(params, dynamics);
+        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(executionContext, params, dynamics);
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one update sql supported in this method");
 
@@ -241,7 +273,7 @@ public class Eql implements Closeable {
         PreparedStatement ps = null;
         try {
             ps = prepareSql();
-            new EqlParamsBinder().bindParams(ps, currRun, params, logger);
+            new EqlParamsBinder().bindParams(ps, currRun, logger);
 
             if (currRun.getSqlType() == EqlRun.EqlType.SELECT) {
                 rs = ps.executeQuery();

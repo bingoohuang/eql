@@ -205,7 +205,8 @@ public class EqlParamsParser {
                     && paramPlaceholder.getInOut() != inOut) {
                 if (placeHolderInType != PlaceholderType.UNSET)
                     throw new EqlConfigException("["
-                            + (eqlBlock != null ? eqlBlock.getSqlId() : templateSql) + "]中定义的SQL绑定参数设置类型不一致");
+                            + (eqlBlock != null ? eqlBlock.getSqlId() : templateSql)
+                            + "] with different param binding types");
 
                 placeHolderInType = paramPlaceholder.getPlaceholderType();
             }
@@ -213,7 +214,7 @@ public class EqlParamsParser {
         if (placeHolderInType == PlaceholderType.MANU_SEQ
                 && eqlRun.getSqlType() == EqlRun.EqlType.CALL)
             throw new EqlConfigException("["
-                    + (eqlBlock != null ? eqlBlock.getSqlId() : templateSql) + "]是存储过程，不支持手工设定参数顺序");
+                    + (eqlBlock != null ? eqlBlock.getSqlId() : templateSql) + "] is a procedure without manually bind seq support");
 
         return placeHolderInType;
     }

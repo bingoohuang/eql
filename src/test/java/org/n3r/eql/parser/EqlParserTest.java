@@ -1,5 +1,6 @@
 package org.n3r.eql.parser;
 
+import com.google.common.collect.Maps;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class EqlParserTest {
                 "-- include commondCondition");
 
         EqlBlock eqlBlock = map.get("lookup");
-        assertThat(((StaticEql) eqlBlock.getEqls().get(0)).getSql(), is("select 1\nA == #a#\n"));
+        assertThat(((StaticSql) eqlBlock.getSqls().get(0)).getSql(), is("select 1\nA == #a#\n"));
     }
 
     @Test
@@ -48,14 +49,15 @@ public class EqlParserTest {
 
         EqlBlock eqlBlock = blocks.get(0);
         assertThat(eqlBlock.getSqlId(), is("selectIf2"));
-        List<Eql> eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(1));
-        assertThat(eqls.get(0) instanceof DynamicEql, is(true));
+        List<Sql> sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(1));
+        assertThat(sqls.get(0) instanceof DynamicSql, is(true));
 
-        DynamicEql dynamicSql = (DynamicEql) eqls.get(0);
+        DynamicSql dynamicSql = (DynamicSql) sqls.get(0);
         assertThat(dynamicSql.getParts().size(), is(2));
         EqlPart eqlPart = dynamicSql.getParts().part(0);
-        assertThat(eqlPart.evalSql(null), is("SELECT A,B,C,D,E\nFROM ESQL_TEST\nWHERE A = #a#\nAND\n"));
+        Map<String, Object> context = Maps.newHashMap();
+        assertThat(eqlPart.evalSql(null, context), is("SELECT A,B,C,D,E\nFROM ESQL_TEST\nWHERE A = #a#\nAND\n"));
 
         IfPart ifPart = (IfPart) dynamicSql.getParts().part(1);
         System.out.println(ifPart);
@@ -73,11 +75,11 @@ public class EqlParserTest {
 
         EqlBlock eqlBlock = blocks.get(0);
         assertThat(eqlBlock.getSqlId(), is("queryBlog"));
-        List<Eql> eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(1));
-        assertThat(eqls.get(0) instanceof StaticEql, is(true));
+        List<Sql> sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(1));
+        assertThat(sqls.get(0) instanceof StaticSql, is(true));
 
-        StaticEql staticSql = (StaticEql) eqls.get(0);
+        StaticSql staticSql = (StaticSql) sqls.get(0);
         assertThat(staticSql.getSql(), is("SELECT * FROM BLOG\n"));
     }
 
@@ -94,14 +96,14 @@ public class EqlParserTest {
 
         EqlBlock eqlBlock = blocks.get(0);
         assertThat(eqlBlock.getSqlId(), is("queryBlog"));
-        List<Eql> eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(2));
-        assertThat(eqls.get(0) instanceof StaticEql, is(true));
-        assertThat(eqls.get(1) instanceof StaticEql, is(true));
+        List<Sql> sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(2));
+        assertThat(sqls.get(0) instanceof StaticSql, is(true));
+        assertThat(sqls.get(1) instanceof StaticSql, is(true));
 
-        StaticEql staticSql1 = (StaticEql) eqls.get(0);
+        StaticSql staticSql1 = (StaticSql) sqls.get(0);
         assertThat(staticSql1.getSql(), is("SELECT * FROM BLOG1\n"));
-        StaticEql staticSql2 = (StaticEql) eqls.get(1);
+        StaticSql staticSql2 = (StaticSql) sqls.get(1);
         assertThat(staticSql2.getSql(), is("SELECT * FROM BLOG2\n"));
     }
 
@@ -116,20 +118,20 @@ public class EqlParserTest {
         );
 
         EqlBlock eqlBlock = map.get("queryBlog1");
-        List<Eql> eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(1));
-        assertThat(eqls.get(0) instanceof StaticEql, is(true));
+        List<Sql> sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(1));
+        assertThat(sqls.get(0) instanceof StaticSql, is(true));
 
-        StaticEql staticSql = (StaticEql) eqls.get(0);
+        StaticSql staticSql = (StaticSql) sqls.get(0);
         assertThat(staticSql.getSql(), is("SELECT * FROM BLOG\n"));
 
         eqlBlock = map.get("queryBlog2");
         assertThat(eqlBlock.getSqlId(), is("queryBlog2"));
-        eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(1));
-        assertThat(eqls.get(0) instanceof StaticEql, is(true));
+        sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(1));
+        assertThat(sqls.get(0) instanceof StaticSql, is(true));
 
-        staticSql = (StaticEql) eqls.get(0);
+        staticSql = (StaticSql) sqls.get(0);
         assertThat(staticSql.getSql(), is("SELECT * FROM BLOG\n"));
     }
 
@@ -150,11 +152,11 @@ public class EqlParserTest {
 
         EqlBlock eqlBlock = blocks.get(0);
         assertThat(eqlBlock.getSqlId(), is("queryBlog"));
-        List<Eql> eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(1));
-        assertThat(eqls.get(0) instanceof DynamicEql, is(true));
+        List<Sql> sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(1));
+        assertThat(sqls.get(0) instanceof DynamicSql, is(true));
 
-        DynamicEql dynamicSql = (DynamicEql) eqls.get(0);
+        DynamicSql dynamicSql = (DynamicSql) sqls.get(0);
         MultiPart sqlParts = dynamicSql.getParts();
         assertThat(sqlParts.size(), is(2));
 
@@ -207,11 +209,11 @@ public class EqlParserTest {
 
         EqlBlock eqlBlock = blocks.get(0);
         assertThat(eqlBlock.getSqlId(), is("queryBlog"));
-        List<Eql> eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(1));
-        assertThat(eqls.get(0) instanceof DynamicEql, is(true));
+        List<Sql> sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(1));
+        assertThat(sqls.get(0) instanceof DynamicSql, is(true));
 
-        DynamicEql dynamicSql = (DynamicEql) eqls.get(0);
+        DynamicSql dynamicSql = (DynamicSql) sqls.get(0);
         MultiPart sqlParts = dynamicSql.getParts();
         assertThat(sqlParts.size(), is(2));
 
@@ -234,11 +236,11 @@ public class EqlParserTest {
 
         EqlBlock eqlBlock = blocks.get(0);
         assertThat(eqlBlock.getSqlId(), is("queryBlog"));
-        List<Eql> eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(1));
-        assertThat(eqls.get(0) instanceof DynamicEql, is(true));
+        List<Sql> sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(1));
+        assertThat(sqls.get(0) instanceof DynamicSql, is(true));
 
-        DynamicEql dynamicSql = (DynamicEql) eqls.get(0);
+        DynamicSql dynamicSql = (DynamicSql) sqls.get(0);
         MultiPart sqlParts = dynamicSql.getParts();
         assertThat(sqlParts.size(), is(2));
 
@@ -294,11 +296,11 @@ public class EqlParserTest {
 
         EqlBlock eqlBlock = blocks.get(0);
         assertThat(eqlBlock.getSqlId(), is("queryBlog"));
-        List<Eql> eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(1));
-        assertThat(eqls.get(0) instanceof DynamicEql, is(true));
+        List<Sql> sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(1));
+        assertThat(sqls.get(0) instanceof DynamicSql, is(true));
 
-        DynamicEql dynamicSql = (DynamicEql) eqls.get(0);
+        DynamicSql dynamicSql = (DynamicSql) sqls.get(0);
         MultiPart sqlParts = dynamicSql.getParts();
         assertThat(sqlParts.size(), is(2));
 
@@ -327,11 +329,11 @@ public class EqlParserTest {
 
         EqlBlock eqlBlock = blocks.get(0);
         assertThat(eqlBlock.getSqlId(), is("queryBlog"));
-        List<Eql> eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(1));
-        assertThat(eqls.get(0) instanceof DynamicEql, is(true));
+        List<Sql> sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(1));
+        assertThat(sqls.get(0) instanceof DynamicSql, is(true));
 
-        DynamicEql dynamicSql = (DynamicEql) eqls.get(0);
+        DynamicSql dynamicSql = (DynamicSql) sqls.get(0);
         MultiPart sqlParts = dynamicSql.getParts();
         assertThat(sqlParts.size(), is(2));
 
@@ -370,11 +372,11 @@ public class EqlParserTest {
 
         EqlBlock eqlBlock = blocks.get(0);
         assertThat(eqlBlock.getSqlId(), is("queryBlog"));
-        List<Eql> eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(1));
-        assertThat(eqls.get(0) instanceof DynamicEql, is(true));
+        List<Sql> sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(1));
+        assertThat(sqls.get(0) instanceof DynamicSql, is(true));
 
-        DynamicEql dynamicSql = (DynamicEql) eqls.get(0);
+        DynamicSql dynamicSql = (DynamicSql) sqls.get(0);
         MultiPart sqlParts = dynamicSql.getParts();
         assertThat(sqlParts.size(), is(2));
 
@@ -411,11 +413,11 @@ public class EqlParserTest {
 
         EqlBlock eqlBlock = blocks.get(0);
         assertThat(eqlBlock.getSqlId(), is("queryBlog"));
-        List<Eql> eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(1));
-        assertThat(eqls.get(0) instanceof DynamicEql, is(true));
+        List<Sql> sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(1));
+        assertThat(sqls.get(0) instanceof DynamicSql, is(true));
 
-        DynamicEql dynamicSql = (DynamicEql) eqls.get(0);
+        DynamicSql dynamicSql = (DynamicSql) sqls.get(0);
         MultiPart sqlParts = dynamicSql.getParts();
         assertThat(sqlParts.size(), is(2));
 
@@ -473,11 +475,11 @@ public class EqlParserTest {
 
         EqlBlock eqlBlock = blocks.get(0);
         assertThat(eqlBlock.getSqlId(), is("queryBlog"));
-        List<Eql> eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(1));
-        assertThat(eqls.get(0) instanceof DynamicEql, is(true));
+        List<Sql> sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(1));
+        assertThat(sqls.get(0) instanceof DynamicSql, is(true));
 
-        DynamicEql dynamicSql = (DynamicEql) eqls.get(0);
+        DynamicSql dynamicSql = (DynamicSql) sqls.get(0);
         MultiPart sqlParts = dynamicSql.getParts();
         assertThat(sqlParts.size(), is(2));
 
@@ -519,11 +521,11 @@ public class EqlParserTest {
 
         EqlBlock eqlBlock = blocks.get(0);
         assertThat(eqlBlock.getSqlId(), is("queryBlog"));
-        List<Eql> eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(1));
-        assertThat(eqls.get(0) instanceof DynamicEql, is(true));
+        List<Sql> sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(1));
+        assertThat(sqls.get(0) instanceof DynamicSql, is(true));
 
-        DynamicEql dynamicSql = (DynamicEql) eqls.get(0);
+        DynamicSql dynamicSql = (DynamicSql) sqls.get(0);
         MultiPart sqlParts = dynamicSql.getParts();
         assertThat(sqlParts.size(), is(2));
 
@@ -564,11 +566,11 @@ public class EqlParserTest {
 
         EqlBlock eqlBlock = blocks.get(0);
         assertThat(eqlBlock.getSqlId(), is("queryBlog"));
-        List<Eql> eqls = eqlBlock.getEqls();
-        assertThat(eqls.size(), is(1));
-        assertThat(eqls.get(0) instanceof DynamicEql, is(true));
+        List<Sql> sqls = eqlBlock.getSqls();
+        assertThat(sqls.size(), is(1));
+        assertThat(sqls.get(0) instanceof DynamicSql, is(true));
 
-        DynamicEql dynamicSql = (DynamicEql) eqls.get(0);
+        DynamicSql dynamicSql = (DynamicSql) sqls.get(0);
         MultiPart sqlParts = dynamicSql.getParts();
         assertThat(sqlParts.size(), is(2));
 

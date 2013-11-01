@@ -4,8 +4,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.n3r.eql.Eql;
 import org.n3r.eql.ex.EqlExecuteException;
-import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.util.EqlUtils;
 
 import java.sql.PreparedStatement;
@@ -43,7 +43,7 @@ public class EqlBatch {
             batchedMap.put(realSql, ps);
             batchedPs.add(ps);
         }
-        new EqlParamsBinder().bindParams(ps, eqlRun, eql.getParams(), eql.getLogger());
+        new EqlParamsBinder().bindParams(ps, eqlRun, eql.getLogger());
         ps.addBatch();
         //        ++currentBatches;
         return /*maxBatches > 0 && currentBatches >= maxBatches ? executeBatch() :*/0;

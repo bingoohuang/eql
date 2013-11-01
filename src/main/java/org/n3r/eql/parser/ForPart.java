@@ -1,10 +1,10 @@
 package org.n3r.eql.parser;
 
-import com.google.common.collect.Maps;
 import ognl.Ognl;
 import ognl.OgnlException;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,11 +36,11 @@ public class ForPart implements EqlPart {
     private static Pattern PARAM_PATTERN = Pattern.compile("#\\s*(.+?)\\s*#");
 
     @Override
-    public String evalSql(Object bean) {
+    public String evalSql(Object bean, Map<String, Object> executionContext) {
         StringBuilder str = new StringBuilder(open);
         String sql = part.getSql();
 
-        Map<Object, Object> context = Maps.newHashMap();
+        Map<Object, Object> context = new HashMap<Object, Object>(executionContext);
 
         Collection<?> items = evalCollection(bean);
         int i = -1;

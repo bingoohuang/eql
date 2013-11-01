@@ -5,6 +5,7 @@ import ognl.NoSuchPropertyException;
 import ognl.Ognl;
 
 import java.util.List;
+import java.util.Map;
 
 public class SwitchPart implements EqlPart {
     private final String condition;
@@ -20,23 +21,23 @@ public class SwitchPart implements EqlPart {
     }
 
     @Override
-    public String evalSql(Object bean) {
-        Object target = eval(bean, condition);
+    public String evalSql(Object bean, Map<String, Object> executionContext) {
+        Object target = eval(bean, condition, executionContext);
         if (target == null) return "";
         String strTarget = target.toString();
 
         for (IfCondition ifCondition : cases) {
             if ("".equals(ifCondition.getExpr())
                     || Objects.equal(strTarget, ifCondition.getExpr()))
-                return ifCondition.getValue().evalSql(bean);
+                return ifCondition.getValue().evalSql(bean, executionContext);
         }
 
         return "";
     }
 
-    public static Object eval(Object bean, String expr) {
+    public static Object eval(Object bean, String expr, Map<String, Object> executionContext) {
         try {
-            return Ognl.getValue(expr, bean);
+            return Ognl.getValue(expr, executionContext, bean);
         } catch (NoSuchPropertyException ex) {
             return null;
         } catch (Exception e) {

@@ -5,6 +5,8 @@ import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.PlaceholderType;
 import org.n3r.eql.parser.EqlBlock;
 
+import java.util.Map;
+
 public class EqlRun implements Cloneable {
     public static enum EqlType {
         SELECT, UPDATE, INSERT, MERGE, DELETE,
@@ -27,6 +29,11 @@ public class EqlRun implements Cloneable {
     private EqlDynamic eqlDynamic;
     private int outCount;
 
+    private Map<String, Object> executionContext;
+    private Object[] params;
+    private Object[] dynamics;
+    private Object paramBean;
+
     @Override
     public EqlRun clone() {
         try {
@@ -34,6 +41,39 @@ public class EqlRun implements Cloneable {
         } catch (CloneNotSupportedException e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    public void setParamBean(Object paramBean) {
+        this.paramBean = paramBean;
+    }
+
+    public Object getParamBean() {
+        return paramBean;
+    }
+
+    public void setDynamics(Object[] dynamics) {
+        this.dynamics = dynamics;
+    }
+
+    public Object[] getDynamics() {
+        return dynamics;
+    }
+
+
+    public void setExecutionContext(Map<String, Object> executionContext) {
+        this.executionContext = executionContext;
+    }
+
+    public Map<String, Object> getExecutionContext() {
+        return executionContext;
+    }
+
+    public void setParams(Object[] params) {
+        this.params = params;
+    }
+
+    public Object[] getParams() {
+        return params;
     }
 
     public void setResult(Object result) {

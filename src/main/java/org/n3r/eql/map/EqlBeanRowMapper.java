@@ -8,8 +8,8 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-public class EsqlBeanRowMapper extends EsqlBaseBeanMapper implements EqlRowMapper {
-    public EsqlBeanRowMapper(Class<?> mappedClass) {
+public class EqlBeanRowMapper extends EqlBaseBeanMapper implements EqlRowMapper {
+    public EqlBeanRowMapper(Class<?> mappedClass) {
         super(mappedClass);
     }
 

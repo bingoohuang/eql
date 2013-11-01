@@ -65,15 +65,15 @@ public class EqlRsRetriever {
         if (returnType != null && EqlRowMapper.class.isAssignableFrom(returnType))
             return Reflect.on(returnType).create().get();
 
-        if (returnType != null) return new EsqlBeanRowMapper(returnType);
+        if (returnType != null) return new EqlBeanRowMapper(returnType);
 
-        return metaData.getColumnCount() > 1 ? new EqlMapMapper() : new SingleValueMapper();
+        return metaData.getColumnCount() > 1 ? new EqlMapMapper() : new EqlSingleValueMapper();
     }
 
-    public EsqlCallableReturnMapper getCallableReturnMapper() {
+    public EqlCallableReturnMapper getCallableReturnMapper() {
         if (returnType == null && eqlBlock != null) returnType = eqlBlock.getReturnType();
 
-        if (returnType != null && EsqlCallableReturnMapper.class.isAssignableFrom(returnType))
+        if (returnType != null && EqlCallableReturnMapper.class.isAssignableFrom(returnType))
             return Reflect.on(returnType).create().get();
 
         if (returnType != null) return new EqlCallableResultBeanMapper(returnType);

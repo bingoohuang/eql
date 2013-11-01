@@ -4,7 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PartParserFactory {
-    static Pattern pattern = Pattern.compile("(\\w+)\\b(.*)");
+    static Pattern pattern = Pattern.compile("(\\w+)\\b(.+)");
 
     public static PartParser tryParse(String clearLine) {
         Matcher matcher = pattern.matcher(clearLine);

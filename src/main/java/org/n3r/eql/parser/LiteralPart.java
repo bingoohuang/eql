@@ -1,5 +1,7 @@
 package org.n3r.eql.parser;
 
+import java.util.Map;
+
 public class LiteralPart implements EqlPart {
     private String sql;
 
@@ -27,7 +29,7 @@ public class LiteralPart implements EqlPart {
     }
 
     @Override
-    public String evalSql(Object bean) {
+    public String evalSql(Object bean, Map<String, Object> executionContext) {
         return sql;
     }
 }

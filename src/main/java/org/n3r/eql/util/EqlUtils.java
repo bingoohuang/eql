@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
 import com.google.common.primitives.Primitives;
 import ognl.Ognl;
@@ -144,6 +145,10 @@ public class EqlUtils {
         return value;
     }
 
+    public static String bytesToStr(byte[] bytes) {
+        return new String(bytes, Charsets.UTF_8);
+    }
+
 
     public static boolean isUpdateStmt(EqlRun sqlSub) {
         switch (sqlSub.getSqlType()) {
@@ -201,26 +206,20 @@ public class EqlUtils {
     }
 
 
-    public static Object compositeParams(Object[] params) {
+    public static Object createSingleBean(Object[] params) {
         if (params == null || params.length == 0) return new Object();
 
-        if (params.length > 1) {
-            Map<String, Object> root = new HashMap<String, Object>(params.length);
-            for (int i = 1, ii = params.length; i <= ii; ++i)
-                root.put("_" + i, params[i - 1]);
-
-            return root;
-        }
-
-        Map<String, Object> root = new HashMap<String, Object>(1);
+        if (params.length > 1) return ImmutableMap.of("_params", params);
 
         // 只剩下length == 1的情况
         Object param = params[0];
-        root.put("_1", param);
-        if (param == null || param.getClass().isPrimitive()
-                || Primitives.isWrapperType(param.getClass()) || param instanceof String
-                || param.getClass().isArray() || param instanceof List) {
-            return root;
+        if (param == null
+                || param.getClass().isPrimitive()
+                || Primitives.isWrapperType(param.getClass())
+                || param instanceof String
+                || param.getClass().isArray()
+                || param instanceof List) {
+            return ImmutableMap.of("_params", params);
         }
 
         return param;
@@ -336,11 +335,6 @@ public class EqlUtils {
         return Thread.currentThread().getContextClassLoader();
     }
 
-    public static String toStr(Object obj) {
-        return isNotEmpty(obj) ? obj.toString() : "";
-    }
-
-
     public static boolean isNotNull(Object obj) {
         return obj != null;
     }
@@ -349,13 +343,6 @@ public class EqlUtils {
         return isNotNull(obj) ? !obj.toString().equals("") : false;
     }
 
-    public static String bytesToStr(byte[] bytes) {
-        return new String(bytes, Charsets.UTF_8);
-    }
-
-    public static boolean isQuoted(String str, String leftQuote, String rightQuote) {
-        return startsWith(str, leftQuote) && endsWith(str, rightQuote);
-    }
 
     private static boolean startsWith(String str, String start) {
         return str != null ? str.startsWith(start) : false;
@@ -367,28 +354,6 @@ public class EqlUtils {
             if (Character.isWhitespace(cs.charAt(i))) return i;
 
         return -1;
-    }
-
-    public static List<String> toLines(String resClasspath) {
-        return toLines(resClasspath, Charsets.UTF_8);
-    }
-
-    public static List<String> toLines(String resClasspath, Charset charset) {
-        InputStream is = toInputStream(resClasspath);
-        try {
-            return CharStreams.readLines(new InputStreamReader(is, charset));
-        } catch (IOException e) {
-            throw Throwables.propagate(e);
-        } finally {
-            EqlUtils.closeQuietly(is);
-        }
-    }
-
-    public static InputStream toInputStream(String resClasspath) {
-        InputStream res = EqlUtils.class.getResourceAsStream(resClasspath);
-        if (res == null) throw new RuntimeException(resClasspath + " does not exist");
-
-        return res;
     }
 
     /**
@@ -500,32 +465,6 @@ public class EqlUtils {
         return s1 != null ? s1.equalsIgnoreCase(s2) : s2 == null;
     }
 
-    public static String substringBetween(String str, String start, String end) {
-        if (str == null) return null;
-        int startIndex = str.indexOf(start);
-        if (startIndex < 0) return "";
-
-        int fromIndex = startIndex + start.length();
-        if (fromIndex >= str.length()) return "";
-
-        int endIndex = str.indexOf(end, fromIndex);
-        if (endIndex < 0) return "";
-
-        return str.substring(fromIndex, endIndex);
-    }
-
-    public static String substringAfterLast(String str, String sep) {
-        if (str == null) return null;
-
-        int lastIndex = str.lastIndexOf(sep);
-        if (lastIndex < 0) return "";
-
-        int fromIndex = lastIndex + sep.length();
-        if (fromIndex >= str.length()) return "";
-
-        return str.substring(fromIndex);
-    }
-
     public static boolean containsIgnoreCase(String string, String value) {
         return string == null ? false : string.toUpperCase().contains(value.toLowerCase());
     }
@@ -550,13 +489,6 @@ public class EqlUtils {
         }
     }
 
-    public static String substringBetween(String string, int startIndex) {
-        if (string == null) return null;
-        if (startIndex < 0 || startIndex >= string.length()) return "";
-
-        return string.substring(startIndex);
-    }
-
 
     public static String cleanQuote(String option) {
         if (option == null) return "";
@@ -566,5 +498,20 @@ public class EqlUtils {
         if (option.endsWith("\"")) ret = ret.substring(0, ret.length() - 1);
 
         return ret;
+    }
+
+    public static void closeQuietly(Statement cs, Connection connection) {
+        closeQuietly(cs);
+        closeQuietly(connection);
+    }
+
+    public static void closeQuietly(Connection connection) {
+        if (connection == null) return;
+
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            // Ignore
+        }
     }
 }

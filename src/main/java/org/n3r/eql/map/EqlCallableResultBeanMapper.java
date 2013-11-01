@@ -7,7 +7,7 @@ import java.beans.PropertyDescriptor;
 import java.sql.CallableStatement;
 import java.sql.SQLException;
 
-public class EqlCallableResultBeanMapper extends EsqlBaseBeanMapper implements EsqlCallableReturnMapper {
+public class EqlCallableResultBeanMapper extends EqlBaseBeanMapper implements EqlCallableReturnMapper {
 
     public EqlCallableResultBeanMapper(Class<?> mappedClass) {
         super(mappedClass);

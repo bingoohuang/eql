@@ -1,0 +1,123 @@
+
+-- [createSpEsql split=/]
+CREATE OR REPLACE PROCEDURE SP_ESQL(A VARCHAR, B OUT VARCHAR) IS
+BEGIN
+  B := 'HELLO ' || A;
+END;
+
+-- [callSpEsql]
+{call SP_ESQL(##, #:OUT#)}
+
+-- [createSpEsql2 split=/]
+CREATE OR REPLACE PROCEDURE SP_ESQL2(A VARCHAR, B OUT VARCHAR, C OUT VARCHAR) IS
+BEGIN
+  B := 'HELLO ' || A;
+  C := 'WORLD ' || A;
+END;
+
+-- [callSpEsql2]
+{call SP_ESQL2(##, #:OUT#, #:OUT#)}
+
+-- [callSpEsql3]
+{call SP_ESQL2(##, #a:OUT#, #b:OUT#)}
+
+-- [callSpEsql4 returnType=org.n3r.eql.OracleSpTest$Ab]
+{call SP_ESQL2(##, #a:OUT#, #b:OUT#)}
+
+-- [createSpNoOut split=/]
+CREATE OR REPLACE PROCEDURE SP_ESQL_NOOUT(A VARCHAR) IS
+BEGIN
+    NULL;
+END;
+
+
+-- [createSpEsql12 split=/]
+CREATE OR REPLACE PROCEDURE SP_ESQL12( B OUT VARCHAR, C OUT VARCHAR) IS
+BEGIN
+  B := 'HELLO';
+  C := 'WORLD';
+END;
+
+-- [callSpEsql12]
+{call SP_ESQL12( #:OUT#, #:OUT#)}
+
+-- [createSpEsqlInOut split=/]
+CREATE OR REPLACE PROCEDURE SP_ESQLInOut( B IN OUT VARCHAR, C IN OUT VARCHAR) IS
+BEGIN
+  B := 'HELLO' || B;
+  C := 'WORLD' || C;
+END;
+
+-- [callSpEsqlInOut]
+{call SP_ESQLInOut( #:INOUT#, #:INOUT#)}
+
+-- [createSpEsqlNULL split=/]
+CREATE OR REPLACE PROCEDURE SP_ESQLNULL( B OUT VARCHAR, C OUT VARCHAR) IS
+BEGIN
+  B := NULL;
+END;
+
+-- [callSpEsqlNULL]
+{call SP_ESQLNULL( #:OUT#, #:OUT#)}
+
+
+-- [prepareTable4MyProcedure onerr=resume]
+DROP TABLE XYZ;
+CREATE TABLE XYZ (A VARCHAR2(10), B VARCHAR2(100), C INT);
+INSERT INTO XYZ VALUES('1', 'AAAA', 0);
+INSERT INTO XYZ VALUES('2', 'BBBB', 0);
+INSERT INTO XYZ VALUES('3', 'CCCC', 0);
+INSERT INTO XYZ VALUES('4', 'DDDD', 0);
+INSERT INTO XYZ VALUES('5', 'EEEE', 0);
+INSERT INTO XYZ VALUES('6', 'FFFF', 0);
+INSERT INTO XYZ VALUES('7', 'GGGG', 0);
+INSERT INTO XYZ VALUES('8', 'HHHH', 0);
+INSERT INTO XYZ VALUES('9', 'GGGG', 0);
+
+-- [testSelectAs]
+SELECT A seq, B remark, C state
+FROM XYZ
+WHERE A = ##
+
+-- [myprocedure]
+{CALL UPDATE XYZ SET C=1 WHERE ROWID IN (
+        SELECT R FROM (
+            SELECT ROWID R FROM XYZ WHERE C <> 1 ORDER BY DBMS_RANDOM.VALUE
+        ) WHERE ROWNUM < 2
+    )
+    RETURNING A INTO #:OUT# }
+
+-- [myprocedure2]
+{CALL  UPDATE XYZ SET C=1 WHERE ROWID IN (
+        SELECT R FROM (
+            SELECT ROWID R FROM XYZ WHERE C <> ## ORDER BY DBMS_RANDOM.VALUE
+        ) WHERE ROWNUM < 2
+    )
+    RETURNING A,B INTO #:OUT#, #:OUT# }
+
+-- [callPLSQL split=/]
+DECLARE
+    V_ROWID VARCHAR2(20);
+BEGIN
+    UPDATE XYZ SET C=1 WHERE ROWID IN (
+        SELECT R FROM (
+            SELECT ROWID R FROM XYZ WHERE C <> ## ORDER BY DBMS_RANDOM.VALUE
+        ) WHERE ROWNUM < 2
+    )
+    RETURNING A INTO V_ROWID;
+
+    INSERT INTO XYZ VALUES('1000', V_ROWID, 0);
+    #:OUT# := V_ROWID;
+END;
+
+-- [BULKCOLLECT split=/]
+BEGIN
+    UPDATE t1
+    SET t1.description = 'a' || t1.description
+    WHERE rowid IN (SELECT RN FROM (
+                        SELECT ROWID RN, description FROM T1
+                        ORDER BY id
+                   ) WHERE ROWNUM <= 100)
+    RETURNING t1.rowid, t1.id, t1.description
+    BULK COLLECT INTO #rowid:OUT#, #id:OUT#, #desc:OUT#;
+END;

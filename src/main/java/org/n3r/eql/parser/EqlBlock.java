@@ -20,7 +20,7 @@ public class EqlBlock {
     private String onerr;
     private String split;
 
-    private List<Eql> eqls = Lists.newArrayList();
+    private List<Sql> sqls = Lists.newArrayList();
     private Collection<String> sqlLines;
 
 
@@ -45,32 +45,30 @@ public class EqlBlock {
         return sqlId;
     }
 
-    public List<Eql> getEqls() {
-        return eqls;
+    public List<Sql> getSqls() {
+        return sqls;
     }
 
-
-    public List<EqlRun> createSqlSubs(Object[] params, Object[] dynamics, String... directSqls) {
+    public List<EqlRun> createEqlRuns(Map<String, Object> executionContext, Object[] params, Object[] dynamics, String[] directSqls) {
         return directSqls.length == 0
-                ? createSqlSubs(params, dynamics)
-                : createSqlSubsByDirectSqls(dynamics, directSqls);
+                ? createEqlRunsByEqls(executionContext, params, dynamics)
+                : createSqlSubsByDirectSqls(executionContext, params, dynamics, directSqls);
     }
 
-    public List<EqlRun> createSqlSubs(Object[] params, Object[] dynamics) {
-        Object bean = EqlUtils.compositeParams(params);
+    public List<EqlRun> createEqlRunsByEqls(Map<String, Object> executionContext, Object[] params, Object[] dynamics) {
+        Object paramBean = EqlUtils.createSingleBean(params);
 
         List<EqlRun> eqlRuns = Lists.newArrayList();
         EqlRun lastSelectSql = null;
-        for (Eql eql : eqls) {
-            String sqlStr = eql.evalSql(bean);
+        for (Sql sql : sqls) {
+            String sqlStr = sql.evalSql(paramBean, executionContext);
             sqlStr = EqlUtils.autoTrimLastUnusedPart(sqlStr);
 
             if (Strings.isNullOrEmpty(sqlStr)) continue;
 
-            EqlRun eqlRun = new EqlParamsParser().parseParams(sqlStr, this);
-            eqlRuns.add(eqlRun);
+            EqlRun eqlRun = addEqlRun(executionContext, params, dynamics,
+                    paramBean, eqlRuns, sqlStr, this);
 
-            createRunSql(eqlRun, dynamics);
             if (eqlRun.getSqlType() == EqlRun.EqlType.SELECT) lastSelectSql = eqlRun;
         }
 
@@ -79,19 +77,35 @@ public class EqlBlock {
         return eqlRuns;
     }
 
+    private EqlRun addEqlRun(Map<String, Object> executionContext,
+                             Object[] params, Object[] dynamics, Object paramBean,
+                             List<EqlRun> eqlRuns, String sqlStr, EqlBlock eqlBlock) {
+        EqlRun eqlRun = new EqlParamsParser().parseParams(sqlStr, eqlBlock);
+        eqlRuns.add(eqlRun);
+
+        eqlRun.setExecutionContext(executionContext);
+        eqlRun.setParams(params);
+        eqlRun.setDynamics(dynamics);
+        eqlRun.setParamBean(paramBean);
+
+        createRunSql(eqlRun, dynamics);
+        return eqlRun;
+    }
+
     private void createRunSql(EqlRun eqlRun, Object[] dynamics) {
         new DynamicReplacer().replaceDynamics(eqlRun, dynamics);
 
         eqlRun.createPrintSql();
     }
 
-    public List<EqlRun> createSqlSubsByDirectSqls(Object[] dynamics, String[] sqls) {
+    public List<EqlRun> createSqlSubsByDirectSqls(Map<String, Object> executionContext, Object[] params, Object[] dynamics, String[] sqls) {
+        Object paramBean = EqlUtils.createSingleBean(params);
+
         List<EqlRun> eqlRuns = Lists.newArrayList();
         EqlRun lastSelectSql = null;
         for (String sql : sqls) {
-            EqlRun eqlRun = new EqlParamsParser().parseParams(sql, null);
-            eqlRuns.add(eqlRun);
-            createRunSql(eqlRun, dynamics);
+            EqlRun eqlRun = addEqlRun(executionContext, params, dynamics,
+                    paramBean, eqlRuns, sql, null);
 
             if (eqlRun.getSqlType() == EqlRun.EqlType.SELECT) lastSelectSql = eqlRun;
         }
@@ -113,8 +127,8 @@ public class EqlBlock {
         return options;
     }
 
-    public void setEqls(List<Eql> eqls) {
-        this.eqls = eqls;
+    public void setSqls(List<Sql> sqls) {
+        this.sqls = sqls;
     }
 
     public Collection<? extends String> getSqlLines() {

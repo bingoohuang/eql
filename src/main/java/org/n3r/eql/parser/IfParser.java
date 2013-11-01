@@ -1,5 +1,6 @@
 package org.n3r.eql.parser;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 import java.util.List;
@@ -74,9 +75,6 @@ public class IfParser implements PartParser {
                 lastPart = partParser.createPart();
                 multiPart.addPart(lastPart);
                 lastPart = null;
-                // newCondition();
-            } else if (lastPart instanceof LiteralPart) {
-                ((LiteralPart) lastPart).appendComment(line);
             }
         }
 
@@ -84,7 +82,7 @@ public class IfParser implements PartParser {
     }
 
     private void newCondition() {
-        if (lastCondExpr == null || multiPart.size() == 0) return;
+        if (Strings.isNullOrEmpty(lastCondExpr) || multiPart.size() == 0) return;
 
         conditions.add(new IfCondition(lastCondExpr, multiPart));
         lastCondExpr = null;
