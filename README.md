@@ -120,4 +120,34 @@ where 'x' = #2#
 and 'y' = #1#
 ```
 
+#With parameters by properties name
 
+* example 1
+
+```java
+String x = new Eql().selectFirst("bean")
+       .params(new XyBean("x", "y"))
+       .execute();
+```
+
+```sql
+-- [bean]
+select 'X' from dual
+where 'x' = #x#
+and 'y' = #y#
+```
+
+* example 2
+
+```java
+String x = new Eql().selectFirst("map")
+        .params(mapOf("x", "a", "y", "b"))
+        .execute();
+```
+
+```sql
+-- [map]
+select 'X' from dual
+where 'a' = #x#
+and 'b' = #y#
+```
