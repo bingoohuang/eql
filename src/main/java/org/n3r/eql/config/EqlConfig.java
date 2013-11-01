@@ -16,7 +16,7 @@ public class EqlConfig {
         return EqlConfig.class.getClassLoader().getResourceAsStream(resourceName);
     }
 
-    public static Configable parseConfig(String key) {
+    public static EqlConfigable parseConfig(String key) {
         String configFile = "eql/eql-" + key + ".properties";
         InputStream esqlIs = classResourceToInputStream(configFile, true);
         if (esqlIs != null) {

@@ -159,8 +159,8 @@ public class EqlUtils {
     }
 
 
-    public static boolean isDdl(EqlRun subSql) {
-        switch (subSql.getSqlType()) {
+    public static boolean isDdl(EqlRun eqlRun) {
+        switch (eqlRun.getSqlType()) {
             case CREATE:
             case DROP:
             case TRUNCATE:

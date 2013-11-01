@@ -2,7 +2,7 @@ package org.n3r.eql.config;
 
 import java.util.Properties;
 
-public interface Configable {
+public interface EqlConfigable {
     boolean exists(String key);
 
     Properties getProperties();

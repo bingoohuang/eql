@@ -8,27 +8,27 @@ import org.n3r.eql.ex.EqlConfigException;
 import java.util.concurrent.ExecutionException;
 
 public class EqlConfigManager {
-    private static LoadingCache<Object, EqlTranAware> esqlConfigableCache =
-            CacheBuilder.newBuilder().build(
-                    new CacheLoader<Object, EqlTranAware>() {
-                        @Override
-                        public EqlTranAware load(Object connNameOrConfigable) throws Exception {
-                            Configable config = null;
-                            if (connNameOrConfigable instanceof String) {
-                                config = EqlConfig.parseConfig("" + connNameOrConfigable);
-                            } else if (connNameOrConfigable instanceof Configable) {
-                                config = (Configable) connNameOrConfigable;
-                            }
-
-                            if (config == null || config.getProperties().size() == 0) return null;
-
-                            return config.exists("jndiName")
-                                    ? createDsConfig(config) : createSimpleConfig(config);
+    private static LoadingCache<Object, EqlTranAware> eqlConfigableCache =
+        CacheBuilder.newBuilder().build(
+                new CacheLoader<Object, EqlTranAware>() {
+                    @Override
+                    public EqlTranAware load(Object connNameOrConfigable) throws Exception {
+                        EqlConfigable config = null;
+                        if (connNameOrConfigable instanceof String) {
+                            config = EqlConfig.parseConfig("" + connNameOrConfigable);
+                        } else if (connNameOrConfigable instanceof EqlConfigable) {
+                            config = (EqlConfigable) connNameOrConfigable;
                         }
-                    }
-            );
 
-    private static EqlTranAware createDsConfig(Configable connConfig) {
+                        if (config == null || config.getProperties().size() == 0) return null;
+
+                        return config.exists("jndiName")
+                                ? createDsConfig(config) : createSimpleConfig(config);
+                    }
+                }
+        );
+
+    private static EqlTranAware createDsConfig(EqlConfigable connConfig) {
         EqlDsConfig dsConfig = new EqlDsConfig();
         dsConfig.setJndiName(connConfig.getStr("jndiName"));
         dsConfig.setInitial(connConfig.getStr("java.naming.factory.initial", ""));
@@ -38,7 +38,7 @@ public class EqlConfigManager {
         return dsConfig;
     }
 
-    private static EqlTranAware createSimpleConfig(Configable connConfig) {
+    private static EqlTranAware createSimpleConfig(EqlConfigable connConfig) {
         EqlSimpleConfig simpleConfig = new EqlSimpleConfig();
         simpleConfig.setDriver(connConfig.getStr("driver"));
         simpleConfig.setUrl(connConfig.getStr("url"));
@@ -51,7 +51,7 @@ public class EqlConfigManager {
 
     public static EqlTranAware getConfig(Object connectionNameOrConfigable) {
         try {
-            return esqlConfigableCache.get(connectionNameOrConfigable);
+            return eqlConfigableCache.get(connectionNameOrConfigable);
         } catch (ExecutionException e) {
             throw new EqlConfigException(
                     "eql connection name " + connectionNameOrConfigable

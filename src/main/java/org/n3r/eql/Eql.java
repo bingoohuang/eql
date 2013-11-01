@@ -1,8 +1,8 @@
 package org.n3r.eql;
 
 import com.google.common.base.Strings;
-import org.n3r.eql.config.Configable;
 import org.n3r.eql.config.EqlConfigManager;
+import org.n3r.eql.config.EqlConfigable;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.impl.*;
 import org.n3r.eql.map.EqlRowMapper;
@@ -19,8 +19,8 @@ import java.util.List;
 
 public class Eql implements Closeable {
     public static final String DEFAULT_CONN_NAME = "DEFAULT";
+    private static Logger logger = LoggerFactory.getLogger(Eql.class);
 
-    private Logger logger = LoggerFactory.getLogger(Eql.class);
     private Object connectionNameOrConfigable;
     private SqlBlock sqlBlock;
     private Object[] params;
@@ -34,8 +34,8 @@ public class Eql implements Closeable {
     private DbType dbType;
     private EqlRsRetriever rsRetriever = new EqlRsRetriever();
     private int fetchSize;
-    private String currentSql;
     private List<EqlRun> eqlRuns;
+    private EqlRun currRun;
 
     public Connection getConnection() {
         return newTran(connectionNameOrConfigable).getConn();
@@ -59,7 +59,8 @@ public class Eql implements Closeable {
 
             eqlRuns = sqlBlock.createSqlSubs(params, dynamics, directSqls);
             for (EqlRun eqlRun : eqlRuns) {
-                ret = execSub(ret, eqlRun);
+                currRun = eqlRun;
+                ret = runEql();
                 eqlRun.setResult(ret);
             }
 
@@ -67,7 +68,7 @@ public class Eql implements Closeable {
         } catch (SQLException e) {
             logger.error("sql exception", e);
             if (batch != null) batch.cleanupBatch();
-            throw new EqlExecuteException("exec sql failed[" + currentSql + "]" + e.getMessage());
+            throw new EqlExecuteException("exec sql failed[" + currRun.getPrintSql() + "]" + e.getMessage());
         } finally {
             resetState();
             close();
@@ -98,13 +99,13 @@ public class Eql implements Closeable {
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one select sql supported in this method");
 
-        EqlRun sqlSub = sqlSubs.get(0);
-        if (sqlSub.getSqlType() != EqlRun.EqlType.SELECT)
+        currRun = sqlSubs.get(0);
+        if (currRun.getSqlType() != EqlRun.EqlType.SELECT)
             throw new EqlExecuteException("only one select sql supported in this method");
 
         ESelectStmt selectStmt = new ESelectStmt();
         try {
-            prepareStmt(selectStmt, sqlSub);
+            prepareStmt(selectStmt);
         } catch (SQLException e) {
             throw new EqlExecuteException("prepareSelectStmt fail", e);
         }
@@ -122,13 +123,13 @@ public class Eql implements Closeable {
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one update sql supported in this method");
 
-        EqlRun sqlSub = sqlSubs.get(0);
-        if (!EqlUtils.isUpdateStmt(sqlSub))
+        currRun = sqlSubs.get(0);
+        if (!EqlUtils.isUpdateStmt(currRun))
             throw new EqlExecuteException("only one update/merge/delete/insert sql supported in this method");
 
         EUpdateStmt updateStmt = new EUpdateStmt();
         try {
-            prepareStmt(updateStmt, sqlSub);
+            prepareStmt(updateStmt);
         } catch (SQLException e) {
             throw new EqlExecuteException("prepareSelectStmt fail", e);
         }
@@ -142,24 +143,22 @@ public class Eql implements Closeable {
         throw new EqlExecuteException("No sqlid defined!");
     }
 
-    private Object execSub(Object ret, EqlRun eqlRun) throws SQLException {
-        currentSql = eqlRun.getRunSql();
-
+    private Object runEql() throws SQLException {
         try {
-            return EqlUtils.isDdl(eqlRun) ? execDdl(eqlRun) : pageExecute(ret, eqlRun);
+            return EqlUtils.isDdl(currRun) ? execDdl() : pageExecute();
         } catch (EqlExecuteException ex) {
-            if (!eqlRun.getSqlBlock().isOnerrResume()) throw ex;
+            if (!currRun.getSqlBlock().isOnerrResume()) throw ex;
         }
 
         return 0;
     }
 
-    private boolean execDdl(EqlRun eqlRun) {
+    private boolean execDdl() {
         Statement stmt = null;
-        logger.debug("ddl sql {}: {}", getSqlId(), eqlRun.getPrintSql());
+        logger.debug("ddl sql {}: {}", getSqlId(), currRun.getPrintSql());
         try {
             stmt = connection.createStatement();
-            return stmt.execute(eqlRun.getRunSql());
+            return stmt.execute(currRun.getRunSql());
         } catch (SQLException ex) {
             throw new EqlExecuteException(ex);
         } finally {
@@ -167,61 +166,68 @@ public class Eql implements Closeable {
         }
     }
 
-    private Object pageExecute(Object ret, EqlRun subSql) throws SQLException {
-        if (page == null || !subSql.isLastSelectSql()) return execDml(ret, subSql);
+    private Object pageExecute() throws SQLException {
+        if (page == null || !currRun.isLastSelectSql()) return execDml();
 
-        if (page.getTotalRows() == 0) page.setTotalRows(executeTotalRowsSql(ret, subSql));
+        if (page.getTotalRows() == 0) page.setTotalRows(executeTotalRowsSql());
 
-        return executePageSql(ret, subSql);
+        return executePageSql();
     }
 
-    private Object executePageSql(Object ret, EqlRun eqlRun) throws SQLException {
-        // oracle physical pagination
-        EqlRun pageSql = dbType.createPageSql(eqlRun, page);
+    private Object executePageSql() throws SQLException {
+        EqlRun temp = currRun;
+        currRun = dbType.createPageSql(currRun, page);
 
-        return execDml(ret, pageSql);
+        Object o = execDml();
+        currRun = temp;
+
+        return o;
     }
 
-    private int executeTotalRowsSql(Object ret, EqlRun subSql) throws SQLException {
-        EqlRun totalSqlSub = subSql.clone();
-        createTotalSql(totalSqlSub);
+    private int executeTotalRowsSql() throws SQLException {
+        EqlRun temp = currRun;
+        currRun = createTotalSql();
+        Object totalRows = execDml();
+        currRun = temp;
 
-        Object totalRows = execDml(ret, totalSqlSub);
         if (totalRows instanceof Number) return ((Number) totalRows).intValue();
 
         throw new EqlExecuteException("returned total rows object " + totalRows + " is not a number");
     }
 
-    private void createTotalSql(EqlRun subSql) {
-        String sql = subSql.getRunSql().toUpperCase();
+    private EqlRun createTotalSql() {
+        EqlRun totalEqlSql = currRun.clone();
+        String sql = totalEqlSql.getRunSql().toUpperCase();
         int fromPos1 = sql.indexOf("FROM");
 
         int fromPos2 = sql.indexOf("DISTINCT");
         fromPos2 = fromPos2 < 0 ? sql.indexOf("FROM", fromPos1 + 4) : fromPos2;
 
-        subSql.setRunSql(fromPos2 > 0 ? "SELECT COUNT(*) CNT__ FROM (" + sql + ")"
+        totalEqlSql.setRunSql(fromPos2 > 0 ? "SELECT COUNT(*) CNT__ FROM (" + sql + ")"
                 : "SELECT COUNT(*) AS CNT " + sql.substring(fromPos1));
-        subSql.setWillReturnOnlyOneRow(true);
+        totalEqlSql.setWillReturnOnlyOneRow(true);
+        return totalEqlSql;
     }
 
-    private Object execDml(Object ret, EqlRun subSql) throws SQLException {
-        Object execRet = batch != null ? execDmlInBatch(ret, subSql) : execDmlNoBatch(ret, subSql);
+    private Object execDml() throws SQLException {
+        Object execRet = batch != null ? execDmlInBatch() : execDmlNoBatch();
         logger.debug("result {}: {}", getSqlId(), execRet);
 
         return execRet;
     }
 
-    private Object execDmlInBatch(Object ret, EqlRun eqlRun) throws SQLException {
-        return batch.processBatchUpdate(eqlRun);
+
+    private Object execDmlInBatch() throws SQLException {
+        return batch.processBatchUpdate(currRun);
     }
 
-    private void prepareStmt(EStmt stmt, EqlRun eqlRun) throws SQLException {
+    private void prepareStmt(EStmt stmt) throws SQLException {
         PreparedStatement ps = null;
         try {
-            ps = prepareSql(eqlRun);
+            ps = prepareSql();
 
             stmt.setPreparedStatment(ps);
-            stmt.setEqlRun(eqlRun);
+            stmt.setEqlRun(currRun);
             stmt.setLogger(logger);
             stmt.setParams(params);
             stmt.setEqlTran(externalTran != null ? externalTran : internalTran);
@@ -230,28 +236,32 @@ public class Eql implements Closeable {
         }
     }
 
-    private Object execDmlNoBatch(Object ret, EqlRun eqlRun) throws SQLException {
+    private Object execDmlNoBatch() throws SQLException {
         ResultSet rs = null;
         PreparedStatement ps = null;
         try {
-            ps = prepareSql(eqlRun);
-            new EqlParamsBinder().bindParams(ps, eqlRun, params, logger);
+            ps = prepareSql();
+            new EqlParamsBinder().bindParams(ps, currRun, params, logger);
 
-            if (eqlRun.getSqlType() == EqlRun.EqlType.SELECT) {
+            if (currRun.getSqlType() == EqlRun.EqlType.SELECT) {
                 rs = ps.executeQuery();
                 if (fetchSize > 0) rs.setFetchSize(fetchSize);
 
-                return rsRetriever.convert(rs, eqlRun);
+                return rsRetriever.convert(rs, currRun);
             }
 
-            if (EqlUtils.isProcedure(eqlRun.getSqlType()))
-                return new EqlProc(eqlRun, rsRetriever).dealProcedure(ps);
+            if (EqlUtils.isProcedure(currRun.getSqlType()))
+                return new EqlProc(currRun, rsRetriever).dealProcedure(ps);
 
             return ps.executeUpdate();
 
         } finally {
             EqlUtils.closeQuietly(rs, ps);
         }
+    }
+
+    private PreparedStatement prepareSql() throws SQLException {
+        return prepareSql(currRun);
     }
 
     public PreparedStatement prepareSql(EqlRun eqlRun) throws SQLException {
@@ -270,12 +280,16 @@ public class Eql implements Closeable {
         return this;
     }
 
+    protected Eql(Object connectionNameOrConfigable) {
+        this.connectionNameOrConfigable = connectionNameOrConfigable;
+    }
+
     public Eql(String connectionName) {
         this.connectionNameOrConfigable = connectionName;
     }
 
-    public Eql(Configable configable) {
-        this.connectionNameOrConfigable = configable;
+    public Eql(EqlConfigable eqlConfigable) {
+        this.connectionNameOrConfigable = eqlConfigable;
     }
 
     public Eql() {

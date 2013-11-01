@@ -1,0 +1,17 @@
+[insertBlob onerr=resume]
+CREATE TABLE ESQL_BLOB (BOB BLOB);
+DELETE FROM ESQL_BLOB;
+INSERT INTO ESQL_BLOB(BOB) VALUES(#:LOB#)
+
+[selectBlob]
+SELECT BOB FROM ESQL_BLOB
+
+[selectBlobString returnType=string]
+SELECT BOB FROM ESQL_BLOB
+
+
+[selectBlobAsResult returnType=org.n3r.eql.JavaBlobTest$AsResult]
+SELECT 1 as seq, BOB as remark FROM ESQL_BLOB
+
+[updateBlob]
+UPDATE ESQL_BLOB SET BOB = #:LOB#

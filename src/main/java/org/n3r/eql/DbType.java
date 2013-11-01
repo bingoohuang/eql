@@ -14,30 +14,30 @@ public class DbType {
         this.driverName = driverName;
     }
 
-    public EqlRun createPageSql(EqlRun subSql, EqlPage page) {
+    public EqlRun createPageSql(EqlRun eqlRun, EqlPage page) {
         if (EqlUtils.containsIgnoreCase(driverName, "oracle"))
-            return createOraclePageSql(subSql, page);
+            return createOraclePageSql(eqlRun, page);
 
         if (EqlUtils.containsIgnoreCase(driverName, "mysql"))
-            return createMySqlPageSql(subSql, page);
+            return createMySqlPageSql(eqlRun, page);
 
-        return subSql;
+        return eqlRun;
     }
 
-    private EqlRun createMySqlPageSql(EqlRun subSql, EqlPage page) {
-        EqlRun pageSubSql = subSql.clone();
-        String pageSql = subSql.getSql() + " LIMIT ?,?";
-        pageSubSql.setSql(pageSql);
-        pageSubSql.setExtraBindParams(page.getStartIndex(), page.getPageRows());
+    private EqlRun createMySqlPageSql(EqlRun eqlRun, EqlPage page) {
+        EqlRun eqlRun1 = eqlRun.clone();
+        String pageSql = eqlRun.getRunSql() + " LIMIT ?,?";
+        eqlRun1.setRunSql(pageSql);
+        eqlRun1.setExtraBindParams(page.getStartIndex(), page.getPageRows());
 
-        return pageSubSql;
+        return eqlRun1;
     }
 
     private EqlRun createOraclePageSql(EqlRun subSql, EqlPage eqlPage) {
         EqlRun eqlRun = subSql.clone();
-        String pageSql = "SELECT * FROM ( SELECT ROW__.*, ROWNUM RN__ FROM ( " + subSql.getSql()
+        String pageSql = "SELECT * FROM ( SELECT ROW__.*, ROWNUM RN__ FROM ( " + subSql.getRunSql()
                 + " ) ROW__  WHERE ROWNUM <= ?) WHERE RN__ > ?";
-        eqlRun.setSql(pageSql);
+        eqlRun.setRunSql(pageSql);
         eqlRun.setExtraBindParams(eqlPage.getStartIndex() + eqlPage.getPageRows(), eqlPage.getStartIndex());
 
         return eqlRun;

@@ -2,7 +2,7 @@ package org.n3r.eql.config;
 
 import java.util.Properties;
 
-public class PropertiesConfig implements Configable {
+public class PropertiesConfig implements EqlConfigable {
     private final Properties properties;
 
     public PropertiesConfig(Properties properties) {

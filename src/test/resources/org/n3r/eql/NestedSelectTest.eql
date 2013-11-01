@@ -1,0 +1,4 @@
+-- [bug0]
+select 'a' name,
+     (select 1 from DUAL) age
+from DUAL
