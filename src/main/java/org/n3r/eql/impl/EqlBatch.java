@@ -16,9 +16,10 @@ import java.util.Map;
 
 public class EqlBatch {
     private Eql eql;
-    //    private int maxBatches;
-    //    private int currentBatches;
-    private List<PreparedStatement> batchedPs;
+    private int maxBatches;
+    private int currentBatches;
+    private int totalBatches;
+    private List<PreparedStatement> batchedPs; // for sequence use
     private Map<String, PreparedStatement> batchedMap;
 
     public EqlBatch(Eql eql) {
@@ -26,30 +27,29 @@ public class EqlBatch {
     }
 
     public void startBatch(int maxBatches) {
-        //        this.maxBatches = maxBatches;
-        startBatch();
-    }
-
-    public void startBatch() {
+        this.maxBatches = maxBatches;
         batchedPs = Lists.newArrayList();
         batchedMap = Maps.newHashMap();
     }
 
-    public int processBatchUpdate(EqlRun eqlRun) throws SQLException {
-        String realSql = eqlRun.getRunSql();
-        PreparedStatement ps = batchedMap.get(realSql);
+    public int addBatch(EqlRun eqlRun) throws SQLException {
+        PreparedStatement ps = batchedMap.get(eqlRun.getRunSql());
         if (ps == null) {
             ps = eql.prepareSql(eqlRun);
-            batchedMap.put(realSql, ps);
+            batchedMap.put(eqlRun.getRunSql(), ps);
             batchedPs.add(ps);
         }
+
         new EqlParamsBinder().bindParams(ps, eqlRun, eql.getLogger());
         ps.addBatch();
-        //        ++currentBatches;
-        return /*maxBatches > 0 && currentBatches >= maxBatches ? executeBatch() :*/0;
+
+        ++currentBatches;
+
+        return maxBatches > 0 && currentBatches >= maxBatches
+                ? executeBatch() : 0;
     }
 
-    public int processBatchExecution() throws SQLException {
+    public int executeBatch() throws SQLException {
         try {
             int totalRowCount = 0;
             for (PreparedStatement ps : batchedPs) {
@@ -61,7 +61,10 @@ public class EqlBatch {
                     else totalRowCount += rowCounts[j];
             }
 
-            return totalRowCount;
+            totalBatches += totalRowCount;
+            currentBatches = 0;
+
+            return totalBatches;
         } finally {
             cleanupBatch();
         }

@@ -221,31 +221,13 @@ public class Eql implements Closeable {
 
     private int executeTotalRowsSql() throws SQLException {
         EqlRun temp = currRun;
-        currRun = createTotalSql();
+        currRun = DbType.createTotalSql(currRun);
         Object totalRows = execDml();
         currRun = temp;
 
         if (totalRows instanceof Number) return ((Number) totalRows).intValue();
 
         throw new EqlExecuteException("returned total rows object " + totalRows + " is not a number");
-    }
-
-    private EqlRun createTotalSql() {
-        EqlRun totalEqlSql = currRun.clone();
-        String sql = totalEqlSql.getRunSql().toUpperCase();
-        int fromPos1 = sql.indexOf("FROM");
-
-        int fromPos2 = sql.indexOf("DISTINCT");
-        fromPos2 = fromPos2 < 0 ? sql.indexOf("FROM", fromPos1 + 4) : fromPos2;
-
-        totalEqlSql.setRunSql(fromPos2 > 0 ? "SELECT COUNT(*) CNT__ FROM (" + totalEqlSql.getRunSql() + ")"
-                : "SELECT COUNT(*) AS CNT " + totalEqlSql.getRunSql().substring(fromPos1));
-
-        totalEqlSql.setPrintSql(fromPos2 > 0 ? "SELECT COUNT(*) CNT__ FROM (" + totalEqlSql.getPrintSql() + ")"
-                : "SELECT COUNT(*) AS CNT " + totalEqlSql.getPrintSql().substring(fromPos1));
-
-        totalEqlSql.setWillReturnOnlyOneRow(true);
-        return totalEqlSql;
     }
 
     private Object execDml() throws SQLException {
@@ -257,7 +239,7 @@ public class Eql implements Closeable {
 
 
     private Object execDmlInBatch() throws SQLException {
-        return batch.processBatchUpdate(currRun);
+        return batch.addBatch(currRun);
     }
 
     private void prepareStmt(EStmt stmt) throws SQLException {
@@ -454,14 +436,13 @@ public class Eql implements Closeable {
         return this;
     }
 
-    public Eql startBatch(int maxBatches) {
-        batch.startBatch(maxBatches);
-        return this;
+    public Eql startBatch() {
+        return startBatch(0);
     }
 
-    public Eql startBatch() {
+    public Eql startBatch(int maxBatches) {
         batch = new EqlBatch(this);
-        batch.startBatch();
+        batch.startBatch(maxBatches);
 
         tranStart();
         return this;
@@ -470,7 +451,7 @@ public class Eql implements Closeable {
     public int executeBatch() {
         int totalRows = 0;
         try {
-            totalRows = batch.processBatchExecution();
+            totalRows = batch.executeBatch();
             tranCommit();
         } catch (SQLException e) {
             throw new EqlExecuteException("executeBatch failed:" + e.getMessage());
