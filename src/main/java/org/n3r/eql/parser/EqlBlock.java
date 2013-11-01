@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 public class EqlBlock {
-    private final int startLineNo;
-    private final String sqlClassPath;
+    private int startLineNo;
+    private String sqlClassPath;
     private String sqlId;
     private Map<String, String> options = Maps.newHashMap();
     private Class<?> returnType;
@@ -31,6 +31,10 @@ public class EqlBlock {
         this.options = BlockOptionsParser.parseOptions(options);
 
         initSomeOptions();
+    }
+
+    public EqlBlock() {
+
     }
 
     private void initSomeOptions() {
@@ -137,5 +141,9 @@ public class EqlBlock {
 
     public void setSqlLines(List<String> sqlLines) {
         this.sqlLines = sqlLines;
+    }
+
+    public String getSplit() {
+        return split;
     }
 }

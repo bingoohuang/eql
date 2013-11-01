@@ -13,7 +13,7 @@ public class EqlBlockParser {
 
         // split to multiple sql
         for (String sqlLine : sqlLines) {
-            if (sqlLine.endsWith(";")) {
+            if (sqlLine.endsWith(block.getSplit())) {
                 oneSqlLines.add(sqlLine.substring(0, sqlLine.length() - 1));
                 addSql(oneSqlLines);
             } else {

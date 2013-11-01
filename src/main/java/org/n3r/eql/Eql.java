@@ -64,6 +64,8 @@ public class Eql implements Closeable {
             if (batch == null) tranStart();
             createConn();
 
+            if (directSqls.length > 0) eqlBlock = new EqlBlock();
+
             eqlRuns = eqlBlock.createEqlRuns(executionContext, params, dynamics, directSqls);
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;

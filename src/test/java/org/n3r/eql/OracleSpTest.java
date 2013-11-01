@@ -1,5 +1,6 @@
 package org.n3r.eql;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.n3r.eql.util.EqlUtils;
 
@@ -17,13 +18,18 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class OracleSpTest {
+    @BeforeClass
+    public static void beforeClass() {
+        Eqll.choose("orcl");
+    }
+
     @Test
     public void procedure1() throws SQLException {
-        new Eql().update("createSpEql").execute();
+        new Eqll().update("createSpEql").execute();
         Connection connection = null;
         CallableStatement cs = null;
         try {
-            connection = new Eql().getConnection();
+            connection = new Eqll().getConnection();
             cs = connection.prepareCall("{call SP_ESQL(?, ?)}");
             cs.setString(1, "hjb");
             cs.registerOutParameter(2, Types.VARCHAR);
@@ -33,7 +39,7 @@ public class OracleSpTest {
             EqlUtils.closeQuietly(cs, connection);
         }
 
-        String b = new Eql()
+        String b = new Eqll()
                 .procedure("callSpEql").params("hjb")
                 .execute();
         assertThat(b, is("HELLO hjb"));
@@ -42,8 +48,8 @@ public class OracleSpTest {
 
     @Test
     public void procedure2() throws SQLException {
-        new Eql().update("createSpEql2").execute();
-        List<String> bc = new Eql()
+        new Eqll().update("createSpEql2").execute();
+        List<String> bc = new Eqll()
                 .procedure("callSpEql2").params("hjb")
                 .execute();
         assertEquals("HELLO hjb", bc.get(0));
@@ -52,8 +58,8 @@ public class OracleSpTest {
 
     @Test
     public void procedure3() throws SQLException {
-        new Eql().update("createSpEql2").execute();
-        Map<String, Object> bc = new Eql()
+        new Eqll().update("createSpEql2").execute();
+        Map<String, Object> bc = new Eqll()
                 .procedure("callSpEql3").params("hjb")
                 .execute();
         assertEquals("HELLO hjb", bc.get("a"));
@@ -84,8 +90,8 @@ public class OracleSpTest {
 
     @Test
     public void procedure4() throws SQLException {
-        new Eql().update("createSpEql2").execute();
-        Ab ab = new Eql()
+        new Eqll().update("createSpEql2").execute();
+        Ab ab = new Eqll()
                 .procedure("callSpEql4").params("hjb")
                 .execute();
         assertEquals("HELLO hjb", ab.getA());
@@ -94,8 +100,8 @@ public class OracleSpTest {
 
     @Test
     public void procedureNoOut() throws SQLException {
-        new Eql().update("createSpNoOut").execute();
-        Eql esql = new Eql()
+        new Eqll().update("createSpNoOut").execute();
+        Eql esql = new Eqll()
                 .params("hjb")
                 .limit(1);
         int ab = esql.returnType("int")
@@ -106,8 +112,8 @@ public class OracleSpTest {
 
     @Test
     public void procedureAllOut() throws SQLException {
-        new Eql().update("createSpEql12").execute();
-        List<String> rets = new Eql().procedure("callSpEql12").execute();
+        new Eqll().update("createSpEql12").execute();
+        List<String> rets = new Eqll().procedure("callSpEql12").execute();
 
         assertEquals("HELLO", rets.get(0));
         assertEquals("WORLD", rets.get(1));
@@ -115,8 +121,8 @@ public class OracleSpTest {
 
     @Test
     public void procedureInOut() throws SQLException {
-        new Eql().update("createSpEqlInOut").execute();
-        List<String> rets = new Eql().params("A", "B").procedure("callSpEqlInOut")
+        new Eqll().update("createSpEqlInOut").execute();
+        List<String> rets = new Eqll().params("A", "B").procedure("callSpEqlInOut")
                 .execute();
 
         assertEquals("HELLOA", rets.get(0));
@@ -125,8 +131,8 @@ public class OracleSpTest {
 
     @Test
     public void createSpEqlNULL() throws SQLException {
-        new Eql().update("createSpEqlNULL").execute();
-        List<String> rets = new Eql()
+        new Eqll().update("createSpEqlNULL").execute();
+        List<String> rets = new Eqll()
                 .procedure("callSpEqlNULL")
                 .dynamics("SP_ESQLNULL")
                 .execute();
@@ -137,8 +143,8 @@ public class OracleSpTest {
 
     @Test
     public void returning() throws SQLException {
-        new Eql().update("prepareTable4MyProcedure").execute();
-        String ret = new Eql().procedure("myprocedure")
+        new Eqll().update("prepareTable4MyProcedure").execute();
+        String ret = new Eqll().procedure("myprocedure")
                 .execute();
 
         assertTrue(ret.length() > 0);
@@ -146,8 +152,8 @@ public class OracleSpTest {
 
     @Test
     public void returning2() throws SQLException {
-        new Eql().update("prepareTable4MyProcedure").execute();
-        List<String> ret = new Eql().params(10).procedure("myprocedure2")
+        new Eqll().update("prepareTable4MyProcedure").execute();
+        List<String> ret = new Eqll().params(10).procedure("myprocedure2")
                 .execute();
 
         assertTrue(ret.size() > 0);
@@ -155,8 +161,8 @@ public class OracleSpTest {
 
     @Test
     public void callPLSQL() throws SQLException {
-        new Eql().update("prepareTable4MyProcedure").execute();
-        /*  String ret = */new Eql().params(10).procedure("callPLSQL")
+        new Eqll().update("prepareTable4MyProcedure").execute();
+        /*  String ret = */new Eqll().params(10).procedure("callPLSQL")
                 .execute();
         /*  System.out.println(ret);*/
     }
