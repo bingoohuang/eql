@@ -6,6 +6,6 @@ VALUES(#_params[0]#, #_params[1]#, #_params[2]#, #_params[3]#, #_params[4]#)
 
 
 -- [testLastResult]
-SELECT "123" FROM DUAL /* if _databaseId == "mysql" */ LIMIT 1 /* end */;
+SELECT '123' FROM DUAL /* if _databaseId == "mysql" */ LIMIT 1 /* end */;
 
 INSERT INTO ESQL_TEST VALUES(4123, 'D', #_lastResult#, #_params[0]#, 104);
