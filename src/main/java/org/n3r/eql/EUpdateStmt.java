@@ -28,6 +28,7 @@ public class EUpdateStmt implements Closeable, EStmt {
     }
 
     public int update(Object... params) {
+        eqlRun.setParams(params);
         new EqlParamsBinder().bindParams(preparedStatement, eqlRun, logger);
         int ret;
         try {
@@ -84,7 +85,7 @@ public class EUpdateStmt implements Closeable, EStmt {
     }
 
     @Override
-    public void setParams(Object[] params) {
+    public void params(Object[] params) {
         this.params = params;
     }
 

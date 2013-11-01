@@ -241,7 +241,7 @@ public class EqlUtils {
 
     }
 
-    private static void closeQuietly(ResultSet rs) {
+    public static void closeQuietly(ResultSet rs) {
         if (rs == null) return;
 
         try {

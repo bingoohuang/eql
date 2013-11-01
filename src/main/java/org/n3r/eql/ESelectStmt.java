@@ -4,6 +4,7 @@ import org.n3r.eql.impl.EqlRsRetriever;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.util.EqlUtils;
 import org.slf4j.Logger;
 
 import java.io.Closeable;
@@ -31,6 +32,7 @@ public class ESelectStmt implements Closeable, EStmt {
         resultSetNext = true;
         rowNum = 0;
         try {
+            eqlRun.setParams(params);
             new EqlParamsBinder().bindParams(preparedStatement, eqlRun, logger);
             resultSet = preparedStatement.executeQuery();
             if (fetchSize > 0) resultSet.setFetchSize(fetchSize);
@@ -41,8 +43,7 @@ public class ESelectStmt implements Closeable, EStmt {
 
     @SuppressWarnings("unchecked")
     public <T> T next() {
-        if (!resultSetNext)
-            return null;
+        if (!resultSetNext) return null;
 
         try {
             T rowBean = (T) rsRetriever.selectRow(resultSet, ++rowNum);
@@ -57,25 +58,13 @@ public class ESelectStmt implements Closeable, EStmt {
     }
 
     public void closeRs() {
-        if (resultSet != null) {
-            try {
-                resultSet.close();
-            } catch (Exception e) {
-                // ignore
-            }
-        }
+        EqlUtils.closeQuietly(resultSet);
         resultSet = null;
     }
 
     @Override
     public void closeStmt() {
-        if (preparedStatement != null) {
-            try {
-                preparedStatement.close();
-            } catch (Exception e) {
-                // Ignore
-            }
-        }
+        EqlUtils.closeQuietly(preparedStatement);
         preparedStatement = null;
     }
 
@@ -89,7 +78,7 @@ public class ESelectStmt implements Closeable, EStmt {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         closeRs();
         closeStmt();
     }
@@ -109,7 +98,7 @@ public class ESelectStmt implements Closeable, EStmt {
     }
 
     @Override
-    public void setParams(Object[] params) {
+    public void params(Object... params) {
         this.params = params;
     }
 

@@ -53,13 +53,15 @@ public class EqlBlock {
         return sqls;
     }
 
-    public List<EqlRun> createEqlRuns(Map<String, Object> executionContext, Object[] params, Object[] dynamics, String[] directSqls) {
+    public List<EqlRun> createEqlRuns(Map<String, Object> executionContext,
+                                      Object[] params, Object[] dynamics, String[] directSqls) {
         return directSqls.length == 0
                 ? createEqlRunsByEqls(executionContext, params, dynamics)
                 : createSqlSubsByDirectSqls(executionContext, params, dynamics, directSqls);
     }
 
-    public List<EqlRun> createEqlRunsByEqls(Map<String, Object> executionContext, Object[] params, Object[] dynamics) {
+    public List<EqlRun> createEqlRunsByEqls(Map<String, Object> executionContext,
+                                            Object[] params, Object[] dynamics) {
         Object paramBean = EqlUtils.createSingleBean(params);
 
         List<EqlRun> eqlRuns = Lists.newArrayList();

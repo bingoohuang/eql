@@ -126,16 +126,17 @@ public class Eql implements Closeable {
     }
 
     public ESelectStmt selectStmt() {
+        newExecutionContext();
         tranStart();
         createConn();
 
         List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(executionContext, params, dynamics);
         if (sqlSubs.size() != 1)
-            throw new EqlExecuteException("only one select sql supported in this method");
+            throw new EqlExecuteException("only one select sql supported");
 
         currRun = sqlSubs.get(0);
         if (currRun.getSqlType() != EqlRun.EqlType.SELECT)
-            throw new EqlExecuteException("only one select sql supported in this method");
+            throw new EqlExecuteException("only one select sql supported");
 
         ESelectStmt selectStmt = new ESelectStmt();
         try {
@@ -150,6 +151,7 @@ public class Eql implements Closeable {
     }
 
     public EUpdateStmt updateStmt() {
+        newExecutionContext();
         tranStart();
         createConn();
 
@@ -221,7 +223,7 @@ public class Eql implements Closeable {
 
     private int executeTotalRowsSql() throws SQLException {
         EqlRun temp = currRun;
-        currRun = DbType.createTotalSql(currRun);
+        currRun = dbType.createTotalSql(currRun);
         Object totalRows = execDml();
         currRun = temp;
 
@@ -250,7 +252,7 @@ public class Eql implements Closeable {
             stmt.setPreparedStatment(ps);
             stmt.setEqlRun(currRun);
             stmt.setLogger(logger);
-            stmt.setParams(params);
+            stmt.params(params);
             stmt.setEqlTran(externalTran != null ? externalTran : internalTran);
         } catch (Exception ex) {
             EqlUtils.closeQuietly(ps);

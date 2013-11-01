@@ -90,7 +90,7 @@ public class SimpleTest {
 
         @Override
         public String toString() {
-            return "{a:" + a + ",b:" + b + ",c:" + c + ",d:" + d.getTime() + ",e:" + e + "}";
+            return "{a:" + a + ",b:" + b + ",c:" + c + ",d:" + (d == null ? d : d.getTime()) + ",e:" + e + "}";
         }
 
         public int getA() {

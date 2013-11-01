@@ -4,3 +4,9 @@
 SELECT A,B,C,D,E
 FROM ESQL_TEST
 WHERE C = ##
+
+
+-- [withGroupby]
+SELECT C
+FROM ESQL_TEST
+GROUP BY C

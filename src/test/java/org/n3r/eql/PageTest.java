@@ -24,4 +24,15 @@ public class PageTest {
         System.out.println(page);
         System.out.println(beans);
     }
+
+    @Test
+    public void testCountWhenGroupby() {
+        EqlPage page = new EqlPage(3, 2);
+        List<SimpleTest.Bean> beans = new Eql().id("withGroupby")
+                .returnType(SimpleTest.Bean.class)
+                .limit(page)
+                .execute();
+        System.out.println(page);
+        System.out.println(beans);
+    }
 }

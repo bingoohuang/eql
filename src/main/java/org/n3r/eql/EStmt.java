@@ -16,7 +16,7 @@ public interface EStmt {
 
     void closeStmt();
 
-    void setParams(Object[] params);
+    void params(Object[] params);
 
     Object[] getParams();
 
