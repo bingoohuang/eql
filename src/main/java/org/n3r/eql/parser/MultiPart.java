@@ -12,10 +12,17 @@ public class MultiPart implements EqlPart {
     public String evalSql(Object bean, Map<String, Object> executionContext) {
         StringBuilder sql = new StringBuilder();
         for (EqlPart eqlPart : parts) {
+            appendSpace(sql);
             sql.append(eqlPart.evalSql(bean, executionContext));
         }
 
         return sql.toString();
+    }
+
+    private void appendSpace(StringBuilder sql) {
+        if (sql.length() == 0) return;
+        char c = sql.charAt(sql.length() - 1);
+        if (!Character.isWhitespace(c)) sql.append(' ');
     }
 
     public void addPart(EqlPart part) {

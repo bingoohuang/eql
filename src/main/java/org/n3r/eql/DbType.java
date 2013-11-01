@@ -1,6 +1,5 @@
 package org.n3r.eql;
 
-import com.google.common.base.Splitter;
 import org.n3r.eql.ex.EqlException;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.EqlUtils;
@@ -19,8 +18,7 @@ public class DbType {
             String driverName = metaData.getDriverName();
 
             return new DbType(driverName);
-        }
-        catch(SQLException ex) {
+        } catch (SQLException ex) {
             throw new EqlException(ex);
         }
 
@@ -52,15 +50,10 @@ public class DbType {
     }
 
     private String tryParseDatabaseId() {
-        Iterable<String> split = Splitter.on('.').split(driverName);
-        for (String part : split) {
-            if (part.equalsIgnoreCase("com")) continue;
-            if (part.equalsIgnoreCase("org")) continue;
-            if (part.equalsIgnoreCase("jdbc")) continue;
-            if (part.equalsIgnoreCase("driver")) continue;
+        if (EqlUtils.containsIgnoreCase(driverName, "oracle")) return "oracle";
+        if (EqlUtils.containsIgnoreCase(driverName, "mysql")) return "mysql";
+        if (EqlUtils.containsIgnoreCase(driverName, "h2")) return "h2";
 
-            return part;
-        }
 
         return driverName;
     }

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class EqlConfig {
+public class EqlConnectionConfig {
     public static InputStream classResourceToInputStream(String pathname, boolean silent) {
         InputStream is = getClassPathResourceAsStream(pathname);
         if (is != null || silent) return is;
@@ -13,7 +13,7 @@ public class EqlConfig {
     }
 
     public static InputStream getClassPathResourceAsStream(String resourceName) {
-        return EqlConfig.class.getClassLoader().getResourceAsStream(resourceName);
+        return EqlConnectionConfig.class.getClassLoader().getResourceAsStream(resourceName);
     }
 
     public static EqlConfigable parseConfig(String key) {

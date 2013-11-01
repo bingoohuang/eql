@@ -17,6 +17,7 @@ public class EqlSimpleConfig implements EqlTranAware {
     private String driver;
     private String transactionType;
     private SimpleDataSource dataSource = null;
+    private String databaseId;
 
     private Connection getConnection() {
         try {

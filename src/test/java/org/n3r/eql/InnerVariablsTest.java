@@ -28,5 +28,6 @@ public class InnerVariablsTest {
         Integer result = new Eql().id("testLastResult")
                 .params(new Timestamp(1383122146000l))
                 .execute();
+        assertThat(result, is(1));
     }
 }

@@ -466,7 +466,7 @@ public class EqlUtils {
     }
 
     public static boolean containsIgnoreCase(String string, String value) {
-        return string == null ? false : string.toUpperCase().contains(value.toLowerCase());
+        return string == null ? false : string.toUpperCase().contains(value.toUpperCase());
     }
 
 

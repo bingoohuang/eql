@@ -1,6 +1,7 @@
 package org.n3r.eql.parser;
 
 import com.google.common.collect.Lists;
+import ognl.NoSuchPropertyException;
 import ognl.Ognl;
 import ognl.OgnlException;
 
@@ -32,6 +33,15 @@ public class IfPart implements EqlPart {
     public static boolean evalBool(Object bean, String expr, Map<String, Object> executionContext) {
         try {
             Object value = Ognl.getValue(expr, executionContext, bean);
+            return value instanceof Boolean && ((Boolean) value).booleanValue();
+        } catch (NoSuchPropertyException ex) {
+                // will try again from context
+        } catch (OgnlException e) {
+            throw new RuntimeException("eval " + expr + " with " + bean + " failed", e);
+        }
+
+        try {
+            Object value = Ognl.getValue(expr, executionContext);
             return value instanceof Boolean && ((Boolean) value).booleanValue();
         } catch (OgnlException e) {
             throw new RuntimeException("eval " + expr + " with " + bean + " failed", e);

@@ -39,13 +39,13 @@ public class SimpleTest {
     @Test
     public void test2() {
         Map<String, String> ret = new Eql().selectFirst("queryXY").execute();
-        assertThat(ret.get("x"), is("x"));
-        assertThat(ret.get("y"), is("y"));
+        assertThat(ret.get("X"), is("x"));
+        assertThat(ret.get("Y"), is("y"));
 
         List<Map<String, String>> lst = new Eql().select("queryXY2").execute();
         assertThat(lst.size(), is(2));
-        assertThat(lst.get(0), equalTo(map("x", "x0", "y", "y0")));
-        assertThat(lst.get(1), equalTo(map("x", "x1", "y", "y1")));
+        assertThat(lst.get(0), equalTo(map("X", "x0", "Y", "y0")));
+        assertThat(lst.get(1), equalTo(map("X", "x1", "Y", "y1")));
     }
 
     @Test

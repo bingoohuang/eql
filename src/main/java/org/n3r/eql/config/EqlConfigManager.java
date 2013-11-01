@@ -15,7 +15,7 @@ public class EqlConfigManager {
                     public EqlTranAware load(Object connNameOrConfigable) throws Exception {
                         EqlConfigable config = null;
                         if (connNameOrConfigable instanceof String) {
-                            config = EqlConfig.parseConfig("" + connNameOrConfigable);
+                            config = EqlConnectionConfig.parseConfig("" + connNameOrConfigable);
                         } else if (connNameOrConfigable instanceof EqlConfigable) {
                             config = (EqlConfigable) connNameOrConfigable;
                         }

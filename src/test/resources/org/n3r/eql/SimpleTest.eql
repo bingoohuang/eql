@@ -1,5 +1,5 @@
 -- [test1 returnType=string]
-select 1;
+select 1 FROM DUAL;
 
 -- 这里是注释
 -- [getInt returnType=int]
@@ -28,14 +28,14 @@ WHERE 'x' = #2#
 
 
 -- [queryXY]
-select 'x' as x, 'y' as y
+select 'x' as X, 'y' as Y
   from DUAL
 
 -- [queryXY2]
-select 'x0' as x, 'y0' as y
+select 'x0' as X, 'y0' as Y
 from DUAL
 union all
-select 'x1' as x, 'y1' as y
+select 'x1' as X, 'y1' as Y
 from DUAL
 
 -- [createTestTable]
