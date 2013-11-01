@@ -237,8 +237,12 @@ public class Eql implements Closeable {
         int fromPos2 = sql.indexOf("DISTINCT");
         fromPos2 = fromPos2 < 0 ? sql.indexOf("FROM", fromPos1 + 4) : fromPos2;
 
-        totalEqlSql.setRunSql(fromPos2 > 0 ? "SELECT COUNT(*) CNT__ FROM (" + sql + ")"
-                : "SELECT COUNT(*) AS CNT " + sql.substring(fromPos1));
+        totalEqlSql.setRunSql(fromPos2 > 0 ? "SELECT COUNT(*) CNT__ FROM (" + totalEqlSql.getRunSql() + ")"
+                : "SELECT COUNT(*) AS CNT " + totalEqlSql.getRunSql().substring(fromPos1));
+
+        totalEqlSql.setPrintSql(fromPos2 > 0 ? "SELECT COUNT(*) CNT__ FROM (" + totalEqlSql.getPrintSql() + ")"
+                : "SELECT COUNT(*) AS CNT " + totalEqlSql.getPrintSql().substring(fromPos1));
+
         totalEqlSql.setWillReturnOnlyOneRow(true);
         return totalEqlSql;
     }

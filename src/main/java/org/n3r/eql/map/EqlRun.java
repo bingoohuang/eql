@@ -88,6 +88,10 @@ public class EqlRun implements Cloneable {
         return printSql;
     }
 
+    public void setPrintSql(String printSql) {
+        this.printSql = printSql;
+    }
+
     public void createPrintSql() {
         printSql = runSql.replaceAll("\\r?\\n", "\\\\n");
     }

@@ -54,24 +54,28 @@ public class DbType {
         if (EqlUtils.containsIgnoreCase(driverName, "mysql")) return "mysql";
         if (EqlUtils.containsIgnoreCase(driverName, "h2")) return "h2";
 
-
         return driverName;
     }
 
     private EqlRun createMySqlPageSql(EqlRun eqlRun, EqlPage page) {
         EqlRun eqlRun1 = eqlRun.clone();
-        String pageSql = eqlRun.getRunSql() + " LIMIT ?,?";
-        eqlRun1.setRunSql(pageSql);
+        eqlRun1.setRunSql(eqlRun.getRunSql() + " LIMIT ?,?");
+        eqlRun1.setPrintSql(eqlRun.getPrintSql() + " LIMIT ?,?");
         eqlRun1.setExtraBindParams(page.getStartIndex(), page.getPageRows());
 
         return eqlRun1;
     }
 
-    private EqlRun createOraclePageSql(EqlRun subSql, EqlPage eqlPage) {
-        EqlRun eqlRun = subSql.clone();
-        String pageSql = "SELECT * FROM ( SELECT ROW__.*, ROWNUM RN__ FROM ( " + subSql.getRunSql()
+    private EqlRun createOraclePageSql(EqlRun eqlRun0, EqlPage eqlPage) {
+        EqlRun eqlRun = eqlRun0.clone();
+        String pageSql = "SELECT * FROM ( SELECT ROW__.*, ROWNUM RN__ FROM ( " + eqlRun0.getRunSql()
                 + " ) ROW__  WHERE ROWNUM <= ?) WHERE RN__ > ?";
         eqlRun.setRunSql(pageSql);
+
+        String printSql = "SELECT * FROM ( SELECT ROW__.*, ROWNUM RN__ FROM ( " + eqlRun0.getPrintSql()
+                + " ) ROW__  WHERE ROWNUM <= ?) WHERE RN__ > ?";
+
+        eqlRun.setPrintSql(printSql);
         eqlRun.setExtraBindParams(eqlPage.getStartIndex() + eqlPage.getPageRows(), eqlPage.getStartIndex());
 
         return eqlRun;

@@ -1,0 +1,6 @@
+-- import org/n3r/eql/SimpleTest.eql *TestTable
+
+-- [testPage]
+SELECT A,B,C,D,E
+FROM ESQL_TEST
+WHERE C = ##

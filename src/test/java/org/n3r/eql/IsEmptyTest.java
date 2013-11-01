@@ -30,10 +30,10 @@ public class IsEmptyTest {
         assertThat(eql.getEqlRuns().get(0).getRunSql(), equalTo("SELECT B\nFROM ESQL_TEST\nWHERE A in (1,2)"));
 
         strs = new Eql().select("isEmpty").params(map).execute();
-        assertThat(strs.size(), is(4));
+        assertThat(strs.size(), is(10));
 
         strs = new Eql().select("isNotEmpty").execute();
-        assertThat(strs.size(), is(4));
+        assertThat(strs.size(), is(10));
 
         strs = new Eql().select("isNotEmpty").params(map).execute();
         assertThat(strs.size(), is(1));
