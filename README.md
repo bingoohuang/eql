@@ -151,3 +151,109 @@ select 'X' from dual
 where 'a' = #x#
 and 'b' = #y#
 ```
+
+# Dynamic sql
+
+## if
+
+```java
+
+// real sql will be:
+//   select 'X' from dual where 'a' = ?
+// and with one bound param "a"
+String x = new Eql().selectFirst("ifDemo")
+          .params(mapOf("x", "a"))
+          .execute();
+
+// real sql will be:
+//   select 'X' from dual
+String y = new Eql().selectFirst("ifDemo")
+          .params(mapOf("x", "b"))
+          .execute();
+```
+
+```sql
+-- [ifDemo]
+select 'X' from dual
+-- if x == "a"
+where 'a' = #x#
+-- end
+```
+
+or use more compact syntax
+
+```sql
+-- [ifDemo]
+select 'X' from dual /* if x == "a" */  where 'a' = #x# /* end */
+```
+
+## switch
+
+```sql
+-- [switchSelect returnType=org.n3r.eql.SimpleTest$Bean]
+SELECT A,B,C,D,E
+FROM EQL_TEST
+WHERE
+-- switch a
+--   case 1
+  A = 1
+--   case 2
+  A = 2
+-- end
+```
+
+or with default keyword
+
+```sql
+-- [switchSelectWithDefault returnType=org.n3r.eql.SimpleTest$Bean]
+SELECT A,B,C,D,E
+FROM ESQL_TEST
+WHERE
+-- switch a
+--   case 1
+   A = 1
+--   case 2
+   A = 2
+--   default
+   A = 3
+-- end
+```
+
+## for
+
+```java
+Map<String, Object> map = Maps.newHashMap();
+map.put("list", ImmutableList.of("a", "b", "x"));
+
+String str = new Eql().selectFirst("for1").params(map).execute();
+assertThat(str, is("x"));
+```
+
+```sql
+-- [for1]
+SELECT 'x'
+FROM DUAL
+WHERE 'x' in
+-- for collection=list open=( separator=, close=)
+#item#
+-- end
+```
+
+## is(Not)Null/is(Not)Empty/is(Not)Blank
+
+```sql
+-- [isEmpty]
+SELECT B
+FROM ESQL_TEST
+-- isEmpty a
+WHERE A in (1,2)
+-- end
+
+-- [isNotEmpty]
+SELECT B
+FROM ESQL_TEST
+-- isNotEmpty a
+WHERE A = #a#
+-- end
+```
+
