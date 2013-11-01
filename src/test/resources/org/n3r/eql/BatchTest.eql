@@ -1,0 +1,21 @@
+-- [beforeClass onerr=resume]
+create table EQL_TEST_BINGOO
+(
+  order_no    VARCHAR2(16) not null,
+  activity_id VARCHAR2(10) not null,
+  bingoo_time DATE not null,
+  user_id     VARCHAR2(128) not null,
+  item_id     VARCHAR2(10) not null,
+  item_join   NUMBER(1) default 0 not null
+);
+
+alter table EQL_TEST_BINGOO
+  add constraint PK_EQL_TEST_BINGOO primary key (ORDER_NO);
+
+-- [insertPrizeBingoo]
+INSERT INTO EQL_TEST_BINGOO(ORDER_NO, ACTIVITY_ID, ITEM_ID, USER_ID, BINGOO_TIME)
+VALUES(##, ##, ##, ##, SYSDATE)
+
+
+-- [afterClass onerr=resume]
+drop table EQL_TEST_BINGOO

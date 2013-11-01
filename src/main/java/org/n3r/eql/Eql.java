@@ -182,6 +182,7 @@ public class Eql implements Closeable {
             return EqlUtils.isDdl(currRun) ? execDdl() : pageExecute();
         } catch (EqlExecuteException ex) {
             if (!currRun.getEqlBlock().isOnerrResume()) throw ex;
+            else logger.warn("execute sql {} error", currRun.getPrintSql(), ex);
         }
 
         return 0;
