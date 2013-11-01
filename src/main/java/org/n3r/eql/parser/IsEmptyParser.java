@@ -12,14 +12,14 @@ public class IsEmptyParser implements PartParser {
     }
 
     @Override
-    public SqlPart createPart() {
+    public EqlPart createPart() {
         return new IsEmptyPart(expr, multiPart);
     }
 
     @Override
     public int parse(List<String> mergedLines, int index) {
         int i = index;
-        SqlPart lastPart = null;
+        EqlPart lastPart = null;
         for (int ii = mergedLines.size(); i < ii; ++i) {
             String line = mergedLines.get(i);
 

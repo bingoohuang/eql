@@ -1,6 +1,6 @@
 package org.n3r.eql.parser;
 
-public class IsEmptyPart implements SqlPart {
+public class IsEmptyPart implements EqlPart {
     protected final String expr;
     protected final MultiPart multiPart;
 

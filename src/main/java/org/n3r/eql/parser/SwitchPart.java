@@ -3,11 +3,10 @@ package org.n3r.eql.parser;
 import com.google.common.base.Objects;
 import ognl.NoSuchPropertyException;
 import ognl.Ognl;
-import ognl.OgnlException;
 
 import java.util.List;
 
-public class SwitchPart implements SqlPart {
+public class SwitchPart implements EqlPart {
     private final String condition;
     private final List<IfCondition> cases;
 

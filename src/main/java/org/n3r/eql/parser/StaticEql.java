@@ -1,9 +1,9 @@
 package org.n3r.eql.parser;
 
-public class StaticSql implements Sql {
+public class StaticEql implements Eql {
     private String sql;
 
-    public StaticSql(String sql) {
+    public StaticEql(String sql) {
         this.sql = sql;
     }
 

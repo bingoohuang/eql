@@ -12,14 +12,14 @@ public class SwitchParser implements PartParser {
 
     private String lastCondExpr;
     private MultiPart multiPart = new MultiPart();
-    private SqlPart lastPart;
+    private EqlPart lastPart;
 
     public SwitchParser(String condition) {
         this.condition = condition;
     }
 
     @Override
-    public SqlPart createPart() {
+    public EqlPart createPart() {
         return new SwitchPart(condition, cases);
     }
 

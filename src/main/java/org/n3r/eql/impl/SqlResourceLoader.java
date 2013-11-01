@@ -8,7 +8,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.io.Resources;
 import org.n3r.eql.parser.EqlParser;
-import org.n3r.eql.parser.SqlBlock;
+import org.n3r.eql.parser.EqlBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,30 +20,30 @@ import java.util.concurrent.ExecutionException;
 
 public class SqlResourceLoader {
     static Logger log = LoggerFactory.getLogger(SqlResourceLoader.class);
-    static Cache<String, Optional<Map<String, SqlBlock>>> fileCache = CacheBuilder.newBuilder().build();
-    static Cache<String, SqlBlock> sqlCache = CacheBuilder.newBuilder().build();
+    static Cache<String, Optional<Map<String, EqlBlock>>> fileCache = CacheBuilder.newBuilder().build();
+    static Cache<String, EqlBlock> sqlCache = CacheBuilder.newBuilder().build();
 
-    public static SqlBlock load(String sqlClassPath, String sqlId) {
+    public static EqlBlock load(String sqlClassPath, String sqlId) {
         load(sqlClassPath);
 
-        SqlBlock sqlBlock = sqlCache.getIfPresent(cacheKey(sqlClassPath, sqlId));
-        if (sqlBlock == null) throw new RuntimeException("unable to find sql id " + sqlId);
+        EqlBlock eqlBlock = sqlCache.getIfPresent(cacheKey(sqlClassPath, sqlId));
+        if (eqlBlock == null) throw new RuntimeException("unable to find sql id " + sqlId);
 
-        return sqlBlock;
+        return eqlBlock;
     }
 
-    public static Map<String, SqlBlock> load(final String sqlClassPath) {
-        Callable<Optional<Map<String, SqlBlock>>> valueLoader = new Callable<Optional<Map<String, SqlBlock>>>() {
+    public static Map<String, EqlBlock> load(final String sqlClassPath) {
+        Callable<Optional<Map<String, EqlBlock>>> valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
             @Override
-            public Optional<Map<String, SqlBlock>> call() throws Exception {
+            public Optional<Map<String, EqlBlock>> call() throws Exception {
                 String sqlContent = loadClassPathResource(sqlClassPath);
                 if (sqlContent == null) {
                     log.warn("classpath sql {} not found", sqlClassPath);
                     return Optional.absent();
                 }
 
-                Map<String, SqlBlock> sqlBlocks = new EqlParser().parse(sqlClassPath, sqlContent);
-                for (SqlBlock sqlBlock : sqlBlocks.values()) {
+                Map<String, EqlBlock> sqlBlocks = new EqlParser().parse(sqlClassPath, sqlContent);
+                for (EqlBlock sqlBlock : sqlBlocks.values()) {
                     String key = cacheKey(sqlClassPath, sqlBlock.getSqlId());
                     sqlCache.put(key, sqlBlock);
                 }

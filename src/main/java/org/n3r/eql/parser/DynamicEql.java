@@ -1,9 +1,9 @@
 package org.n3r.eql.parser;
 
-public class DynamicSql implements Sql {
+public class DynamicEql implements Eql {
     private MultiPart parts = new MultiPart();
 
-    public DynamicSql(MultiPart parts) {
+    public DynamicEql(MultiPart parts) {
         this.parts = parts;
     }
 

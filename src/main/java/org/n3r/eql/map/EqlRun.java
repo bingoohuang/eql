@@ -3,7 +3,7 @@ package org.n3r.eql.map;
 import com.google.common.base.Throwables;
 import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.PlaceholderType;
-import org.n3r.eql.parser.SqlBlock;
+import org.n3r.eql.parser.EqlBlock;
 
 public class EqlRun implements Cloneable {
     public static enum EqlType {
@@ -15,7 +15,7 @@ public class EqlRun implements Cloneable {
     private String printSql;
     private Object result;
 
-    private SqlBlock sqlBlock;
+    private EqlBlock eqlBlock;
     private int placeholderNum;
     private EqlParamPlaceholder[] placeHolders;
     private PlaceholderType placeHolderType;
@@ -62,7 +62,7 @@ public class EqlRun implements Cloneable {
     }
 
     public String getSqlId() {
-        return sqlBlock != null ? sqlBlock.getSqlId() : "<AUTO>";
+        return eqlBlock != null ? eqlBlock.getSqlId() : "<AUTO>";
     }
 
     public void setPlaceHolders(EqlParamPlaceholder[] placeHolders) {
@@ -96,12 +96,12 @@ public class EqlRun implements Cloneable {
         this.placeholderNum = placeholderNum;
     }
 
-    public SqlBlock getSqlBlock() {
-        return sqlBlock;
+    public EqlBlock getEqlBlock() {
+        return eqlBlock;
     }
 
-    public void setSqlBlock(SqlBlock sqlBlock) {
-        this.sqlBlock = sqlBlock;
+    public void setEqlBlock(EqlBlock eqlBlock) {
+        this.eqlBlock = eqlBlock;
     }
 
     public EqlType getSqlType() {

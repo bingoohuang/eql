@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ForPart implements SqlPart {
+public class ForPart implements EqlPart {
     private LiteralPart part;
     private String item;
     private String index;

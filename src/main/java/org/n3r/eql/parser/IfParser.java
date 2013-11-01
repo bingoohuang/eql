@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 public class IfParser implements PartParser {
     private String lastCondExpr;
     private MultiPart multiPart = new MultiPart();
-    private SqlPart lastPart;
+    private EqlPart lastPart;
     private List<IfCondition> conditions = Lists.newArrayList();
 
     public IfParser(String firstCondExpr) {
@@ -17,7 +17,7 @@ public class IfParser implements PartParser {
     }
 
     @Override
-    public SqlPart createPart() {
+    public EqlPart createPart() {
         return new IfPart(conditions);
     }
 

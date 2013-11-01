@@ -3,7 +3,7 @@ package org.n3r.eql.param;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.n3r.eql.ex.EqlConfigException;
-import org.n3r.eql.parser.SqlBlock;
+import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.EqlUtils;
 
@@ -14,12 +14,12 @@ import java.util.regex.Pattern;
 
 public class EqlParamsParser {
     private static Pattern PARAM_PATTERN = Pattern.compile("#(.*?)#");
-    private SqlBlock sqlBlock;
+    private EqlBlock eqlBlock;
     private String templateSql;
     private EqlRun eqlRun;
 
-    public EqlRun parseParams(String templateSql, SqlBlock sqlBlock) {
-        this.sqlBlock = sqlBlock;
+    public EqlRun parseParams(String templateSql, EqlBlock eqlBlock) {
+        this.eqlBlock = eqlBlock;
         this.templateSql = templateSql;
 
         eqlRun = new EqlRun();
@@ -60,7 +60,7 @@ public class EqlParamsParser {
         sql.append(templateSql.substring(startPos));
         String onelineSql = sql.toString();
         eqlRun.setRunSql(hasEscape ? unescape(onelineSql) : onelineSql);
-        eqlRun.setSqlBlock(sqlBlock);
+        eqlRun.setEqlBlock(eqlBlock);
         eqlRun.setPlaceholderNum(placeHolders.size());
 
         parsePlaceholders(placeHolders, placeHolderOptions);
@@ -205,7 +205,7 @@ public class EqlParamsParser {
                     && paramPlaceholder.getInOut() != inOut) {
                 if (placeHolderInType != PlaceholderType.UNSET)
                     throw new EqlConfigException("["
-                            + (sqlBlock != null ? sqlBlock.getSqlId() : templateSql) + "]中定义的SQL绑定参数设置类型不一致");
+                            + (eqlBlock != null ? eqlBlock.getSqlId() : templateSql) + "]中定义的SQL绑定参数设置类型不一致");
 
                 placeHolderInType = paramPlaceholder.getPlaceholderType();
             }
@@ -213,7 +213,7 @@ public class EqlParamsParser {
         if (placeHolderInType == PlaceholderType.MANU_SEQ
                 && eqlRun.getSqlType() == EqlRun.EqlType.CALL)
             throw new EqlConfigException("["
-                    + (sqlBlock != null ? sqlBlock.getSqlId() : templateSql) + "]是存储过程，不支持手工设定参数顺序");
+                    + (eqlBlock != null ? eqlBlock.getSqlId() : templateSql) + "]是存储过程，不支持手工设定参数顺序");
 
         return placeHolderInType;
     }

@@ -9,29 +9,35 @@ import org.n3r.eql.util.EqlUtils;
 import java.util.List;
 
 public class DynamicReplacer {
-    public void repaceDynamics(EqlRun eqlRun, Object[] dynamics) {
+    private EqlDynamic eqlDynamic;
+    private Object[] dynamics;
+    private EqlRun eqlRun;
+
+    public void replaceDynamics(EqlRun eqlRun, Object[] dynamics) {
+        this.eqlRun = eqlRun;
+        this.dynamics = dynamics;
         if (dynamics != null && dynamics.length > 0 && eqlRun.getEqlDynamic() == null)
             eqlRun.setEqlDynamic(new DynamicParser().parseRawSql(eqlRun.getRunSql()));
 
-        EqlDynamic eqlDynamic = eqlRun.getEqlDynamic();
+        eqlDynamic = eqlRun.getEqlDynamic();
         if (eqlDynamic == null) return;
 
         List<String> sqlPieces = eqlDynamic.getSqlPieces();
         StringBuilder runSql = new StringBuilder(sqlPieces.get(0));
+        int ii = sqlPieces.size();
 
         switch (eqlDynamic.getPlaceholdertype()) {
             case AUTO_SEQ:
-                for (int i = 1, ii = sqlPieces.size(); i < ii; ++i)
-                    runSql.append(getDynamicByIndex(dynamics, i - 1, eqlRun.getSqlId())).append(sqlPieces.get(i));
+                for (int i = 1; i < ii; ++i)
+                    runSql.append(findDynamicByIdx(i - 1)).append(sqlPieces.get(i));
                 break;
             case MANU_SEQ:
-                for (int i = 1, ii = sqlPieces.size(); i < ii; ++i)
-                    runSql.append(findDynamicBySeq(dynamics, eqlDynamic, i - 1, eqlRun.getSqlId())).append(
-                            sqlPieces.get(i));
+                for (int i = 1; i < ii; ++i)
+                    runSql.append(findDynamicBySeq(i - 1)).append(sqlPieces.get(i));
                 break;
             case VAR_NAME:
-                for (int i = 1, ii = sqlPieces.size(); i < ii; ++i)
-                    runSql.append(findDynamicByName(dynamics, eqlDynamic, i - 1)).append(sqlPieces.get(i));
+                for (int i = 1; i < ii; ++i)
+                    runSql.append(findDynamicByName(i - 1)).append(sqlPieces.get(i));
                 break;
             default:
                 break;
@@ -40,27 +46,27 @@ public class DynamicReplacer {
         eqlRun.setRunSql(runSql.toString());
     }
 
-    private Object getDynamicByIndex(Object[] dynamics, int index, String sqlId) {
-        if (index < dynamics.length)
-            return dynamics[index];
+    private Object findDynamicByIdx(int index) {
+        if (index < dynamics.length) return dynamics[index];
 
-        throw new EqlExecuteException("[" + sqlId + "]执行过程中缺少动态替换参数");
+        throw new EqlExecuteException("[" + eqlRun.getSqlId() + "] lack dynamic params");
     }
 
-    private Object findDynamicBySeq(Object[] dynamics, EqlDynamic eqlDynamic, int index, String sqlId) {
-        return getDynamicByIndex(dynamics, eqlDynamic.getPlaceholders()[index].getSeq() - 1, sqlId);
+    private Object findDynamicBySeq(int index) {
+        return findDynamicByIdx(eqlDynamic.getPlaceholders()[index].getSeq() - 1);
     }
 
-    private Object findDynamicByName(Object[] dynamics, EqlDynamic eqlDynamic, int index) {
+    private Object findDynamicByName(int index) {
         Object bean = dynamics[0];
 
         String varName = eqlDynamic.getPlaceholders()[index].getPlaceholder();
         Object property = EqlUtils.getPropertyQuietly(bean, varName);
-        if (property == null) {
-            String propertyName = EqlUtils.convertUnderscoreNameToPropertyName(varName);
-            if (!Objects.equal(propertyName, varName))
-                property = EqlUtils.getPropertyQuietly(bean, propertyName);
-        }
+        if (property != null) return property;
+
+        String propertyName = EqlUtils.convertUnderscoreNameToPropertyName(varName);
+        if (!Objects.equal(propertyName, varName))
+            property = EqlUtils.getPropertyQuietly(bean, propertyName);
+
         return property;
     }
 }

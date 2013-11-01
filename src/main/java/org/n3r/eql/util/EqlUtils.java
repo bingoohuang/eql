@@ -189,7 +189,7 @@ public class EqlUtils {
         if (endsWith(upper, "OR"))
             return returnSql.substring(0, sql.length() - "AND".length());
 
-        return sql;
+        return returnSql;
     }
 
     private static boolean endsWith(String str, String end) {

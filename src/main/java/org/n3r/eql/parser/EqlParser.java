@@ -13,13 +13,13 @@ import java.util.regex.Pattern;
 public class EqlParser {
     static Pattern blockPattern = Pattern.compile("\\[\\s*([\\w\\.\\-\\d]+)\\b(.*)\\]");
 
-    private Map<String, SqlBlock> blocks = Maps.newHashMap();
+    private Map<String, EqlBlock> blocks = Maps.newHashMap();
     private String sqlClassPath;
     private List<String> sqlLines = null;
 
-    private SqlBlock block = null;
+    private EqlBlock block = null;
 
-    public Map<String, SqlBlock> parse(String sqlClassPath, String str) {
+    public Map<String, EqlBlock> parse(String sqlClassPath, String str) {
         this.sqlClassPath = sqlClassPath;
         Iterable<String> lines = Splitter.on('\n').trimResults().split(str);
 
@@ -38,7 +38,7 @@ public class EqlParser {
                 Matcher matcher = blockPattern.matcher(cleanLine);
                 if (matcher.matches()) { // new sql block found
                     parseBlock();
-                    block = new SqlBlock(sqlClassPath, matcher.group(1), matcher.group(2), lineNo);
+                    block = new EqlBlock(sqlClassPath, matcher.group(1), matcher.group(2), lineNo);
                     addBlock(block);
                     continue;
                 }
@@ -62,9 +62,9 @@ public class EqlParser {
         if (block == null) return true;
 
         String includeSqlId = matcher.group(1);
-        SqlBlock sqlBlock = blocks.get(includeSqlId);
-        if (sqlBlock == null) throw new RuntimeException(cleanLine + " not found");
-        sqlLines.addAll(sqlBlock.getSqlLines());
+        EqlBlock eqlBlock = blocks.get(includeSqlId);
+        if (eqlBlock == null) throw new RuntimeException(cleanLine + " not found");
+        sqlLines.addAll(eqlBlock.getSqlLines());
 
         return true;
     }
@@ -83,18 +83,18 @@ public class EqlParser {
 
         if (classPath.equals(sqlClassPath)) return true;
 
-        Map<String, SqlBlock> importRes = SqlResourceLoader.load(classPath);
+        Map<String, EqlBlock> importRes = SqlResourceLoader.load(classPath);
         if (ParserUtils.isBlank(patterns)) {
             importSqlBlocks(cleanLine, importRes);
             return true;
         }
 
-        Map<String, SqlBlock> temp = Maps.newHashMap();
+        Map<String, EqlBlock> temp = Maps.newHashMap();
         Splitter splitter = Splitter.onPattern("\\s+").omitEmptyStrings().trimResults();
         for (String pattern : splitter.split(patterns)) {
-            for (SqlBlock sqlBlock : importRes.values()) {
-                if (wildCardMatch(sqlBlock.getSqlId(), pattern)) {
-                    temp.put(sqlBlock.getSqlId(), sqlBlock);
+            for (EqlBlock eqlBlock : importRes.values()) {
+                if (wildCardMatch(eqlBlock.getSqlId(), pattern)) {
+                    temp.put(eqlBlock.getSqlId(), eqlBlock);
                 }
             }
         }
@@ -104,28 +104,28 @@ public class EqlParser {
         return true;
     }
 
-    private void importSqlBlocks(String cleanLine, Map<String, SqlBlock> temp) {
-        for (SqlBlock sqlBlock : temp.values()) {
-            if (blocks.containsKey(sqlBlock.getSqlId())) {
-                throw new RuntimeException(sqlBlock.getSqlId() + " deplicated when " + cleanLine + " in " + sqlClassPath);
+    private void importSqlBlocks(String cleanLine, Map<String, EqlBlock> temp) {
+        for (EqlBlock eqlBlock : temp.values()) {
+            if (blocks.containsKey(eqlBlock.getSqlId())) {
+                throw new RuntimeException(eqlBlock.getSqlId() + " deplicated when " + cleanLine + " in " + sqlClassPath);
             }
 
-            blocks.put(sqlBlock.getSqlId(), sqlBlock);
+            blocks.put(eqlBlock.getSqlId(), eqlBlock);
         }
     }
 
-    private void addBlock(SqlBlock sqlBlock) {
-        if (blocks.containsKey(sqlBlock.getSqlId())) {
-            throw new RuntimeException(sqlBlock.getSqlId() + " deplicated in " + sqlClassPath);
+    private void addBlock(EqlBlock eqlBlock) {
+        if (blocks.containsKey(eqlBlock.getSqlId())) {
+            throw new RuntimeException(eqlBlock.getSqlId() + " deplicated in " + sqlClassPath);
         }
 
-        blocks.put(sqlBlock.getSqlId(), sqlBlock);
+        blocks.put(eqlBlock.getSqlId(), eqlBlock);
         sqlLines = Lists.newArrayList();
     }
 
     private void parseBlock() {
         if (block != null && sqlLines != null && sqlLines.size() > 0) {
-            block.parseBlock(sqlLines);
+            new EqlBlockParser().parse(block, sqlLines);
             block = null;
             sqlLines = null;
         }

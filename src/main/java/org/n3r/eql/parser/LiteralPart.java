@@ -1,6 +1,6 @@
 package org.n3r.eql.parser;
 
-public class LiteralPart implements SqlPart {
+public class LiteralPart implements EqlPart {
     private String sql;
 
     public LiteralPart(String sql) {
@@ -28,6 +28,6 @@ public class LiteralPart implements SqlPart {
 
     @Override
     public String evalSql(Object bean) {
-        return sql.trim();
+        return sql;
     }
 }

@@ -30,7 +30,7 @@ public class ForParser implements PartParser {
     }
 
     @Override
-    public SqlPart createPart() {
+    public EqlPart createPart() {
         return new ForPart(part, item, index, collection, open, separator, close);
     }
 

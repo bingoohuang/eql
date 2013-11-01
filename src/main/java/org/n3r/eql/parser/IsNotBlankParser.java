@@ -6,7 +6,7 @@ public class IsNotBlankParser extends IsEmptyParser {
     }
 
     @Override
-    public SqlPart createPart() {
+    public EqlPart createPart() {
         return new IsNotBlankPart(expr, multiPart);
     }
 }

@@ -3,7 +3,7 @@ package org.n3r.eql.impl;
 import org.n3r.eql.base.AfterPropertiesSet;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.map.*;
-import org.n3r.eql.parser.SqlBlock;
+import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.EqlUtils;
 
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EqlRsRetriever {
-    private SqlBlock sqlBlock;
+    private EqlBlock eqlBlock;
     private static int DEFAULT_MAXROWS = 100000;
     private int maxRows = DEFAULT_MAXROWS;
     private EqlRowMapper eqlRowMapper;
@@ -60,7 +60,7 @@ public class EqlRsRetriever {
     private EqlRowMapper getRowMapper(ResultSetMetaData metaData) throws SQLException {
         if (eqlRowMapper != null) return eqlRowMapper;
 
-        if (returnType == null && sqlBlock != null) returnType = sqlBlock.getReturnType();
+        if (returnType == null && eqlBlock != null) returnType = eqlBlock.getReturnType();
 
         if (returnType != null && EqlRowMapper.class.isAssignableFrom(returnType))
             return Reflect.on(returnType).create().get();
@@ -71,7 +71,7 @@ public class EqlRsRetriever {
     }
 
     public EsqlCallableReturnMapper getCallableReturnMapper() {
-        if (returnType == null && sqlBlock != null) returnType = sqlBlock.getReturnType();
+        if (returnType == null && eqlBlock != null) returnType = eqlBlock.getReturnType();
 
         if (returnType != null && EsqlCallableReturnMapper.class.isAssignableFrom(returnType))
             return Reflect.on(returnType).create().get();
@@ -84,11 +84,11 @@ public class EqlRsRetriever {
     private Object convertSingleValue(Object value) {
         if (value == null) return null;
 
-        if (returnType == null && sqlBlock != null) returnType = sqlBlock.getReturnType();
+        if (returnType == null && eqlBlock != null) returnType = eqlBlock.getReturnType();
 
         String returnTypeName = this.returnTypeName;
         if (returnTypeName == null)
-            returnTypeName = sqlBlock == null ? null : sqlBlock.getOptions().get("returnType");
+            returnTypeName = eqlBlock == null ? null : eqlBlock.getOptions().get("returnType");
 
         if (returnType == null && returnTypeName == null) return value;
 
@@ -111,8 +111,8 @@ public class EqlRsRetriever {
         return value;
     }
 
-    public void setSqlBlock(SqlBlock sqlBlock) {
-        this.sqlBlock = sqlBlock;
+    public void setEqlBlock(EqlBlock eqlBlock) {
+        this.eqlBlock = eqlBlock;
     }
 
     public void setMaxRows(int maxRows) {

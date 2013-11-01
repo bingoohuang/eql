@@ -8,7 +8,7 @@ import org.n3r.eql.impl.*;
 import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.param.EqlParamsBinder;
-import org.n3r.eql.parser.SqlBlock;
+import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.EqlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +22,7 @@ public class Eql implements Closeable {
     private static Logger logger = LoggerFactory.getLogger(Eql.class);
 
     private Object connectionNameOrConfigable;
-    private SqlBlock sqlBlock;
+    private EqlBlock eqlBlock;
     private Object[] params;
     private String sqlClassPath;
     private EqlPage page;
@@ -57,7 +57,7 @@ public class Eql implements Closeable {
             if (batch == null) tranStart();
             createConn();
 
-            eqlRuns = sqlBlock.createSqlSubs(params, dynamics, directSqls);
+            eqlRuns = eqlBlock.createSqlSubs(params, dynamics, directSqls);
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
                 ret = runEql();
@@ -95,7 +95,7 @@ public class Eql implements Closeable {
         tranStart();
         createConn();
 
-        List<EqlRun> sqlSubs = sqlBlock.createSqlSubs(params, dynamics);
+        List<EqlRun> sqlSubs = eqlBlock.createSqlSubs(params, dynamics);
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one select sql supported in this method");
 
@@ -119,7 +119,7 @@ public class Eql implements Closeable {
         tranStart();
         createConn();
 
-        List<EqlRun> sqlSubs = sqlBlock.createSqlSubs(params, dynamics);
+        List<EqlRun> sqlSubs = eqlBlock.createSqlSubs(params, dynamics);
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one update sql supported in this method");
 
@@ -138,7 +138,7 @@ public class Eql implements Closeable {
     }
 
     private void checkPreconditions(String... directSqls) {
-        if (sqlBlock != null || directSqls.length > 0) return;
+        if (eqlBlock != null || directSqls.length > 0) return;
 
         throw new EqlExecuteException("No sqlid defined!");
     }
@@ -147,7 +147,7 @@ public class Eql implements Closeable {
         try {
             return EqlUtils.isDdl(currRun) ? execDdl() : pageExecute();
         } catch (EqlExecuteException ex) {
-            if (!currRun.getSqlBlock().isOnerrResume()) throw ex;
+            if (!currRun.getEqlBlock().isOnerrResume()) throw ex;
         }
 
         return 0;
@@ -299,9 +299,9 @@ public class Eql implements Closeable {
     protected void initSqlId(String sqlId, String sqlClassPath) {
         this.sqlClassPath = Strings.isNullOrEmpty(sqlClassPath) ? EqlUtils.getSqlClassPath(4) : sqlClassPath;
 
-        sqlBlock = SqlResourceLoader.load(this.sqlClassPath, sqlId);
+        eqlBlock = SqlResourceLoader.load(this.sqlClassPath, sqlId);
 
-        rsRetriever.setSqlBlock(sqlBlock);
+        rsRetriever.setEqlBlock(eqlBlock);
     }
 
     public Eql useSqlFile(Class<?> sqlBoundClass) {
@@ -356,7 +356,7 @@ public class Eql implements Closeable {
     }
 
     public String getSqlId() {
-        return sqlBlock.getSqlId();
+        return eqlBlock.getSqlId();
     }
 
     private void tranStart() {

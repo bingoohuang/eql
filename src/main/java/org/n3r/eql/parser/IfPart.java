@@ -6,7 +6,7 @@ import ognl.OgnlException;
 
 import java.util.List;
 
-public class IfPart implements SqlPart {
+public class IfPart implements EqlPart {
     private List<IfCondition> conditions = Lists.newArrayList();
 
     public IfPart(List<IfCondition> conditions) {
