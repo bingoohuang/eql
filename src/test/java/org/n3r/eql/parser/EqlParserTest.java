@@ -15,7 +15,7 @@ public class EqlParserTest {
     public void includeSqlId() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [commondCondition]\n" +
+                null, "", "-- [commondCondition]\n" +
                 "A == #a#\n" +
                 "-- [lookup]\n" +
                 "select 1\n" +
@@ -29,7 +29,7 @@ public class EqlParserTest {
     public void oneBlock1IfIf() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [selectIf2 returnType=org.n3r.eql.SimpleTest$Bean]\n" +
+                null, "", "-- [selectIf2 returnType=org.n3r.eql.SimpleTest$Bean]\n" +
                 "SELECT A,B,C,D,E\n" +
                 "FROM ESQL_TEST\n" +
                 "WHERE A = #a#\n" +
@@ -67,7 +67,7 @@ public class EqlParserTest {
     public void oneBlock1StaticSql() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [queryBlog]\r\n"
+                null, "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG");
 
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
@@ -87,7 +87,7 @@ public class EqlParserTest {
     public void oneBlock2StaticSqls() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [queryBlog]\r\n"
+                null, "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG1;\r\n"
                 + "SELECT * FROM BLOG2\r\n");
 
@@ -111,7 +111,7 @@ public class EqlParserTest {
     public void twoBlock1StaticSql() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [queryBlog1]\r\n"
+                null, "", "-- [queryBlog1]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "-- [queryBlog2]\r\n"
                 + "SELECT * FROM BLOG"
@@ -139,7 +139,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicIfSql() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [queryBlog]\r\n"
+                null, "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "-- if name != null\r\n"
                 + "   where name = #name#\r\n"
@@ -180,7 +180,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicSwitchSql() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [queryBlog]\r\n"
+                null, "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "-- switch name\r\n"
                 + "--    case bingoo\r\n"
@@ -196,7 +196,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicSwitchSqlInline() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [queryBlog]\r\n"
+                null, "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "/* switch name */"
                 + "/*    case bingoo */"
@@ -262,7 +262,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicSwitchSql2() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [queryBlog]\r\n"
+                null, "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "-- switch name\r\n"
                 + "-- case bingoo\r\n"
@@ -281,7 +281,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicSwitchSql2Inlie() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [queryBlog]\r\n"
+                null, "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "/* switch name*/\n"
                 + "-- case bingoo\r\n"
@@ -362,7 +362,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicIfSql2() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [queryBlog]\r\n"
+                null, "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "/* if name != null */ where name = #name# /* end */"
         );
@@ -399,7 +399,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicIfSql3() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [queryBlog]\r\n"
+                null, "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "/* if name != null */ \r\n where name = #name# \r\n/* end */"
         );
@@ -440,7 +440,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicIfElseIfSql() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [queryBlog]\r\n"
+                null, "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "-- if name != null\r\n"
                 + "   where name = #name#\r\n"
@@ -457,7 +457,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicIfElseIfSql2() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [queryBlog]\r\n"
+                null, "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "/* if name != null*/"
                 + "   where name = #name#\r\n"
@@ -507,7 +507,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicIfElseSql() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [queryBlog]\r\n"
+                null, "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG\r\n"
                 + "-- if name != null\r\n"
                 + "   where name = #name#\r\n"
@@ -554,7 +554,7 @@ public class EqlParserTest {
     public void oneBlock1DynamicForSql() {
         EqlParser eqlParser = new EqlParser();
         Map<String, EqlBlock> map = eqlParser.parse(
-                "", "-- [queryBlog]\r\n"
+                null, "", "-- [queryBlog]\r\n"
                 + "SELECT * FROM BLOG where name in\r\n"
                 + "-- for item=item collection=names open=( close=) seperate=,\r\n"
                 + "   #item#\r\n"
@@ -586,7 +586,7 @@ public class EqlParserTest {
     @Test(expected=Exception.class)
     public void duplicatedSqlIdImportBlock() {
         EqlParser eqlParser = new EqlParser();
-        eqlParser.parse("",
+        eqlParser.parse(null, "",
                 "-- [selectIf2 returnType=org.n3r.eql.SimpleTest$Bean]\n" +
                         "SELECT A,B,C,D,E\n" +
                         "FROM ESQL_TEST\n" +

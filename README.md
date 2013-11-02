@@ -422,7 +422,39 @@ SELECT 1 as seq, BOB as remark FROM ESQL_BLOB
 UPDATE ESQL_BLOB SET BOB = #:LOB#
 ```
 
+# Diamond-miner support example
+Eql also can be loaded from diamond.
+First create eql/eql-diamond.properties on classpath like:
 
+```
+sql.resource.loader=org.n3r.eql.impl.DiamondEqlResourceLoader
+
+transactionType=jdbc
+driver=oracle.jdbc.driver.OracleDriver
+url=jdbc:oracle:thin:@127.0.0.1:1521:orcl
+user=orcl
+password=orcl
+```
+
+As you see, we redefined sql resource loader to diamond-specific.
+And then add a config in diamond:
+
+```
+group=EQL
+dataId=org.n3r.eql.DiamondTest.eql
+content=
+
+-- [diamondDemo]
+SELECT 'Hello' FROM DUAL
+
+```
+
+And then in java code
+
+```java
+String str = new Eql("diamond").selectFirst("diamondDemo").execute();
+System.out.println(str);
+```
      
 
 

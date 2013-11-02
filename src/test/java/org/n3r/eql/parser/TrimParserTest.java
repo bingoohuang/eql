@@ -2,8 +2,8 @@ package org.n3r.eql.parser;
 
 import com.google.common.collect.Maps;
 import org.junit.Test;
-import org.n3r.eql.impl.SqlResourceLoader;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.util.EqlUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -15,15 +15,15 @@ import static org.junit.Assert.assertThat;
 public class TrimParserTest {
     @Test
     public void test() {
-        String str = SqlResourceLoader.loadClassPathResource("org/n3r/eql/TrimTest.eql");
+        String str = EqlUtils.loadClassPathResource("org/n3r/eql/TrimTest.eql");
         EqlParser eqlParser = new EqlParser();
-        Map<String, EqlBlock> map = eqlParser.parse("",str);
+        Map<String, EqlBlock> map = eqlParser.parse(null, "", str);
 
         EqlBlock updateAuthor = map.get("updateAuthor");
         DynamicSql updateAuthorSql = (DynamicSql) updateAuthor.getSqls().get(0);
 
         assertThat(updateAuthorSql.getParts().size(), is(3));
-        assertThat(((LiteralPart)updateAuthorSql.getParts().part(0)).getSql(), is("update author\n"));
+        assertThat(((LiteralPart) updateAuthorSql.getParts().part(0)).getSql(), is("update author\n"));
         assertThat(((LiteralPart) updateAuthorSql.getParts().part(2)).getSql(), is("where id=#id#\n"));
         TrimPart trimPart = (TrimPart) updateAuthorSql.getParts().part(1);
         assertThat(trimPart.getParts().size(), is(4));

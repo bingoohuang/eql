@@ -9,8 +9,8 @@ import org.n3r.eql.config.EqlConfigManager;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.impl.EqlBatch;
 import org.n3r.eql.impl.EqlProc;
+import org.n3r.eql.impl.EqlResourceLoaderFactory;
 import org.n3r.eql.impl.EqlRsRetriever;
-import org.n3r.eql.impl.SqlResourceLoader;
 import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.param.EqlParamsBinder;
@@ -323,7 +323,7 @@ public class Eql implements Closeable {
     protected void initSqlId(String sqlId, String sqlClassPath) {
         this.sqlClassPath = Strings.isNullOrEmpty(sqlClassPath) ? EqlUtils.getSqlClassPath(4) : sqlClassPath;
 
-        eqlBlock = SqlResourceLoader.load(this.sqlClassPath, sqlId);
+        eqlBlock = EqlResourceLoaderFactory.load(eqlConfig, this.sqlClassPath, sqlId);
 
         rsRetriever.setEqlBlock(eqlBlock);
     }

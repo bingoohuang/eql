@@ -6,9 +6,11 @@ import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
+import com.google.common.io.Resources;
 import com.google.common.primitives.Primitives;
 import ognl.Ognl;
 import org.n3r.eql.EqlTran;
+import org.n3r.eql.impl.EqlResourceLoaderFactory;
 import org.n3r.eql.map.EqlRun;
 
 import java.io.Closeable;
@@ -18,6 +20,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.math.BigDecimal;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.sql.*;
 import java.text.SimpleDateFormat;
@@ -527,5 +530,21 @@ public class EqlUtils {
 
     public static String trimLeft(String original) {
         return original == null ? "" : original.replaceAll("^\\s+", "");
+    }
+
+    public static String loadClassPathResource(String classPath) {
+        ClassLoader loader = Objects.firstNonNull(
+                Thread.currentThread().getContextClassLoader(),
+                EqlResourceLoaderFactory.class.getClassLoader());
+        URL url = loader.getResource(classPath);
+        if (url == null) return null;
+
+        try {
+            return Resources.toString(url, Charsets.UTF_8);
+        } catch (IOException e) {
+
+        }
+
+        return null;
     }
 }

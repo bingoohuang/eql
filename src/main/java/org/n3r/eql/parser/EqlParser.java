@@ -3,7 +3,7 @@ package org.n3r.eql.parser;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.n3r.eql.impl.SqlResourceLoader;
+import org.n3r.eql.base.EqlResourceLoader;
 
 import java.util.List;
 import java.util.Map;
@@ -18,8 +18,10 @@ public class EqlParser {
     private List<String> sqlLines = null;
 
     private EqlBlock block = null;
+    private EqlResourceLoader eqlResourceLoader;
 
-    public Map<String, EqlBlock> parse(String sqlClassPath, String str) {
+    public Map<String, EqlBlock> parse(EqlResourceLoader eqlResourceLoader, String sqlClassPath, String str) {
+        this.eqlResourceLoader = eqlResourceLoader;
         this.sqlClassPath = sqlClassPath;
         Iterable<String> lines = Splitter.on('\n').trimResults().split(str);
 
@@ -55,6 +57,7 @@ public class EqlParser {
 
     static Pattern includePattern = Pattern.compile("include\\s+([\\w\\.\\-\\d]+)",
             Pattern.CASE_INSENSITIVE);
+
     private boolean includeOtherSqlId(String cleanLine) {
         Matcher matcher = includePattern.matcher(cleanLine);
         if (!matcher.matches()) return false;
@@ -83,7 +86,7 @@ public class EqlParser {
 
         if (classPath.equals(sqlClassPath)) return true;
 
-        Map<String, EqlBlock> importRes = SqlResourceLoader.load(classPath);
+        Map<String, EqlBlock> importRes = eqlResourceLoader.load(classPath);
         if (ParserUtils.isBlank(patterns)) {
             importSqlBlocks(cleanLine, importRes);
             return true;
