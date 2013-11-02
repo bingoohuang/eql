@@ -1,5 +1,7 @@
 package org.n3r.eql.parser;
 
+import org.n3r.eql.util.EqlUtils;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,8 +13,13 @@ public class PartParserFactory {
         if (!matcher.matches()) return null;
 
         String keyword = matcher.group(1).toLowerCase();
-        String option = matcher.group(2);
+        String option = EqlUtils.trimToEmpty(matcher.group(2));
+
+        if (EqlUtils.isBlank(option))
+            throw new RuntimeException(clearLine + " is invalid");
+
         if (keyword.equals("if")) return new IfParser(option);
+        if (keyword.equals("iff")) return new IffParser(option);
         if (keyword.equals("isempty")) return new IsEmptyParser(option);
         if (keyword.equals("isnotempty")) return new IsNotEmptyParser(option);
         if (keyword.equals("isnull")) return new IsNullParser(option);

@@ -187,6 +187,22 @@ or use more compact syntax
 select 'X' from dual /* if x == "a" */  where 'a' = #x# /* end */
 ```
 
+## iff
+
+```sql
+-- [ifDemo]
+select 'X' from dual
+-- iff x == "a"
+where 'a' = #x#
+```
+
+or use more compact syntax
+
+```sql
+-- [ifDemo]
+select 'X' from dual /* iff x == "a" */  where 'a' = #x#
+```
+
 ## switch
 
 ```sql
