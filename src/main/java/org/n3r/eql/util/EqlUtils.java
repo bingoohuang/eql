@@ -178,10 +178,6 @@ public class EqlUtils {
         return false;
     }
 
-    public static String trimRight(String original) {
-        return original.replaceAll("\\s+$", "");
-    }
-
     public static String autoTrimLastUnusedPart(String sql) {
         String returnSql = trimRight(sql);
         String upper = upperCase(returnSql);
@@ -521,5 +517,15 @@ public class EqlUtils {
 
     public static String trimToEmpty(String str) {
         return str == null ? "" : str.trim();
+    }
+
+
+    public static String trimRight(String original) {
+        return original == null ? "" : original.replaceAll("\\s+$", "");
+    }
+
+
+    public static String trimLeft(String original) {
+        return original == null ? "" : original.replaceAll("^\\s+", "");
     }
 }

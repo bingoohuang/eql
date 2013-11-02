@@ -2,6 +2,7 @@ package org.n3r.eql.parser;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import org.n3r.eql.util.EqlUtils;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -10,7 +11,6 @@ import java.util.regex.Pattern;
 public class IfParser implements PartParser {
     private String lastCondExpr;
     private MultiPart multiPart = new MultiPart();
-    private EqlPart lastPart;
     private List<IfCondition> conditions = Lists.newArrayList();
 
     public IfParser(String firstCondExpr) {
@@ -40,8 +40,7 @@ public class IfParser implements PartParser {
                 if (matcher.matches()) {
                     clearLine = matcher.group(1).trim();
                 } else {
-                    lastPart = new LiteralPart(line);
-                    multiPart.addPart(lastPart);
+                    multiPart.addPart(new LiteralPart(line));
                     continue;
                 }
             }
@@ -64,17 +63,17 @@ public class IfParser implements PartParser {
                     throw new RuntimeException("syntax error, else if position is illegal");
 
                 newCondition();
-                lastCondExpr = matcher.group(1);
+                lastCondExpr = EqlUtils.trimToEmpty(matcher.group(1));
+                if (EqlUtils.isBlank(lastCondExpr))
+                    throw new RuntimeException("syntax error, no condition in else if");
+
                 continue;
             }
 
             PartParser partParser = PartParserFactory.tryParse(clearLine);
             if (partParser != null) {
                 i = partParser.parse(mergedLines, i + 1) - 1;
-
-                lastPart = partParser.createPart();
-                multiPart.addPart(lastPart);
-                lastPart = null;
+                multiPart.addPart(partParser.createPart());
             }
         }
 
@@ -86,7 +85,6 @@ public class IfParser implements PartParser {
 
         conditions.add(new IfCondition(lastCondExpr, multiPart));
         lastCondExpr = null;
-        lastPart = null;
         multiPart = new MultiPart();
     }
 

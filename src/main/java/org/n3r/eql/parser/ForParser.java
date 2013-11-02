@@ -17,7 +17,8 @@ public class ForParser implements PartParser {
 
     // for item=item index=index collection=list open=( separator=, close=)
     public ForParser(String options) {
-        Map<String, String> optionsMap = Splitter.on(' ').withKeyValueSeparator('=').split(options.trim());
+        Map<String, String> optionsMap = Splitter.on(' ').trimResults()
+                .withKeyValueSeparator('=').split(options.trim());
         if (optionsMap.containsKey("item")) item = optionsMap.get("item");
         if (optionsMap.containsKey("index")) index = optionsMap.get("index");
         if (optionsMap.containsKey("collection")) collection = optionsMap.get("collection");

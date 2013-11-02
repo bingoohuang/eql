@@ -273,6 +273,36 @@ WHERE A = #a#
 -- end
 ```
 
+## trim
+
+```sql
+-- [updateAuthor]
+update author
+-- trim prefix=SET suffixOverrides=,
+  -- iff username != null
+         username=#username#,
+  -- iff password != null
+         PASSWORD=#password#,
+  -- iff email != null
+         email=#email#,
+  -- iff bio != null
+          bio=#bio#,
+-- end
+where id=#id#
+
+-- [selectBlog]
+SELECT STATE FROM BLOG
+-- trim prefix=WHERE prefixOverrides=AND|OR
+   -- iff state != null
+          state = #state#
+   -- iff title != null
+      AND title like #title#
+   -- iff author != null and author.name != null
+      AND author_name like #author.name#
+-- end
+GROUP BY STATE
+```
+
 # Pagination support
 
 ```java

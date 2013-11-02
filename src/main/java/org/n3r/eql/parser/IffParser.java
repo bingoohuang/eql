@@ -23,6 +23,8 @@ public class IffParser implements PartParser {
             String line = mergedLines.get(i);
             String clearLine = parseClearLine(line);
 
+            if ("end".equalsIgnoreCase(clearLine)) return i;
+
             PartParser partParser = clearLine == null
                     ? null : PartParserFactory.tryParse(clearLine);
             if (partParser != null) return i;

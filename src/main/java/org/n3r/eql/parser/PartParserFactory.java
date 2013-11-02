@@ -28,6 +28,7 @@ public class PartParserFactory {
         if (keyword.equals("isnotblank")) return new IsNotBlankParser(option);
         if (keyword.equals("switch")) return new SwitchParser(option);
         if (keyword.equals("for")) return new ForParser(option);
+        if (keyword.equals("trim")) return new TrimParser(option);
 
         return null;
     }
