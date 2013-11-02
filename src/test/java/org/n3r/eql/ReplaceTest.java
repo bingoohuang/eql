@@ -14,7 +14,8 @@ public class ReplaceTest {
         new Eql().id("dropTestTable").execute();
         new Eql().id("createTestTable").params(new Timestamp(1383122146000l)).execute();
 
-        String str = new Eql().selectFirst("replace1").params("x").dynamics("DUAL").execute();
+        String str = new Eql().selectFirst("replace1")
+                .params("x").dynamics("DUAL").execute();
         assertThat(str, is("x"));
 
         str = new Eql().selectFirst("replace2").params("x")

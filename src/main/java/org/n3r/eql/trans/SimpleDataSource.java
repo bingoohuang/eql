@@ -1,4 +1,4 @@
-package org.n3r.eql.config;
+package org.n3r.eql.trans;
 
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.util.EqlUtils;
@@ -226,11 +226,10 @@ public class SimpleDataSource implements DataSource {
     public int getLoginTimeout() throws SQLException {
         return DriverManager.getLoginTimeout();
     }
-//
-//    @Override
-//    public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
-//        return null;
-//    }
+
+    public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
+        return null;
+    }
 
     /**
      * @see javax.sql.DataSource#setLogWriter(java.io.PrintWriter)

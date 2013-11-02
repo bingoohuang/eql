@@ -8,10 +8,10 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class EqlJdbcTransaction implements EqlTran {
+public class EqlJdbcTran implements EqlTran {
     private Connection connection;
 
-    public EqlJdbcTransaction(Connection connection) {
+    public EqlJdbcTran(Connection connection) {
         this.connection = connection;
     }
 
@@ -19,7 +19,7 @@ public class EqlJdbcTransaction implements EqlTran {
     public void start() {
         try {
             if (connection == null) throw new EqlExecuteException(
-                    "EqlJdbcTransaction could not start transaction. " +
+                    "EqlJdbcTran could not start transaction. " +
                             " Cause: The DataSource returned a null connection.");
 
             if (connection.getAutoCommit()) connection.setAutoCommit(false);
@@ -56,7 +56,7 @@ public class EqlJdbcTransaction implements EqlTran {
     }
 
     /**
-     * Oracle JDBC会在close时自动commit(如果没有显式调用commit/rollback时).
+     * Oracle JDBC will auto commit when close without explicit commit/rollback.
      */
     @Override
     public void close() throws IOException {

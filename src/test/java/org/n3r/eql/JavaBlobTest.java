@@ -2,7 +2,6 @@ package org.n3r.eql;
 
 import com.google.common.base.Charsets;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -15,7 +14,7 @@ public class JavaBlobTest {
     }
 
     @Test
-    @Ignore
+    //@Ignore
     public void testOracleBlob() {
         new Eqll().id("insertBlob").params("中华人民共和国").execute();
         byte[] bytes = new Eqll().id("selectBlob").limit(1).execute();

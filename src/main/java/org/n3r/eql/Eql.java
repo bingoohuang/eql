@@ -3,10 +3,14 @@ package org.n3r.eql;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.n3r.eql.config.EqlConfig;
+import org.n3r.eql.config.EqlConfigCache;
 import org.n3r.eql.config.EqlConfigManager;
-import org.n3r.eql.config.EqlConfigable;
 import org.n3r.eql.ex.EqlExecuteException;
-import org.n3r.eql.impl.*;
+import org.n3r.eql.impl.EqlBatch;
+import org.n3r.eql.impl.EqlProc;
+import org.n3r.eql.impl.EqlRsRetriever;
+import org.n3r.eql.impl.SqlResourceLoader;
 import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.param.EqlParamsBinder;
@@ -25,7 +29,7 @@ public class Eql implements Closeable {
     public static final String DEFAULT_CONN_NAME = "DEFAULT";
     private static Logger logger = LoggerFactory.getLogger(Eql.class);
 
-    private Object connectionNameOrConfigable;
+    private EqlConfig eqlConfig;
     private EqlBlock eqlBlock;
     private Object[] params;
     private String sqlClassPath;
@@ -42,8 +46,20 @@ public class Eql implements Closeable {
     private EqlRun currRun;
     private Map<String, Object> executionContext;
 
+    public Eql() {
+        this(DEFAULT_CONN_NAME);
+    }
+
+    public Eql(String connectionName) {
+        this(EqlConfigCache.getEqlConfig(connectionName));
+    }
+
+    public Eql(EqlConfig eqlConfig) {
+        this.eqlConfig = eqlConfig;
+    }
+
     public Connection getConnection() {
-        return newTran(connectionNameOrConfigable).getConn();
+        return newTran(eqlConfig).getConn();
     }
 
     private void createConn() {
@@ -91,7 +107,7 @@ public class Eql implements Closeable {
     private void updateLastResultToExecutionContext(Object ret) {
         Object lastResult = ret;
         if (ret instanceof List) {
-            List list = (List)ret;
+            List list = (List) ret;
             if (list.size() == 0) lastResult = null;
             else if (list.size() == 1) lastResult = list.get(0);
         }
@@ -303,21 +319,6 @@ public class Eql implements Closeable {
         return this;
     }
 
-    protected Eql(Object connectionNameOrConfigable) {
-        this.connectionNameOrConfigable = connectionNameOrConfigable;
-    }
-
-    public Eql(String connectionName) {
-        this.connectionNameOrConfigable = connectionName;
-    }
-
-    public Eql(EqlConfigable eqlConfigable) {
-        this.connectionNameOrConfigable = eqlConfigable;
-    }
-
-    public Eql() {
-        this(DEFAULT_CONN_NAME);
-    }
 
     protected void initSqlId(String sqlId, String sqlClassPath) {
         this.sqlClassPath = Strings.isNullOrEmpty(sqlClassPath) ? EqlUtils.getSqlClassPath(4) : sqlClassPath;
@@ -386,7 +387,7 @@ public class Eql implements Closeable {
         if (externalTran != null) return;
         if (internalTran != null) return;
 
-        internalTran = newTran(connectionNameOrConfigable);
+        internalTran = newTran(eqlConfig);
         internalTran.start();
     }
 
@@ -403,7 +404,7 @@ public class Eql implements Closeable {
     }
 
     public EqlTran newTran() {
-        EqlTran tran = newTran(connectionNameOrConfigable);
+        EqlTran tran = newTran(eqlConfig);
         connection = tran.getConn();
         useTran(tran);
 
@@ -415,12 +416,12 @@ public class Eql implements Closeable {
         return this;
     }
 
-    public static EqlTran newTran(Object connectionNameOrConfigable) {
-        return EqlConfigManager.getConfig(connectionNameOrConfigable).getTran();
+    public static EqlTran newTran(EqlConfig eqlConfig) {
+        return EqlConfigManager.getConfig(eqlConfig).createTran();
     }
 
-    public String getConnectionName() {
-        return "" + connectionNameOrConfigable;
+    public EqlConfig getEqlConfig() {
+        return eqlConfig;
     }
 
     public String getSqlPath() {

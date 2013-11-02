@@ -6,7 +6,9 @@ import org.junit.Test;
 
 import java.security.SecureRandom;
 
-import static junit.framework.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
 
 public class BatchTest {
     @BeforeClass
@@ -26,11 +28,13 @@ public class BatchTest {
                     .params(orderNo, "Olympic", "" + prizeItem, userId)
                     .execute();
 
-            assertEquals(0, ret);
+            assertThat(ret, is(0));
         }
 
         esql.executeBatch();
     }
+
+
 
     @Test
     public void test2() {
@@ -45,7 +49,7 @@ public class BatchTest {
                     .params(orderNo, "Olympic", "" + prizeItem, userId)
                     .execute();
 
-            assertEquals(0, ret);
+            assertThat(ret, is(0));
         }
 
         esql.executeBatch();

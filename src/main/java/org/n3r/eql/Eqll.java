@@ -1,23 +1,25 @@
 package org.n3r.eql;
 
-import org.n3r.eql.config.EqlConfigable;
+import org.n3r.eql.config.EqlConfig;
+import org.n3r.eql.config.EqlConfigCache;
+import org.n3r.eql.config.EqlConfigFactory;
 
 public class Eqll extends Eql {
-    private static ThreadLocal<Object> connectionNameOrConfigable = new ThreadLocal<Object>(){
+    private static ThreadLocal<EqlConfig> eqlConfigLocal = new ThreadLocal<EqlConfig>(){
         @Override
-        protected Object initialValue() {
-            return  Eql.DEFAULT_CONN_NAME;
+        protected EqlConfig initialValue() {
+            return EqlConfigCache.getEqlConfig(Eql.DEFAULT_CONN_NAME);
         }
     };
 
-    public static void choose(String connectionName) {
-        connectionNameOrConfigable.set(connectionName);
+    public static void choose(String eqlConfigName) {
+        choose(EqlConfigFactory.parseConfig(eqlConfigName));
     }
-    public static void choose(EqlConfigable eqlConfigable) {
-        connectionNameOrConfigable.set(eqlConfigable);
+    public static void choose(EqlConfig eqlConfigable) {
+        eqlConfigLocal.set(eqlConfigable);
     }
 
     public Eqll() {
-        super(connectionNameOrConfigable.get());
+        super(eqlConfigLocal.get());
     }
 }

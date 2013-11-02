@@ -10,7 +10,7 @@ import java.sql.SQLException;
 
 public class JdbcTest {
     @Test
-    @Ignore
+    //@Ignore
     public void test1() throws ClassNotFoundException, SQLException {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection connection = DriverManager.getConnection(

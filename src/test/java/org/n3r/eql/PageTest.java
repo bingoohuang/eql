@@ -6,6 +6,9 @@ import org.junit.Test;
 import java.sql.Timestamp;
 import java.util.List;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
 public class PageTest {
     @BeforeClass
     public static void beforeClass() {
@@ -21,9 +24,13 @@ public class PageTest {
                 .limit(page)
                 .params("DC")
                 .execute();
+        assertThat(page.getTotalRows(), is(7));
+
         System.out.println(page);
         System.out.println(beans);
     }
+
+
 
     @Test
     public void testCountWhenGroupby() {

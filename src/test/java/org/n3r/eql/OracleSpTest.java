@@ -1,7 +1,6 @@
 package org.n3r.eql;
 
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.n3r.eql.util.EqlUtils;
 
@@ -12,13 +11,11 @@ import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.TestCase.assertNull;
-import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-@Ignore
+//@Ignore
 public class OracleSpTest {
     @BeforeClass
     public static void beforeClass() {
@@ -54,18 +51,18 @@ public class OracleSpTest {
         List<String> bc = new Eqll()
                 .procedure("callSpEql2").params("hjb")
                 .execute();
-        assertEquals("HELLO hjb", bc.get(0));
-        assertEquals("WORLD hjb", bc.get(1));
+        assertThat(bc.get(0), is("HELLO hjb"));
+        assertThat(bc.get(1), is("WORLD hjb"));
     }
 
     @Test
     public void procedure3() throws SQLException {
         new Eqll().update("createSpEql2").execute();
-        Map<String, Object> bc = new Eqll()
+        Map<String, String> bc = new Eqll()
                 .procedure("callSpEql3").params("hjb")
                 .execute();
-        assertEquals("HELLO hjb", bc.get("a"));
-        assertEquals("WORLD hjb", bc.get("b"));
+        assertThat(bc.get("a"), is("HELLO hjb"));
+        assertThat(bc.get("b"), is("WORLD hjb"));
     }
 
     public static class Ab {
@@ -96,8 +93,8 @@ public class OracleSpTest {
         Ab ab = new Eqll()
                 .procedure("callSpEql4").params("hjb")
                 .execute();
-        assertEquals("HELLO hjb", ab.getA());
-        assertEquals("WORLD hjb", ab.getB());
+        assertThat(ab.getA(), is("HELLO hjb"));
+        assertThat(ab.getB(), is("WORLD hjb"));
     }
 
     @Test
@@ -109,7 +106,7 @@ public class OracleSpTest {
         int ab = esql.returnType("int")
                 .execute("{CALL SP_EQL_NOOUT(##)}", "SELECT 1 FROM DUAL");
 
-        assertEquals(1, ab);
+        assertThat(ab, is(1));
     }
 
     @Test
@@ -117,8 +114,8 @@ public class OracleSpTest {
         new Eqll().update("createSpEql12").execute();
         List<String> rets = new Eqll().procedure("callSpEql12").execute();
 
-        assertEquals("HELLO", rets.get(0));
-        assertEquals("WORLD", rets.get(1));
+        assertThat(rets.get(0), is("HELLO") );
+        assertThat(rets.get(1), is("WORLD") );
     }
 
     @Test
@@ -127,8 +124,8 @@ public class OracleSpTest {
         List<String> rets = new Eqll().params("A", "B").procedure("callSpEqlInOut")
                 .execute();
 
-        assertEquals("HELLOA", rets.get(0));
-        assertEquals("WORLDB", rets.get(1));
+        assertThat(rets.get(0), is("HELLOA"));
+        assertThat(rets.get(1), is("WORLDB"));
     }
 
     @Test
@@ -139,8 +136,8 @@ public class OracleSpTest {
                 .dynamics("SP_EQLNULL")
                 .execute();
 
-        assertNull(rets.get(0));
-        assertNull(rets.get(1));
+        assertThat(rets.get(0), is(nullValue()));
+        assertThat(rets.get(1), is(nullValue()));
     }
 
     @Test
@@ -149,7 +146,7 @@ public class OracleSpTest {
         String ret = new Eqll().procedure("myprocedure")
                 .execute();
 
-        assertTrue(ret.length() > 0);
+        assertThat(ret.length() > 0, is(true));
     }
 
     @Test
@@ -158,13 +155,14 @@ public class OracleSpTest {
         List<String> ret = new Eqll().params(10).procedure("myprocedure2")
                 .execute();
 
-        assertTrue(ret.size() > 0);
+        assertThat(ret.size() > 0, is(true));
     }
 
     @Test
     public void callPLSQL() throws SQLException {
         new Eqll().update("prepareTable4MyProcedure").execute();
-        /*  String ret = */new Eqll().params(10).procedure("callPLSQL")
+        /*  String ret = */
+        new Eqll().params(10).procedure("callPLSQL")
                 .execute();
         /*  System.out.println(ret);*/
     }

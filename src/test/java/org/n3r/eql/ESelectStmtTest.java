@@ -18,7 +18,7 @@ public class ESelectStmtTest {
         assertThat(selectStmt.next(), is(nullValue()));
 
         selectStmt.executeQuery(4);
-         str = selectStmt.next();
+        str = selectStmt.next();
         assertThat(str, is("DC"));
         assertThat(selectStmt.next(), is(nullValue()));
 

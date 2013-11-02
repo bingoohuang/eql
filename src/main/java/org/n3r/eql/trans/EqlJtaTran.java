@@ -1,14 +1,21 @@
 package org.n3r.eql.trans;
 
+import org.n3r.eql.EqlTran;
+
 import java.io.IOException;
 import java.sql.Connection;
 
-import org.n3r.eql.EqlTran;
+public class EqlJtaTran implements EqlTran {
 
-public class EqlJtaTransaction implements EqlTran {
+    private final Connection connection;
+
+    public EqlJtaTran(Connection connection) {
+        this.connection = connection;
+    }
 
     @Override
-    public void close() throws IOException {}
+    public void close() throws IOException {
+    }
 
     @Override
     public void start() {
@@ -27,7 +34,7 @@ public class EqlJtaTransaction implements EqlTran {
 
     @Override
     public Connection getConn() {
-        return null;
+        return connection;
     }
 
 }

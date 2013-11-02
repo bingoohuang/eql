@@ -4,60 +4,50 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.n3r.eql.ex.EqlConfigException;
+import org.n3r.eql.joor.Reflect;
+import org.n3r.eql.trans.EqlConnection;
+import org.n3r.eql.trans.EqlJndiConnection;
+import org.n3r.eql.trans.EqlSimpleConnection;
+import org.n3r.eql.trans.EqlTranFactory;
+import org.n3r.eql.util.EqlUtils;
 
 import java.util.concurrent.ExecutionException;
 
 public class EqlConfigManager {
-    private static LoadingCache<Object, EqlTranAware> eqlConfigableCache =
-        CacheBuilder.newBuilder().build(
-                new CacheLoader<Object, EqlTranAware>() {
-                    @Override
-                    public EqlTranAware load(Object connNameOrConfigable) throws Exception {
-                        EqlConfigable config = null;
-                        if (connNameOrConfigable instanceof String) {
-                            config = EqlConnectionConfig.parseConfig("" + connNameOrConfigable);
-                        } else if (connNameOrConfigable instanceof EqlConfigable) {
-                            config = (EqlConfigable) connNameOrConfigable;
+    private static LoadingCache<EqlConfig, EqlTranFactory> eqlConfigableCache =
+            CacheBuilder.newBuilder().build(
+                    new CacheLoader<EqlConfig, EqlTranFactory>() {
+                        @Override
+                        public EqlTranFactory load(EqlConfig eqlConfig) throws Exception {
+                            return createEqlTranFactory(eqlConfig);
                         }
-
-                        if (config == null || config.getProperties().size() == 0) return null;
-
-                        return config.exists("jndiName")
-                                ? createDsConfig(config) : createSimpleConfig(config);
                     }
-                }
-        );
+            );
 
-    private static EqlTranAware createDsConfig(EqlConfigable connConfig) {
-        EqlDsConfig dsConfig = new EqlDsConfig();
-        dsConfig.setJndiName(connConfig.getStr("jndiName"));
-        dsConfig.setInitial(connConfig.getStr("java.naming.factory.initial", ""));
-        dsConfig.setUrl(connConfig.getStr("java.naming.provider.url", ""));
-        dsConfig.setTransactionType(connConfig.getStr("transactionType"));
+    private static EqlTranFactory createEqlTranFactory(EqlConfig eqlConfig) {
+        String eqlConfigClass = eqlConfig.getStr("configClass");
 
-        return dsConfig;
-    }
-
-    private static EqlTranAware createSimpleConfig(EqlConfigable connConfig) {
-        EqlSimpleConfig simpleConfig = new EqlSimpleConfig();
-        simpleConfig.setDriver(connConfig.getStr("driver"));
-        simpleConfig.setUrl(connConfig.getStr("url"));
-        simpleConfig.setUser(connConfig.getStr("user"));
-        simpleConfig.setPass(connConfig.getStr("password"));
-        simpleConfig.setTransactionType(connConfig.getStr("transactionType"));
-
-        return simpleConfig;
-    }
-
-    public static EqlTranAware getConfig(Object connectionNameOrConfigable) {
-        try {
-            return eqlConfigableCache.get(connectionNameOrConfigable);
-        } catch (ExecutionException e) {
-            throw new EqlConfigException(
-                    "eql connection name " + connectionNameOrConfigable
-                            + " is not properly configed.", e.getCause());
+        EqlConnection eqlConnection;
+        if (EqlUtils.isBlank(eqlConfigClass)) {
+            String jndiName = eqlConfig.getStr("jndiName");
+            eqlConnection = EqlUtils.isBlank(jndiName) ?
+                    new EqlSimpleConnection() : new EqlJndiConnection();
+        } else {
+            eqlConnection = Reflect.on(eqlConfigClass).create().get();
         }
 
+        eqlConnection.initialize(eqlConfig);
 
+        return new EqlTranFactory(eqlConnection,
+                "JTA".equalsIgnoreCase(eqlConfig.getStr("transactionType")));
+    }
+
+    public static EqlTranFactory getConfig(EqlConfig eqlConfig) {
+        try {
+            return eqlConfigableCache.get(eqlConfig);
+        } catch (ExecutionException e) {
+            throw new EqlConfigException("EqlConfig " + eqlConfig
+                            + " is not properly configed.", e.getCause());
+        }
     }
 }
