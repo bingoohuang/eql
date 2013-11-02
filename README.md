@@ -422,7 +422,7 @@ SELECT 1 as seq, BOB as remark FROM ESQL_BLOB
 UPDATE ESQL_BLOB SET BOB = #:LOB#
 ```
 
-# Diamond-miner support example
+# [Diamond-miner](https://github.com/bingoohuang/diamond-miner) support example
 Eql also can be loaded from diamond.
 First create eql/eql-diamond.properties on classpath like:
 
