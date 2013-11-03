@@ -17,7 +17,6 @@ public class EUpdateStmtTest {
         rows = updateStmt.update(4, "Dingoo");
         assertThat(rows, is(1));
 
-
         updateStmt.close();
         eql.close();
 
