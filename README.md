@@ -456,5 +456,49 @@ String str = new Eql("diamond").selectFirst("diamondDemo").execute();
 System.out.println(str);
 ```
      
+# Reuse jdbc statements to select/update repeatedly.
 
+```java
+Eql eql = new Eql().id("selectStmt");
+ESelectStmt selectStmt = eql.selectStmt();
+
+selectStmt.executeQuery(3);
+String str = selectStmt.next();
+assertThat(str, is("CC"));
+assertThat(selectStmt.next(), is(nullValue()));
+
+selectStmt.executeQuery(4);
+str = selectStmt.next();
+assertThat(str, is("DC"));
+assertThat(selectStmt.next(), is(nullValue()));
+
+selectStmt.close();
+eql.close();
+```
+
+```java
+Eql eql = new Eql().id("updateStmt");
+EUpdateStmt updateStmt = eql.updateStmt();
+
+int rows = updateStmt.update(3, "Bingoo");
+assertThat(rows, is(1));
+
+rows = updateStmt.update(4, "Dingoo");
+assertThat(rows, is(1));
+
+updateStmt.close();
+eql.close();
+```
+
+```sql
+-- [selectStmt]
+SELECT C
+FROM ESQL_TEST
+WHERE A = ##
+
+-- [updateStmt]
+UPDATE ESQL_TEST
+SET C = #2#
+WHERE A = #1#
+```
 
