@@ -2,7 +2,6 @@ package org.n3r.eql.trans;
 
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlConfigException;
-import org.n3r.eql.trans.EqlConnection;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -35,7 +34,7 @@ public class EqlJndiConnection implements EqlConnection {
     }
 
 
-    private void createDataSource(String url, String initial, String jndiName) {
+    private void createDataSource(String jndiName, String initial, String url) {
         try {
             Hashtable<String, String> context = new Hashtable<String, String>();
             if (isNotEmpty(url)) context.put("java.naming.provider.url", url);

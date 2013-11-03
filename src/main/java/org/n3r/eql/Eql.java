@@ -1,6 +1,7 @@
 package org.n3r.eql;
 
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.n3r.eql.config.EqlConfig;
@@ -198,8 +199,8 @@ public class Eql implements Closeable {
     private Object runEql() throws SQLException {
         try {
             return EqlUtils.isDdl(currRun) ? execDdl() : pageExecute();
-        } catch (EqlExecuteException ex) {
-            if (!currRun.getEqlBlock().isOnerrResume()) throw ex;
+        } catch (Exception ex) {
+            if (!currRun.getEqlBlock().isOnerrResume()) throw Throwables.propagate(ex);
             else logger.warn("execute sql {} error", currRun.getPrintSql(), ex);
         }
 

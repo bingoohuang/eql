@@ -57,6 +57,14 @@
             <version>1.0.13</version>
             <scope>test</scope>
         </dependency>
+        <!--
+        <dependency>
+            <groupId>weblogic</groupId>
+            <artifactId>wlfullclient</artifactId>
+            <version>10.3</version>
+            <scope>provided</scope>
+        </dependency>
+        -->
     </dependencies>
     <build>
         <plugins>

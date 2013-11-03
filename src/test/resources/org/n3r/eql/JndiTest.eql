@@ -1,0 +1,6 @@
+-- [createTable onerr=resume]
+drop table jndidemo;
+create table jndidemo(name varchar2(100));
+
+-- [addData]
+insert into jndidemo values(##)
