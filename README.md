@@ -4,7 +4,7 @@ eql
 an easy sql of an alternative to ibatis.
 
 #One minute tutorial
-* copy [eql-DEFAULT.properties](https://github.com/bingoohuang/eql/blob/master/src/test/resources/eql/eql-DEFAULT.properties) to your classpath esql and do some changes for your database connection info such as url, password and username.
+* copy [eql-DEFAULT.properties](https://github.com/bingoohuang/eql/blob/master/src/test/resources/eql/eql-DEFAULT.properties) to your classpath eql and do some changes for your database connection info such as url, password and username.
 * create a Demo class.
 * create a Demo.eql resouce in classpath.
 * write following code in your Demo main method:
@@ -94,27 +94,12 @@ and 'y' = ##
 
 ```java
 String x = new Eql().selectFirst("autoSeq3")
-          .params("x", "y")
-          .execute();
-```
-
-```sql
--- [autoSeq3]
-select 'X' from dual
-where 'x' = ##
-and 'y' = ##
-```
-
-* exmpale 4
-
-```java
-String x = new Eql().selectFirst("autoSeq4")
           .params("y", "x")
           .execute();
 ```
 
 ```sql
--- [autoSeq4]
+-- [autoSeq3]
 select 'X' from dual
 where 'x' = #2#
 and 'y' = #1#
@@ -178,11 +163,19 @@ select 'X' from dual
 -- if x == "a"
 where 'a' = #x#
 -- end
-```
 
-or use more compact syntax
+-- [ifDemo2]
+select 'X' from dual
+-- if x == "a"
+where 'a' = #x#
+-- else if x == "b"
+where 'b' = #x#
+-- else
+where 'c' = ##
+-- end
 
-```sql
+-- or use more compact syntax
+
 -- [ifDemo]
 select 'X' from dual /* if x == "a" */  where 'a' = #x# /* end */
 ```
@@ -194,11 +187,9 @@ select 'X' from dual /* if x == "a" */  where 'a' = #x# /* end */
 select 'X' from dual
 -- iff x == "a"
 where 'a' = #x#
-```
 
-or use more compact syntax
+-- or use more compact syntax
 
-```sql
 -- [ifDemo]
 select 'X' from dual /* iff x == "a" */  where 'a' = #x#
 ```
@@ -216,11 +207,9 @@ WHERE
 --   case 2
   A = 2
 -- end
-```
 
-or with default keyword
+-- or with default keyword
 
-```sql
 -- [switchSelectWithDefault returnType=org.n3r.eql.SimpleTest$Bean]
 SELECT A,B,C,D,E
 FROM ESQL_TEST
@@ -353,14 +342,14 @@ WHERE 'x' = ##
 Eql esql = new Eql();
 esql.startBatch(/*batchSize*/10);
 for (int i = 0; i < 10; ++i) {
-String orderNo = randLetters(10);
-String userId = randLetters(10);
-int prizeItem = randInt(10);
-int ret = esql.insert("insertPrizeBingoo")
-       .params(orderNo, "Olympic", "" + prizeItem, userId)
-       .execute();
-
-assertEquals(0, ret);
+    String orderNo = randLetters(10);
+    String userId = randLetters(10);
+    int prizeItem = randInt(10);
+    int ret = esql.insert("insertPrizeBingoo")
+           .params(orderNo, "Olympic", "" + prizeItem, userId)
+           .execute();
+    
+    assertEquals(0, ret);
 }
 
 esql.executeBatch();
