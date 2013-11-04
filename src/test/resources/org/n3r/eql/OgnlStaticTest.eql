@@ -1,0 +1,5 @@
+-- [ognlStatic]
+select 'X'
+from DUAL
+-- iff state == @org.n3r.eql.OgnlStaticTest@STATE
+where 'x' = #x#

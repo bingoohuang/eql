@@ -139,6 +139,8 @@ and 'b' = #y#
 
 # Dynamic sql
 
+Eql's dynamic sql is now base on [OGNL](http://commons.apache.org/proper/commons-ognl/) expression.
+
 ## if
 
 ```java
@@ -192,6 +194,35 @@ where 'a' = #x#
 
 -- [ifDemo]
 select 'X' from dual /* iff x == "a" */  where 'a' = #x#
+```
+
+to use STATIC fields:
+
+```java
+public class OgnlStaticTest {
+    public static String STATE = "102";
+
+    @Test
+    public void test() {
+        String str = new Eql("mysql").id("ognlStatic").limit(1)
+                .params(ImmutableMap.of("state", "102", "x", "y"))
+                .execute();
+        assertThat(str, is(nullValue()));
+
+        str = new Eql("mysql").id("ognlStatic").limit(1)
+                .params(ImmutableMap.of("state", "103", "x", "x"))
+                .execute();
+        assertThat(str, is("X"));
+    }
+}
+```
+
+```sql
+-- [ognlStatic]
+select 'X'
+from DUAL
+-- iff state == @org.n3r.eql.OgnlStaticTest@STATE
+where 'x' = #x#
 ```
 
 ## switch
