@@ -18,6 +18,13 @@ AND
  C = 'FALSE'
 </#if>
 
+-- [testInner]
+SELECT 'X'
+FROM DUAL
+<#if _databaseId == "oracle">
+WHERE 'X' = 'Y'
+</#if>
+
 -- [testIn]
 select * from dual
 where 1 in (''

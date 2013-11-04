@@ -30,6 +30,12 @@ public class FreemarkerTest {
     }
 
     @Test
+    public void testInner() {
+        String str = new Eqll().id("testInner").limit(1).execute();
+        assertThat(str, is(nullValue()));
+    }
+
+    @Test
     public void test() {
         Map<String, Object> map = Maps.newHashMap();
         map.put("a", 1);
