@@ -4,13 +4,16 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.n3r.eql.Eql;
+import org.n3r.eql.impl.DefaultEqlConfigDecorator;
+import org.n3r.eql.util.EqlPropertiesConfigFactory;
 
 public class EqlConfigCache {
     static LoadingCache<String, EqlConfig> eqlConfigLocal
             = CacheBuilder.newBuilder().build(new CacheLoader<String, EqlConfig>() {
         @Override
         public EqlConfig load(String key) throws Exception {
-            return EqlConfigFactory.parseConfig(key);
+            EqlConfig eqlConfig = EqlPropertiesConfigFactory.parseEqlProperties(key);
+            return new DefaultEqlConfigDecorator(eqlConfig);
         }
     });
 

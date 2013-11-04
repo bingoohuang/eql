@@ -1,6 +1,6 @@
 package org.n3r.eql.parser;
 
-import java.util.Map;
+import org.n3r.eql.map.EqlRun;
 
 public class IsNotEmptyPart extends IsEmptyPart {
     public IsNotEmptyPart(String expr, MultiPart multiPart) {
@@ -8,7 +8,7 @@ public class IsNotEmptyPart extends IsEmptyPart {
     }
 
     @Override
-    public String evalSql(Object bean, Map<String, Object> executionContext) {
-        return !isEmpty(bean, executionContext) ? multiPart.evalSql(bean, executionContext) : "";
+    public String evalSql(EqlRun eqlRun) {
+        return !isEmpty(eqlRun) ? multiPart.evalSql(eqlRun) : "";
     }
 }

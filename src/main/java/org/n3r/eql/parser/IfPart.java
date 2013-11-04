@@ -1,12 +1,10 @@
 package org.n3r.eql.parser;
 
 import com.google.common.collect.Lists;
-import ognl.NoSuchPropertyException;
-import ognl.Ognl;
-import ognl.OgnlException;
+import org.n3r.eql.base.ExpressionEvaluator;
+import org.n3r.eql.map.EqlRun;
 
 import java.util.List;
-import java.util.Map;
 
 public class IfPart implements EqlPart {
     private List<IfCondition> conditions = Lists.newArrayList();
@@ -20,31 +18,16 @@ public class IfPart implements EqlPart {
     }
 
     @Override
-    public String evalSql(Object bean, Map<String, Object> executionContext) {
+    public String evalSql(EqlRun eqlRun) {
+        ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
         for (IfCondition ifc : conditions) {
-            boolean ok = evalBool(bean, ifc.getExpr(), executionContext);
+            boolean ok = evaluator.evalBool(ifc.getExpr(), eqlRun);
 
-            if (ok) return ifc.getValue().evalSql(bean, executionContext);
+            if (ok) return ifc.getValue().evalSql(eqlRun);
         }
 
         return "";
     }
 
-    public static boolean evalBool(Object bean, String expr, Map<String, Object> executionContext) {
-        try {
-            Object value = Ognl.getValue(expr, executionContext, bean);
-            return value instanceof Boolean && ((Boolean) value).booleanValue();
-        } catch (NoSuchPropertyException ex) {
-                // will try again from context
-        } catch (OgnlException e) {
-            throw new RuntimeException("eval " + expr + " with " + bean + " failed", e);
-        }
 
-        try {
-            Object value = Ognl.getValue(expr, executionContext);
-            return value instanceof Boolean && ((Boolean) value).booleanValue();
-        } catch (OgnlException e) {
-            throw new RuntimeException("eval " + expr + " with " + bean + " failed", e);
-        }
-    }
 }

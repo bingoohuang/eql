@@ -1,11 +1,11 @@
 package org.n3r.eql.parser;
 
 import com.google.common.base.Splitter;
+import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.EqlUtils;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class TrimPart implements EqlPart {
     private String prefix, suffix;
@@ -27,10 +27,10 @@ public class TrimPart implements EqlPart {
     }
 
     @Override
-    public String evalSql(Object bean, Map<String, Object> executionContext) {
+    public String evalSql(EqlRun eqlRun) {
         StringBuilder sql = new StringBuilder();
 
-        partSql = multiPart.evalSql(bean, executionContext);
+        partSql = multiPart.evalSql(eqlRun);
         if (!EqlUtils.isBlank(partSql)) {
             override();
 

@@ -2,7 +2,7 @@ package org.n3r.eql;
 
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigCache;
-import org.n3r.eql.config.EqlConfigFactory;
+import org.n3r.eql.util.EqlPropertiesConfigFactory;
 
 public class Eqll extends Eql {
     private static ThreadLocal<EqlConfig> eqlConfigLocal = new ThreadLocal<EqlConfig>(){
@@ -13,7 +13,7 @@ public class Eqll extends Eql {
     };
 
     public static void choose(String eqlConfigName) {
-        choose(EqlConfigFactory.parseConfig(eqlConfigName));
+        choose(EqlPropertiesConfigFactory.parseEqlProperties(eqlConfigName));
     }
     public static void choose(EqlConfig eqlConfigable) {
         eqlConfigLocal.set(eqlConfigable);

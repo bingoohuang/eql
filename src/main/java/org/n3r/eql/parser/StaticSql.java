@@ -1,6 +1,6 @@
 package org.n3r.eql.parser;
 
-import java.util.Map;
+import org.n3r.eql.map.EqlRun;
 
 public class StaticSql implements Sql {
     private String sql;
@@ -14,7 +14,7 @@ public class StaticSql implements Sql {
     }
 
     @Override
-    public String evalSql(Object bean, Map<String, Object> executionContext) {
+    public String evalSql(EqlRun eqlRun) {
         return sql;
     }
 }

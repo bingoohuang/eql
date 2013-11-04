@@ -10,8 +10,8 @@ import static org.junit.Assert.assertThat;
 public class IffParserTest {
     @Test
     public void test() {
-        EqlParser eqlParser = new EqlParser();
-        Map<String, EqlBlock> map = eqlParser.parse(null, "",
+        EqlParser eqlParser = new EqlParser(null, "");
+        Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [lookup]\n" +
                         "select 1\n" +
                         "-- iff a == 1\n" +

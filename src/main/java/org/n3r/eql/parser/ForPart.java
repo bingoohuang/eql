@@ -1,7 +1,7 @@
 package org.n3r.eql.parser;
 
-import ognl.Ognl;
-import ognl.OgnlException;
+import org.n3r.eql.base.ExpressionEvaluator;
+import org.n3r.eql.map.EqlRun;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,7 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ForPart implements EqlPart {
-    private LiteralPart part;
+    private MultiPart part;
     private String item;
     private String index;
     private String collection;
@@ -18,7 +18,7 @@ public class ForPart implements EqlPart {
     private String separator;
     private String close;
 
-    public ForPart(LiteralPart part, String item, String index, String collection, String open, String separator, String close) {
+    public ForPart(MultiPart part, String item, String index, String collection, String open, String separator, String close) {
         this.part = part;
         this.item = item;
         this.index = index;
@@ -28,21 +28,27 @@ public class ForPart implements EqlPart {
         this.close = close;
     }
 
-
-    public LiteralPart getSqlPart() {
+    public MultiPart getSqlPart() {
         return part;
     }
 
     private static Pattern PARAM_PATTERN = Pattern.compile("#\\s*(.+?)\\s*#");
+    private static Pattern DYNAMIC_PATTERN = Pattern.compile("\\$\\s*(.+?)\\s*\\$");
 
     @Override
-    public String evalSql(Object bean, Map<String, Object> executionContext) {
-        StringBuilder str = new StringBuilder(open);
-        String sql = part.getSql();
+    public String evalSql(EqlRun eqlRun) {
+        StringBuilder str = new StringBuilder(open).append(' ');;
 
-        Map<Object, Object> context = new HashMap<Object, Object>(executionContext);
+        Collection<?> items = evalCollection(eqlRun);
+        if (items == null || items.size() == 0) return "";
 
-        Collection<?> items = evalCollection(bean);
+        Map<String, Object> preContext = eqlRun.getExecutionContext();
+        Map<String, Object> context = new HashMap<String, Object>(preContext);
+        eqlRun.setExecutionContext(context);
+
+        Pattern itemPattern = Pattern.compile("\\b" + item + "\\b");
+        Pattern indexPattern = Pattern.compile("\\b" + index + "\\b");
+
         int i = -1;
         for (Object itemObj : items) {
             if (++i > 0) str.append(separator);
@@ -50,42 +56,56 @@ public class ForPart implements EqlPart {
             context.put(index, i);
             context.put(item, itemObj);
 
-            Matcher matcher = PARAM_PATTERN.matcher(sql);
-            int startIndex = 0;
+            String sql = part.evalSql(eqlRun);
 
-            while (matcher.find()) {
-                str.append(sql.substring(startIndex, matcher.start()));
-                startIndex = matcher.end();
-                String expr = matcher.group(1);
-                if (item.equals(expr)) str.append("#" + collection + "[" + i + "]#");
-                else if (index.equals(index)) str.append(i);
-                else str.append(expr);
-            }
+            sql = processParams(PARAM_PATTERN, '#', itemPattern, indexPattern, i, sql);
+            sql = processParams(DYNAMIC_PATTERN, '$', itemPattern, indexPattern, i, sql);
 
-            if (startIndex < sql.length()) str.append(sql.substring(startIndex));
+            str.append(sql);
         }
 
         str.append(close);
+
+        eqlRun.setExecutionContext(preContext);
         return str.toString();
     }
 
-    public Object eval(Object bean, String expr, Map<Object, Object> context) {
-        try {
-            return Ognl.getValue(expr, context, bean);
-        } catch (OgnlException e) {
-            throw new RuntimeException("eval " + expr + " within " + bean + " and context " + context + " failed", e);
+    private String processParams(Pattern pattern, char ch,
+                                 Pattern itemPattern, Pattern indexPattern,
+                                 int idx, String sql) {
+        Matcher matcher = pattern.matcher(sql);
+        int startIndex = 0;
+        StringBuilder str = new StringBuilder();
+
+        while (matcher.find()) {
+            str.append(sql.substring(startIndex, matcher.start()));
+            startIndex = matcher.end();
+            String expr = matcher.group(1);
+
+            if (item.equals(expr)) str.append(ch + collection + "[" + idx + "]" + ch);
+            else if (this.index.equals(expr)) str.append(idx);
+            else {
+                String s = itemPattern.matcher(expr).replaceAll(collection + "[" + idx + "]");
+                s = indexPattern.matcher(s).replaceAll("" + idx);
+
+                str.append(ch + s + ch);
+            }
         }
+
+        if (startIndex < sql.length()) str.append(sql.substring(startIndex));
+
+        return str.toString();
     }
 
-    private Collection<?> evalCollection(Object bean) {
-        try {
-            Object value = Ognl.getValue(collection, bean);
-            if (value instanceof Collection) {
-                return (Collection<?>) value;
-            }
-            throw new RuntimeException(collection + " in " + bean + " is not a collection");
-        } catch (OgnlException e) {
-            throw new RuntimeException("eval expr " + collection + " error", e);
-        }
+
+
+    private Collection<?> evalCollection(EqlRun eqlRun) {
+        ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
+        Object value = evaluator.eval(collection, eqlRun);
+        if (value instanceof Collection) return (Collection<?>) value;
+
+        throw new RuntimeException(collection + " in "
+                + eqlRun.getParamBean() + " is not a collection");
     }
+
 }

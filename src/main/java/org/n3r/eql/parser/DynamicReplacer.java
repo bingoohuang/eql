@@ -1,6 +1,7 @@
 package org.n3r.eql.parser;
 
 import com.google.common.base.Objects;
+import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlDynamic;
 import org.n3r.eql.map.EqlRun;
@@ -13,9 +14,9 @@ public class DynamicReplacer {
     private Object[] dynamics;
     private EqlRun eqlRun;
 
-    public void replaceDynamics(EqlRun eqlRun, Object[] dynamics) {
+    public void replaceDynamics(EqlRun eqlRun) {
         this.eqlRun = eqlRun;
-        this.dynamics = dynamics;
+        this.dynamics = eqlRun.getDynamics();
         if (dynamics != null && dynamics.length > 0 && eqlRun.getEqlDynamic() == null)
             eqlRun.setEqlDynamic(new DynamicParser().parseRawSql(eqlRun.getRunSql()));
 
@@ -57,15 +58,15 @@ public class DynamicReplacer {
     }
 
     private Object findDynamicByName(int index) {
-        Object bean = dynamics[0];
-
         String varName = eqlDynamic.getPlaceholders()[index].getPlaceholder();
-        Object property = EqlUtils.getPropertyQuietly(bean, varName);
+
+        ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
+        Object property = evaluator.evalDynamic(varName, eqlRun);
         if (property != null) return property;
 
         String propertyName = EqlUtils.convertUnderscoreNameToPropertyName(varName);
         if (!Objects.equal(propertyName, varName))
-            property = EqlUtils.getPropertyQuietly(bean, propertyName);
+            property = evaluator.evalDynamic(propertyName, eqlRun);
 
         return property;
     }

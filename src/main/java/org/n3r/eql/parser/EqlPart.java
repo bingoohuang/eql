@@ -1,8 +1,8 @@
 package org.n3r.eql.parser;
 
-import java.util.Map;
+import org.n3r.eql.map.EqlRun;
 
 public interface EqlPart {
 
-    String evalSql(Object bean, Map<String, Object> executionContext);
+    String evalSql(EqlRun eqlRun);
 }

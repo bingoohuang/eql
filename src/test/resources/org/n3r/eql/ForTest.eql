@@ -8,3 +8,20 @@ WHERE 'x' in
 #item#
 -- end
 
+-- [findPageAddressInfo]
+SELECT id, NAME, email, phone
+FROM MVC_ADDRESS_INFO
+WHERE 1 = 1
+-- for item=columnDef collection=columnDefs
+  -- isNotEmpty columnDef.search
+     AND $columnDef.name$ LIKE concat('%',#columnDef.search#, '%')
+  -- end
+-- end
+
+/* for item=sortingColumnDef index=index collection=sortingColumnDefs
+    open='order by' separator=' ' close='' */
+  -- isNotEmpty sortingColumnDef.sortDirection
+        $sortingColumnDef.name$ $sortingColumnDef.sortDirection$
+  -- end
+/* end */
+

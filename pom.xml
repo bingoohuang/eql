@@ -7,6 +7,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>2.3.18</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>org.n3r.diamond</groupId>
             <artifactId>diamond-client</artifactId>
             <version>0.0.1</version>

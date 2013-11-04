@@ -1,11 +1,10 @@
 package org.n3r.eql.parser;
 
 import com.google.common.base.Objects;
-import ognl.NoSuchPropertyException;
-import ognl.Ognl;
+import org.n3r.eql.base.ExpressionEvaluator;
+import org.n3r.eql.map.EqlRun;
 
 import java.util.List;
-import java.util.Map;
 
 public class SwitchPart implements EqlPart {
     private final String condition;
@@ -21,27 +20,19 @@ public class SwitchPart implements EqlPart {
     }
 
     @Override
-    public String evalSql(Object bean, Map<String, Object> executionContext) {
-        Object target = eval(bean, condition, executionContext);
+    public String evalSql(EqlRun eqlRun) {
+        ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
+        Object target = evaluator.eval(condition, eqlRun);
         if (target == null) return "";
         String strTarget = target.toString();
 
         for (IfCondition ifCondition : cases) {
             if ("".equals(ifCondition.getExpr())
                     || Objects.equal(strTarget, ifCondition.getExpr()))
-                return ifCondition.getValue().evalSql(bean, executionContext);
+                return ifCondition.getValue().evalSql(eqlRun);
         }
 
         return "";
     }
 
-    public static Object eval(Object bean, String expr, Map<String, Object> executionContext) {
-        try {
-            return Ognl.getValue(expr, executionContext, bean);
-        } catch (NoSuchPropertyException ex) {
-            return null;
-        } catch (Exception e) {
-            throw new RuntimeException("eval " + expr + " with " + bean + " failed", e);
-        }
-    }
 }

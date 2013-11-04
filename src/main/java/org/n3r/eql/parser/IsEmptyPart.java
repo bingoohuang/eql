@@ -1,6 +1,7 @@
 package org.n3r.eql.parser;
 
-import java.util.Map;
+import org.n3r.eql.base.ExpressionEvaluator;
+import org.n3r.eql.map.EqlRun;
 
 public class IsEmptyPart implements EqlPart {
     protected final String expr;
@@ -12,22 +13,25 @@ public class IsEmptyPart implements EqlPart {
     }
 
     @Override
-    public String evalSql(Object bean, Map<String, Object> executionContext) {
-        return isEmpty(bean, executionContext) ? multiPart.evalSql(bean, executionContext) : "";
+    public String evalSql(EqlRun eqlRun) {
+        return isEmpty(eqlRun) ? multiPart.evalSql(eqlRun) : "";
     }
 
-    protected boolean isEmpty(Object bean, Map<String, Object> executionContext) {
-        Object target = SwitchPart.eval(bean, expr, executionContext);
+    protected boolean isEmpty(EqlRun eqlRun) {
+        ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
+        Object target = evaluator.eval(expr, eqlRun);
         return target == null || target.toString().length() == 0;
     }
 
-    protected boolean isBlank(Object bean, Map<String, Object> executionContext) {
-        Object target = SwitchPart.eval(bean, expr, executionContext);
+    protected boolean isBlank(EqlRun eqlRun) {
+        ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
+        Object target = evaluator.eval(expr, eqlRun);
         return target == null || target.toString().trim().length() == 0;
     }
 
-    protected boolean isNull(Object bean, Map<String, Object> executionContext) {
-        Object target = SwitchPart.eval(bean, expr, executionContext);
+    protected boolean isNull(EqlRun eqlRun) {
+        ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
+        Object target = evaluator.eval(expr, eqlRun);
         return target == null;
     }
 

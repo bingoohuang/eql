@@ -1,6 +1,8 @@
 package org.n3r.eql.map;
 
 import com.google.common.base.Throwables;
+import org.n3r.eql.config.EqlConfig;
+import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.PlaceholderType;
 import org.n3r.eql.parser.EqlBlock;
@@ -16,6 +18,7 @@ public class EqlRun implements Cloneable {
     private String runSql;
     private String printSql;
     private Object result;
+    private EqlConfigDecorator eqlConfig;
 
     private EqlBlock eqlBlock;
     private int placeholderNum;
@@ -43,6 +46,15 @@ public class EqlRun implements Cloneable {
         }
     }
 
+
+    public EqlConfigDecorator getEqlConfig() {
+        return eqlConfig;
+    }
+
+    public void setEqlConfig(EqlConfigDecorator eqlConfig) {
+        this.eqlConfig = eqlConfig;
+    }
+
     public void setParamBean(Object paramBean) {
         this.paramBean = paramBean;
     }
@@ -57,6 +69,10 @@ public class EqlRun implements Cloneable {
 
     public Object[] getDynamics() {
         return dynamics;
+    }
+
+    public Object getDynamicsBean() {
+        return dynamics == null || dynamics.length == 0 ? null : dynamics[0];
     }
 
 

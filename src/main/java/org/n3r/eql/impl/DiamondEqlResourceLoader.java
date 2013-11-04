@@ -7,6 +7,7 @@ import com.google.common.cache.CacheBuilder;
 import org.n3r.diamond.client.DiamondListener;
 import org.n3r.diamond.client.DiamondManager;
 import org.n3r.diamond.client.DiamondStone;
+import org.n3r.eql.base.DynamicLanguageDriver;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.parser.EqlBlock;
@@ -25,10 +26,7 @@ public class DiamondEqlResourceLoader implements EqlResourceLoader {
     static Cache<String, Optional<Map<String, EqlBlock>>> fileCache = CacheBuilder.newBuilder().build();
     static Cache<String, EqlBlock> sqlCache = CacheBuilder.newBuilder().build();
     static FileEqlResourceLoader fileLoader = new FileEqlResourceLoader();
-
-    @Override
-    public void initialize(EqlConfig eqlConfig) {
-    }
+    private DynamicLanguageDriver dynamicLanguageDriver;
 
     @Override
     public EqlBlock loadEqlBlock(String sqlClassPath, String sqlId) {
@@ -44,6 +42,16 @@ public class DiamondEqlResourceLoader implements EqlResourceLoader {
     @Override
     public Map<String, EqlBlock> load(String classPath) {
         return load(this, classPath);
+    }
+
+    @Override
+    public void setDynamicLanguageDriver(DynamicLanguageDriver dynamicLanguageDriver) {
+        this.dynamicLanguageDriver = dynamicLanguageDriver;
+    }
+
+    @Override
+    public DynamicLanguageDriver getDynamicLanguageDriver() {
+        return dynamicLanguageDriver;
     }
 
     public static Map<String, EqlBlock> load(final EqlResourceLoader eqlResourceLoader, final String sqlClassPath) {

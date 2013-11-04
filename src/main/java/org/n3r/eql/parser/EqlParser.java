@@ -3,7 +3,9 @@ package org.n3r.eql.parser;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.n3r.eql.base.DynamicLanguageDriver;
 import org.n3r.eql.base.EqlResourceLoader;
+import org.n3r.eql.impl.DefaultDynamicLanguageDriver;
 
 import java.util.List;
 import java.util.Map;
@@ -16,14 +18,24 @@ public class EqlParser {
     private Map<String, EqlBlock> blocks = Maps.newHashMap();
     private String sqlClassPath;
     private List<String> sqlLines = null;
+    private DynamicLanguageDriver dynamicLanguageDriver;
 
     private EqlBlock block = null;
     private EqlResourceLoader eqlResourceLoader;
 
-    public Map<String, EqlBlock> parse(EqlResourceLoader eqlResourceLoader, String sqlClassPath, String str) {
+    public EqlParser(EqlResourceLoader eqlResourceLoader, String sqlClassPath) {
         this.eqlResourceLoader = eqlResourceLoader;
         this.sqlClassPath = sqlClassPath;
-        Iterable<String> lines = Splitter.on('\n').trimResults().split(str);
+        if (eqlResourceLoader != null)
+            this.dynamicLanguageDriver = eqlResourceLoader.getDynamicLanguageDriver();
+
+        if (dynamicLanguageDriver == null)
+            dynamicLanguageDriver = new DefaultDynamicLanguageDriver();
+    }
+
+    public Map<String, EqlBlock> parse(String eqlStr) {
+
+        Iterable<String> lines = Splitter.on('\n').trimResults().split(eqlStr);
 
         int lineNo = 0;
         for (String line : lines) {
@@ -128,7 +140,8 @@ public class EqlParser {
 
     private void parseBlock() {
         if (block != null && sqlLines != null && sqlLines.size() > 0) {
-            new EqlBlockParser().parse(block, sqlLines);
+            new EqlBlockParser(dynamicLanguageDriver).parse(block, sqlLines);
+
             block = null;
             sqlLines = null;
         }
@@ -139,16 +152,10 @@ public class EqlParser {
         // is desired, a simpler character based splitting can be done.
         String[] cards = pattern.split("\\*");
 
-        // Iterate over the cards.
         for (String card : cards) {
             int idx = text.indexOf(card);
+            if (idx == -1) return false;
 
-            // Card not detected in the text.
-            if (idx == -1) {
-                return false;
-            }
-
-            // Move ahead, towards the right of the text.
             text = text.substring(idx + card.length());
         }
 

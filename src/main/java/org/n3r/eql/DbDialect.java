@@ -7,6 +7,7 @@ import org.n3r.eql.util.EqlUtils;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import java.util.regex.Pattern;
 
 public class DbDialect {
     private String driverName;
@@ -103,6 +104,7 @@ public class DbDialect {
         return totalEqlSql;
     }
 
+    static Pattern orderByPattern = Pattern.compile("\\border\\s+by\\b");
     private  String createTotalSql(String runSql) {
         String sql = runSql.toUpperCase();
 
@@ -114,7 +116,7 @@ public class DbDialect {
         // find the position of DISTINCT
         if (sql.indexOf("DISTINCT") < 0) { // without DISTINCT
             if (fromPos >= 0 && sql.indexOf("FROM", fromPos + 4) < 0) { // only one from
-                if (sql.indexOf("GROUP") < 0)
+                if (sql.indexOf("GROUP") < 0 && !orderByPattern.matcher(sql).find())
                     oneFromWoDistinctOrGroupby = true; // without GROUP BY
             }
         }

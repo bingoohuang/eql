@@ -3,30 +3,22 @@ package org.n3r.eql.util;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.CharStreams;
 import com.google.common.io.Resources;
 import com.google.common.primitives.Primitives;
-import ognl.Ognl;
 import org.n3r.eql.EqlTran;
-import org.n3r.eql.impl.EqlResourceLoaderFactory;
 import org.n3r.eql.map.EqlRun;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.sql.*;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -301,14 +293,6 @@ public class EqlUtils {
         return result.toString();
     }
 
-    public static Object getPropertyQuietly(Object bean, String propertyName) {
-        try {
-            return Ognl.getValue(propertyName, bean);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     /**
      * Load a class given its name. BL: We wan't to use a known ClassLoader--hopefully the heirarchy is set correctly.
      */
@@ -324,15 +308,6 @@ public class EqlUtils {
         return null;
     }
 
-    /**
-     * Return the context classloader. BL: if this is command line operation, the classloading issues are more sane.
-     * During servlet execution, we explicitly set the ClassLoader.
-     *
-     * @return The context classloader.
-     */
-    public static ClassLoader getClassLoader() {
-        return Thread.currentThread().getContextClassLoader();
-    }
 
     public static boolean isNotNull(Object obj) {
         return obj != null;
@@ -532,11 +507,32 @@ public class EqlUtils {
         return original == null ? "" : original.replaceAll("^\\s+", "");
     }
 
-    public static String loadClassPathResource(String classPath) {
-        ClassLoader loader = Objects.firstNonNull(
+    /**
+     * Return the context classloader. BL: if this is command line operation, the classloading issues are more sane.
+     * During servlet execution, we explicitly set the ClassLoader.
+     *
+     * @return The context classloader.
+     */
+    public static ClassLoader getClassLoader() {
+        return Objects.firstNonNull(
                 Thread.currentThread().getContextClassLoader(),
-                EqlResourceLoaderFactory.class.getClassLoader());
-        URL url = loader.getResource(classPath);
+                EqlUtils.class.getClassLoader());
+    }
+
+
+    public static InputStream classResourceToInputStream(String pathname, boolean silent) {
+        InputStream is = classResourceToStream(pathname);
+        if (is != null || silent) return is;
+
+        throw new RuntimeException("fail to find " + pathname + " in current dir or classpath");
+    }
+
+    public static InputStream classResourceToStream(String resourceName) {
+        return getClassLoader().getResourceAsStream(resourceName);
+    }
+
+    public static String classResourceToString(String classPath) {
+        URL url = getClassLoader().getResource(classPath);
         if (url == null) return null;
 
         try {
@@ -547,4 +543,9 @@ public class EqlUtils {
 
         return null;
     }
+
+    public static String uniqueSqlId(String sqlClassPath, String sqlId) {
+        return sqlClassPath + ":" + sqlId;
+    }
+
 }

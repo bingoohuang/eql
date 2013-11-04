@@ -3,8 +3,8 @@ package org.n3r.eql.param;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.n3r.eql.ex.EqlConfigException;
-import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.EqlUtils;
 
 import java.util.ArrayList;
@@ -18,11 +18,14 @@ public class EqlParamsParser {
     private String templateSql;
     private EqlRun eqlRun;
 
-    public EqlRun parseParams(String templateSql, EqlBlock eqlBlock) {
-        this.eqlBlock = eqlBlock;
+    public EqlParamsParser(EqlRun eqlRun) {
+        this.eqlRun = eqlRun;
+        eqlBlock = eqlRun.getEqlBlock();
+    }
+
+    public EqlRun parseParams(String templateSql) {
         this.templateSql = templateSql;
 
-        eqlRun = new EqlRun();
         eqlRun.setSqlType(EqlUtils.parseSqlType(templateSql));
 
         Matcher matcher = PARAM_PATTERN.matcher(templateSql);

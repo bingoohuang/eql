@@ -1,6 +1,7 @@
 package org.n3r.eql.parser;
 
-import com.google.common.base.Splitter;
+
+import org.n3r.eql.util.PairsParser;
 
 import java.util.List;
 import java.util.Map;
@@ -13,12 +14,11 @@ public class ForParser implements PartParser {
     private String open = "";
     private String separator = "";
     private String close = "";
-    private LiteralPart part = new LiteralPart("");
+    private MultiPart part = new MultiPart();
 
     // for item=item index=index collection=list open=( separator=, close=)
     public ForParser(String options) {
-        Map<String, String> optionsMap = Splitter.on(' ').trimResults()
-                .withKeyValueSeparator('=').split(options.trim());
+        Map<String, String> optionsMap = new PairsParser().parse(options.trim());
         if (optionsMap.containsKey("item")) item = optionsMap.get("item");
         if (optionsMap.containsKey("index")) index = optionsMap.get("index");
         if (optionsMap.containsKey("collection")) collection = optionsMap.get("collection");
@@ -41,27 +41,28 @@ public class ForParser implements PartParser {
         for (int ii = mergedLines.size(); i < ii; ++i) {
             String line = mergedLines.get(i);
 
-            String clearLine = parseClearLine(line);
-
-            if ("end".equalsIgnoreCase(clearLine)) {
-                return i + 1;
+            String clearLine;
+            if (line.startsWith("--")) {
+                clearLine = ParserUtils.substr(line, "--".length());
+            } else {
+                Matcher matcher = ParserUtils.inlineComment.matcher(line);
+                if (matcher.matches()) {
+                    clearLine = matcher.group(1).trim();
+                } else {
+                    part.addPart(new LiteralPart(line));
+                    continue;
+                }
             }
 
-            if (clearLine != null) part.appendComment(line);
-            else part.appendSql(line);
+            if ("end".equalsIgnoreCase(clearLine)) return i + 1;
+
+            PartParser partParser = PartParserFactory.tryParse(clearLine);
+            if (partParser != null) {
+                i = partParser.parse(mergedLines, i + 1) - 1;
+                part.addPart(partParser.createPart());
+            }
         }
 
         return i;
-    }
-
-    private String parseClearLine(String line) {
-        if (line.startsWith("--")) {
-            return ParserUtils.substr(line, "--".length());
-        }
-
-        Matcher matcher = ParserUtils.inlineComment.matcher(line);
-        if (matcher.matches()) return matcher.group(1).trim();
-
-        return null;
     }
 }

@@ -1,6 +1,6 @@
 package org.n3r.eql.parser;
 
-import com.google.common.base.Splitter;
+import org.n3r.eql.util.PairsParser;
 
 import java.util.List;
 import java.util.Map;
@@ -19,8 +19,7 @@ public class TrimParser implements PartParser {
     // trim prefix=SET suffixOverrides=,
     // trim prefix=( prefixOverrides=OR suffix=)
     public TrimParser(String options) {
-        Map<String, String> optionsMap = Splitter.on(' ').trimResults()
-                .withKeyValueSeparator('=').split(options.trim());
+        Map<String, String> optionsMap = new PairsParser().parse(options.trim());
         prefix = optionsMap.get("prefix");
         suffix = optionsMap.get("suffix");
         prefixOverrides = optionsMap.get("prefixOverrides");

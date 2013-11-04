@@ -6,11 +6,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigCache;
+import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.config.EqlConfigManager;
 import org.n3r.eql.ex.EqlExecuteException;
+import org.n3r.eql.impl.DefaultEqlConfigDecorator;
 import org.n3r.eql.impl.EqlBatch;
 import org.n3r.eql.impl.EqlProc;
-import org.n3r.eql.impl.EqlResourceLoaderFactory;
 import org.n3r.eql.impl.EqlRsRetriever;
 import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.map.EqlRun;
@@ -30,7 +31,7 @@ public class Eql implements Closeable {
     public static final String DEFAULT_CONN_NAME = "DEFAULT";
     private static Logger logger = LoggerFactory.getLogger(Eql.class);
 
-    private EqlConfig eqlConfig;
+    private EqlConfigDecorator eqlConfig;
     private EqlBlock eqlBlock;
     private Object[] params;
     private String sqlClassPath;
@@ -56,7 +57,9 @@ public class Eql implements Closeable {
     }
 
     public Eql(EqlConfig eqlConfig) {
-        this.eqlConfig = eqlConfig;
+        this.eqlConfig = eqlConfig instanceof EqlConfigDecorator
+                ? (EqlConfigDecorator) eqlConfig
+                : new DefaultEqlConfigDecorator(eqlConfig);
     }
 
     public Connection getConnection() {
@@ -71,6 +74,22 @@ public class Eql implements Closeable {
         executionContext.put("_databaseId", dbDialect.getDatabaseId());
     }
 
+    public Eql addContext(String key, Object value) {
+        executionContext.put(key, value);
+
+        return this;
+    }
+
+    public List<EqlRun> evaluate(String... directSqls) {
+        checkPreconditions(directSqls);
+
+        newExecutionContext();
+
+        if (directSqls.length > 0) eqlBlock = new EqlBlock();
+
+        return eqlBlock.createEqlRuns(eqlConfig, executionContext, params, dynamics, directSqls);
+    }
+
     @SuppressWarnings("unchecked")
     public <T> T execute(String... directSqls) {
         checkPreconditions(directSqls);
@@ -83,9 +102,10 @@ public class Eql implements Closeable {
 
             if (directSqls.length > 0) eqlBlock = new EqlBlock();
 
-            eqlRuns = eqlBlock.createEqlRuns(executionContext, params, dynamics, directSqls);
+            eqlRuns = eqlBlock.createEqlRuns(eqlConfig, executionContext, params, dynamics, directSqls);
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
+
                 ret = runEql();
                 updateLastResultToExecutionContext(ret);
                 currRun.setResult(ret);
@@ -142,12 +162,13 @@ public class Eql implements Closeable {
         connection = null;
     }
 
+
     public ESelectStmt selectStmt() {
         newExecutionContext();
         tranStart();
         createConn();
 
-        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(executionContext, params, dynamics);
+        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(eqlConfig, executionContext, params, dynamics);
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one select sql supported");
 
@@ -172,7 +193,7 @@ public class Eql implements Closeable {
         tranStart();
         createConn();
 
-        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(executionContext, params, dynamics);
+        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(eqlConfig, executionContext, params, dynamics);
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one update sql supported in this method");
 
@@ -322,9 +343,11 @@ public class Eql implements Closeable {
 
 
     protected void initSqlId(String sqlId, String sqlClassPath) {
-        this.sqlClassPath = Strings.isNullOrEmpty(sqlClassPath) ? EqlUtils.getSqlClassPath(4) : sqlClassPath;
+        this.sqlClassPath = Strings.isNullOrEmpty(sqlClassPath)
+                ? EqlUtils.getSqlClassPath(4) : sqlClassPath;
 
-        eqlBlock = EqlResourceLoaderFactory.load(eqlConfig, this.sqlClassPath, sqlId);
+        eqlBlock = eqlConfig.getSqlResourceLoader()
+                .loadEqlBlock(this.sqlClassPath, sqlId);
 
         rsRetriever.setEqlBlock(eqlBlock);
     }

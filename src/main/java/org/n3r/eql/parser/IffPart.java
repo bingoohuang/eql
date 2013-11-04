@@ -1,6 +1,7 @@
 package org.n3r.eql.parser;
 
-import java.util.Map;
+import org.n3r.eql.base.ExpressionEvaluator;
+import org.n3r.eql.map.EqlRun;
 
 public class IffPart implements EqlPart {
     private final String expr;
@@ -12,12 +13,9 @@ public class IffPart implements EqlPart {
     }
 
     @Override
-    public String evalSql(Object bean, Map<String, Object> executionContext) {
-        boolean ok = IfPart.evalBool(bean, expr, executionContext);
-
-        if (ok) return part.evalSql(bean, executionContext);
-
-        return "";
+    public String evalSql(EqlRun eqlRun) {
+        ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
+        return evaluator.evalBool(expr, eqlRun) ? part.evalSql(eqlRun) : "";
     }
 
     public String getExpr() {

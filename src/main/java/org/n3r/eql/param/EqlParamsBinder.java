@@ -1,12 +1,10 @@
 package org.n3r.eql.param;
 
 import com.google.common.base.Objects;
-import ognl.NoSuchPropertyException;
-import ognl.Ognl;
-import ognl.OgnlException;
+import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.ex.EqlExecuteException;
-import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.util.EqlUtils;
 import org.slf4j.Logger;
 
 import java.sql.*;
@@ -21,23 +19,23 @@ public class EqlParamsBinder {
         Extra, Normal
     }
 
-    public void bindParams(PreparedStatement ps, EqlRun esqlRun, Logger logger) {
-        this.eqlRun = esqlRun;
+    public void bindParams(PreparedStatement ps, EqlRun eqlRun, Logger logger) {
+        this.eqlRun = eqlRun;
         boundParams = new StringBuilder();
         this.ps = ps;
 
-        switch (esqlRun.getPlaceHolderType()) {
+        switch (eqlRun.getPlaceHolderType()) {
             case AUTO_SEQ:
-                for (int i = 0; i < esqlRun.getPlaceholderNum(); ++i)
-                    setParam(esqlRun.getPlaceHolder(i), i, getParamByIndex(i), ParamExtra.Normal);
+                for (int i = 0; i < eqlRun.getPlaceholderNum(); ++i)
+                    setParam(i, getParamByIndex(i), ParamExtra.Normal);
                 break;
             case MANU_SEQ:
-                for (int i = 0; i < esqlRun.getPlaceholderNum(); ++i)
-                    setParam(esqlRun.getPlaceHolder(i), i, findParamBySeq(i + 1), ParamExtra.Normal);
+                for (int i = 0; i < eqlRun.getPlaceholderNum(); ++i)
+                    setParam(i, findParamBySeq(i + 1), ParamExtra.Normal);
                 break;
             case VAR_NAME:
-                for (int i = 0; i < esqlRun.getPlaceholderNum(); ++i)
-                    setParam(esqlRun.getPlaceHolder(i), i, findParamByName(esqlRun, i), ParamExtra.Normal);
+                for (int i = 0; i < eqlRun.getPlaceholderNum(); ++i)
+                    setParam(i, findParamByName(i), ParamExtra.Normal);
                 break;
             default:
                 break;
@@ -53,10 +51,11 @@ public class EqlParamsBinder {
         if (extraBindParams == null) return;
 
         for (int i = eqlRun.getPlaceholderNum(); i < eqlRun.getPlaceholderNum() + extraBindParams.length; ++i)
-            setParam(eqlRun.getPlaceHolder(i), i, extraBindParams[i - eqlRun.getPlaceholderNum()], ParamExtra.Extra);
+            setParam(i, extraBindParams[i - eqlRun.getPlaceholderNum()], ParamExtra.Extra);
     }
 
-    private void setParam(EqlParamPlaceholder placeHolder, int index, Object value, ParamExtra extra) {
+    private void setParam(int index, Object value, ParamExtra extra) {
+        EqlParamPlaceholder placeHolder = eqlRun.getPlaceHolder(index);
         try {
             switch (extra) {
                 case Extra:
@@ -100,35 +99,19 @@ public class EqlParamsBinder {
         return inOut == EqlParamPlaceholder.InOut.OUT;
     }
 
-    private Object findParamByName(EqlRun subSql, int index) {
-        String varName = subSql.getPlaceHolders()[index].getPlaceholder();
-        // Object property = RBean.getPropertyQuietly(bean, varName);
-        Object property = getPropertyValue(varName);
+    private Object findParamByName(int index) {
+        String varName = eqlRun.getPlaceHolders()[index].getPlaceholder();
+
+        ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
+
+        Object property = evaluator.eval(varName, eqlRun);
 
         if (property != null) return property;
 
         String propertyName = EqlUtils.convertUnderscoreNameToPropertyName(varName);
-        if (!Objects.equal(propertyName, varName))
-            property = getPropertyValue(propertyName); // RBean.getPropertyQuietly(bean, propertyName);
-
-        return property;
+        return Objects.equal(propertyName, varName) ? property : evaluator.eval(propertyName, eqlRun);
     }
 
-    private Object getPropertyValue(String varName) {
-        try {
-            return Ognl.getValue(varName, eqlRun.getExecutionContext(), eqlRun.getParamBean());
-        } catch (NoSuchPropertyException ex) {
-            // will try again from context
-        } catch (OgnlException e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
-            return Ognl.getValue(varName, eqlRun.getExecutionContext());
-        } catch (OgnlException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     private Object getParamByIndex(int index) {
         EqlParamPlaceholder[] placeHolders = eqlRun.getPlaceHolders();

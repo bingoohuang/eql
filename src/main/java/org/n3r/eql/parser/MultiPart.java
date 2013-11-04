@@ -1,19 +1,19 @@
 package org.n3r.eql.parser;
 
 import com.google.common.collect.Lists;
+import org.n3r.eql.map.EqlRun;
 
 import java.util.List;
-import java.util.Map;
 
 public class MultiPart implements EqlPart {
     private List<EqlPart> parts = Lists.newArrayList();
 
     @Override
-    public String evalSql(Object bean, Map<String, Object> executionContext) {
+    public String evalSql(EqlRun eqlRun) {
         StringBuilder sql = new StringBuilder();
         for (EqlPart eqlPart : parts) {
             appendSpace(sql);
-            sql.append(eqlPart.evalSql(bean, executionContext));
+            sql.append(eqlPart.evalSql(eqlRun));
         }
 
         return sql.toString();
