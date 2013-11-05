@@ -13,10 +13,10 @@ public class EqlJndiConfig implements EqlConfig {
 
     @Override
     public String getStr(String key) {
-        if ("jndiName".equals(key)) return jndiName;
-        if ("java.naming.factory.initial".equals(key)) return initial;
-        if ("java.naming.provider.url".equals(key)) return url;
-        if ("transactionType".equals(key)) return transactionType;  // JTA or not
+        if (EqlConfigKeys.JNDI_NAME.equals(key)) return jndiName;
+        if (EqlConfigKeys.INITIAL.equals(key)) return initial;
+        if (EqlConfigKeys.PROVIDER_URL.equals(key)) return url;
+        if (EqlConfigKeys.TRANSACTION_TYPE.equals(key)) return transactionType;  // JTA or not
 
         return null;
     }

@@ -5,6 +5,7 @@ import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigDecorator;
+import org.n3r.eql.config.EqlConfigKeys;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.util.EqlUtils;
 
@@ -26,20 +27,20 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
     }
 
     private void parseExpressionEvaluator(EqlConfig eqlConfig) {
-        String evaluator = eqlConfig.getStr("expression.evaluator");
+        String evaluator = eqlConfig.getStr(EqlConfigKeys.EXPRESSION_EVALUATOR);
         expressionEvaluator = EqlUtils.isBlank(evaluator) ? new OgnlEvaluator()
                 : Reflect.on(evaluator).create().<ExpressionEvaluator>get();
     }
 
     private void parseResourceLoader(EqlConfig eqlConfig) {
-        String loader = eqlConfig.getStr("sql.resource.loader");
+        String loader = eqlConfig.getStr(EqlConfigKeys.SQL_RESOURCE_LOADER);
         eqlResourceLoader = EqlUtils.isBlank(loader) ? new FileEqlResourceLoader()
                 : Reflect.on(loader).create().<EqlResourceLoader>get();
         eqlResourceLoader.setDynamicLanguageDriver(parseDynamicLanguageDriver(eqlConfig));
     }
 
     private DynamicLanguageDriver parseDynamicLanguageDriver(EqlConfig eqlConfig) {
-        String driver = eqlConfig.getStr("dynamic.language.driver");
+        String driver = eqlConfig.getStr(EqlConfigKeys.DYNAMIC_LANGUAGE_DRIVER);
         return EqlUtils.isBlank(driver) ? new DefaultDynamicLanguageDriver()
                 : Reflect.on(driver).create().<DynamicLanguageDriver>get();
     }

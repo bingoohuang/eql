@@ -25,11 +25,11 @@ public class EqlConfigManager {
             );
 
     private static EqlTranFactory createEqlTranFactory(EqlConfig eqlConfig) {
-        String eqlConfigClass = eqlConfig.getStr("configClass");
+        String eqlConfigClass = eqlConfig.getStr(EqlConfigKeys.CONFIG_CLASS);
 
         EqlConnection eqlConnection;
         if (EqlUtils.isBlank(eqlConfigClass)) {
-            String jndiName = eqlConfig.getStr("jndiName");
+            String jndiName = eqlConfig.getStr(EqlConfigKeys.JNDI_NAME);
             eqlConnection = EqlUtils.isBlank(jndiName) ?
                     new EqlSimpleConnection() : new EqlJndiConnection();
         } else {
@@ -39,7 +39,7 @@ public class EqlConfigManager {
         eqlConnection.initialize(eqlConfig);
 
         return new EqlTranFactory(eqlConnection,
-                "JTA".equalsIgnoreCase(eqlConfig.getStr("transactionType")));
+                EqlConfigKeys.JTA.equalsIgnoreCase(eqlConfig.getStr(EqlConfigKeys.TRANSACTION_TYPE)));
     }
 
     public static EqlTranFactory getConfig(EqlConfig eqlConfig) {

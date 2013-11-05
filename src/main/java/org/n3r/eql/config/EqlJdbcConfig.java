@@ -12,10 +12,10 @@ public class EqlJdbcConfig implements EqlConfig {
 
     @Override
     public String getStr(String key) {
-        if ("driver".equals(key)) return driver;
-        if ("url".equals(key)) return url;
-        if ("user".equals(key)) return user;
-        if ("password".equals(key)) return password;
+        if (EqlConfigKeys.DRIVER.equals(key)) return driver;
+        if (EqlConfigKeys.URL.equals(key)) return url;
+        if (EqlConfigKeys.USER.equals(key)) return user;
+        if (EqlConfigKeys.PASSWORD.equals(key)) return password;
 
         return "";
     }
