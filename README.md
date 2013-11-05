@@ -522,3 +522,114 @@ SET C = #2#
 WHERE A = #1#
 ```
 
+# Custome result mapper example
+
+```java
+import org.n3r.eql.map.EqlRowMapper;
+
+public static class MyMapper implements EqlRowMapper {
+    private String name;
+
+    @Override
+    public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+        name = rs.getString(1);
+        return null;
+    }
+
+    public String getName() {
+        return name;
+    }
+}
+
+@Test
+public void test() {
+    MyMapper myMapper = new MyMapper();
+    new Eql().returnType(myMapper).execute("SELECT 'X' FROM DUAL");
+    assertThat(myMapper.getName(), is("X"));
+}
+```
+
+# Custom config support
+
+```java
+Eqll.choose(new EqlJdbcConfig("oracle.jdbc.driver.OracleDriver",
+        "jdbc:oracle:thin:@127.0.0.1:1521:orcl", "orcl", "orcl"));
+
+Timestamp ts = new Eqll().limit(1).execute("SELECT SYSDATE FROM DUAL");
+
+// or
+Eqll.choose(new EqlPropertiesConfig(
+        EqlConfigKeys.DRIVER + "=oracle.jdbc.driver.OracleDriver\n" +
+        EqlConfigKeys.URL + "=jdbc:oracle:thin:@127.0.0.1:1521:orcl\n" +
+        EqlConfigKeys.USER + "=orcl\n" +
+        EqlConfigKeys.PASSWORD + "=orcl\n"));
+```
+
+Supported configs are listed below:
+
+## **connection.impl**   
++ Meaning: Full qualified class name(FQCN) that implemented `org.n3r.eql.trans.EqlConnection` interface.
++ Default: When jndiName is set, use `org.n3r.eql.trans.EqlJndiConnection`, otherwise `org.n3r.eql.trans.EqlSimpleConnection`.
++ Samples: `org.n3r.eql.trans.EqlC3p0Connection` or your customed implementation.
+
+## **jndiName**
++ Meaning: Specified JNDI name to use JNDI datasource.
++ Default: N/A.
++ Samples: N/A.
+
+## **java.naming.factory.initial**
++ Meaning: Used together with **jndiName**.
++ Default: None.
++ Samples: `weblogic.jndi.WLInitialContextFactory`
+
+## **java.naming.provider.url**
++ Meaning: Used together with **jndiName**.
++ Default: None.
++ Samples: `t3://127.0.0.1:7001/`
+
+## **transactionType**
++ Meaning: Used together with **jndiName**.
++ Default: JDBC.
++ Samples: JTA.
+
+## **driver**
++ Meaning: JDBC driver name.
++ Default: None.
++ Samples: `oracle.jdbc.driver.OracleDriver`， `com.mysql.jdbc.Driver`, and ...
+
+## **url**
++ Meaning: JDBC url.
++ Default: None
++ Samples: `jdbc:oracle:thin:@127.0.0.1:1521:orcl`, `jdbc:mysql://localhost:3306/diamond?useUnicode=true&&characterEncoding=UTF-8&connectTimeout=1000&autoReconnect=true`
+
+## **user**
++ Meaning: JDBC username.
++ Default: None.
++ Samples: orcl.
+
+## **password**
++ Meaning: JDBC password.
++ Default: None.
++ Samples: orcl.
+
+## **expression.evaluator**
++ Meaning: Full quartified class name which implements `org.n3r.eql.base.ExpressionEvaluator`.
++ Default: `org.n3r.eql.impl.OgnlEvaluator`.
++ Samples: customed implementation.
+
+## **sql.resource.loader**
++ Meaning: EQL resource loader. FQCN which implements `org.n3r.eql.base.EqlResourceLoader`.
++ Default: `org.n3r.eql.impl.FileEqlResourceLoader` which read eql file of the same package and same base name with Eql's used java class.
++ Samples: `org.n3r.eql.impl.DiamondEqlResourceLoader` or customed implementation.
+
+## **dynamic.language.driver**
++ Meaning: EQL dynamic support language dirver. FQCN which implements `org.n3r.eql.base.DynamicLanguageDriver`.
++ Default: `org.n3r.eql.impl.DefaultDynamicLanguageDriver` which use SQL special comment to achieve dynamic SQL.
++ Samples: `org.n3r.eql.impl.FreemarkerDynamicLanguageDriver` or customed implementation.
+
+## **sql.parse.lazy**
++ Meaning: Parse dynamic EQL while execution or not.
++ Default: false.
++ Samples: true or yes.
+
+

@@ -28,7 +28,7 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
 
     private boolean parseLazyLoad(EqlConfig eqlConfig) {
         String parseLazyStr = eqlConfig.getStr(EqlConfigKeys.SQL_PARSE_LAZY);
-        return  EqlUtils.isBlank(parseLazyStr)
+        return EqlUtils.isBlank(parseLazyStr)
                 || "true".equalsIgnoreCase(parseLazyStr)
                 || "yes".equalsIgnoreCase(parseLazyStr)
                 || "on".equalsIgnoreCase(parseLazyStr);

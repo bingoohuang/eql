@@ -13,9 +13,7 @@ import org.n3r.eql.map.EqlRun;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -25,6 +23,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -574,4 +573,43 @@ public class EqlUtils {
         return map;
     }
 
+    public static Properties toProperties(String properties) {
+        Properties result = new Properties();
+
+        try {
+            result.load(new ByteArrayInputStream(properties.getBytes(Charsets.UTF_8)));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return result;
+    }
+
+    public static Properties toProperties(File file) {
+        Properties result = new Properties();
+
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(file);
+            result.load(fis);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            EqlUtils.closeQuietly(fis);
+        }
+
+        return result;
+    }
+
+    public static Properties toProperties(InputStream is) {
+        Properties result = new Properties();
+
+        try {
+            result.load(is);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return result;
+    }
 }

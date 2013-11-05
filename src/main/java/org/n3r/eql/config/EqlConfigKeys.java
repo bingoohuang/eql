@@ -1,7 +1,7 @@
 package org.n3r.eql.config;
 
 public interface EqlConfigKeys {
-    String CONFIG_CLASS = "configClass";
+    String CONNECTION_IMPL = "connection.impl";
     String JNDI_NAME = "jndiName";
     String DRIVER = "driver";
     String URL = "url";

@@ -25,7 +25,7 @@ public class EqlConfigManager {
             );
 
     private static EqlTranFactory createEqlTranFactory(EqlConfig eqlConfig) {
-        String eqlConfigClass = eqlConfig.getStr(EqlConfigKeys.CONFIG_CLASS);
+        String eqlConfigClass = eqlConfig.getStr(EqlConfigKeys.CONNECTION_IMPL);
 
         EqlConnection eqlConnection;
         if (EqlUtils.isBlank(eqlConfigClass)) {
