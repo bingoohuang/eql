@@ -14,4 +14,6 @@ public interface EqlConfigKeys {
     String EXPRESSION_EVALUATOR = "expression.evaluator";
     String SQL_RESOURCE_LOADER = "sql.resource.loader";
     String DYNAMIC_LANGUAGE_DRIVER = "dynamic.language.driver";
+
+    String SQL_PARSE_LAZY = "sql.parse.lazy";
 }

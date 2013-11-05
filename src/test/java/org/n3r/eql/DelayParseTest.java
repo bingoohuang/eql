@@ -16,4 +16,9 @@ public class DelayParseTest {
             System.out.println(ex.getMessage());
         }
     }
+
+    @Test(expected = RuntimeException.class)
+    public void testParseImmediately() {
+         new Eql("parseImmediately").id("badTest2").execute();
+    }
 }

@@ -26,6 +26,14 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
         parseExpressionEvaluator(eqlConfig);
     }
 
+    private boolean parseLazyLoad(EqlConfig eqlConfig) {
+        String parseLazyStr = eqlConfig.getStr(EqlConfigKeys.SQL_PARSE_LAZY);
+        return  EqlUtils.isBlank(parseLazyStr)
+                || "true".equalsIgnoreCase(parseLazyStr)
+                || "yes".equalsIgnoreCase(parseLazyStr)
+                || "on".equalsIgnoreCase(parseLazyStr);
+    }
+
     private void parseExpressionEvaluator(EqlConfig eqlConfig) {
         String evaluator = eqlConfig.getStr(EqlConfigKeys.EXPRESSION_EVALUATOR);
         expressionEvaluator = EqlUtils.isBlank(evaluator) ? new OgnlEvaluator()
@@ -37,6 +45,7 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
         eqlResourceLoader = EqlUtils.isBlank(loader) ? new FileEqlResourceLoader()
                 : Reflect.on(loader).create().<EqlResourceLoader>get();
         eqlResourceLoader.setDynamicLanguageDriver(parseDynamicLanguageDriver(eqlConfig));
+        eqlResourceLoader.setEqlLazyLoad(parseLazyLoad(eqlConfig));
     }
 
     private DynamicLanguageDriver parseDynamicLanguageDriver(EqlConfig eqlConfig) {
@@ -54,4 +63,5 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
     public ExpressionEvaluator getExpressionEvaluator() {
         return expressionEvaluator;
     }
+
 }

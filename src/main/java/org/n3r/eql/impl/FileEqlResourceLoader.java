@@ -57,7 +57,8 @@ public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
                     return Optional.absent();
                 }
 
-                return Optional.of(updateFileCache(sqlContent, eqlResourceLoader, sqlClassPath));
+                return Optional.of(updateFileCache(sqlContent,
+                        eqlResourceLoader, sqlClassPath, eqlLazyLoad));
             }
         };
 

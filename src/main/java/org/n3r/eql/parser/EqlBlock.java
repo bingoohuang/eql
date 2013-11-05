@@ -19,6 +19,7 @@ public class EqlBlock {
     private Class<?> returnType;
     private String onerr;
     private String split;
+    private boolean parsed;
 
     private List<Sql> sqls = Lists.newArrayList();
     private Collection<String> sqlLines;
@@ -149,11 +150,14 @@ public class EqlBlock {
     }
 
     public void tryParseSqls() {
+        if (parsed) return;
+
         for (Sql sql : sqls) {
             if (sql instanceof DelaySql) {
                 ((DelaySql) sql).parseSql();
             }
         }
+        parsed = true;
     }
 
     public EqlUniqueSqlId getUniqueSqlId() {
@@ -166,5 +170,9 @@ public class EqlBlock {
 
     public String getSqlId() {
         return uniqueSqlId.getSqlId();
+    }
+
+    public void setParsed(boolean parsed) {
+        this.parsed = parsed;
     }
 }

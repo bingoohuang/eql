@@ -20,6 +20,8 @@ public class EqlBlockParser {
     }
 
     public void parse(EqlBlock block, List<String> sqlLines) {
+        if (!sqlParseDelay) block.setParsed(true);
+
         List<String> oneSqlLines = Lists.newArrayList();
 
         // split to multiple sql

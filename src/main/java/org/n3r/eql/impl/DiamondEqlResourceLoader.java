@@ -36,7 +36,8 @@ public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
     public EqlBlock loadEqlBlock(String sqlClassPath, String sqlId) {
         load(this, sqlClassPath);
 
-        Optional<EqlBlock> blockOptional = sqlCache.getUnchecked(new EqlUniqueSqlId(sqlClassPath, sqlId));
+        EqlUniqueSqlId key = new EqlUniqueSqlId(sqlClassPath, sqlId);
+        Optional<EqlBlock> blockOptional = sqlCache.getUnchecked(key);
         if (blockOptional.isPresent()) return blockOptional.get();
 
         EqlBlock eqlBlock = fileLoader.loadEqlBlock(sqlClassPath, sqlId);
@@ -50,7 +51,8 @@ public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
         return load(this, classPath);
     }
 
-    private Map<String, EqlBlock> load(final EqlResourceLoader eqlResourceLoader, final String sqlClassPath) {
+    private Map<String, EqlBlock> load(final EqlResourceLoader eqlResourceLoader,
+                                       final String sqlClassPath) {
         final String dataId = sqlClassPath.replaceAll("/", ".");
         Callable<Optional<Map<String, EqlBlock>>> valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
             @Override
@@ -75,7 +77,8 @@ public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
                     return Optional.absent();
                 }
 
-                return Optional.of(updateFileCache(sqlContent, eqlResourceLoader, sqlClassPath));
+                return Optional.of(updateFileCache(sqlContent,
+                        eqlResourceLoader, sqlClassPath, eqlLazyLoad));
             }
         };
 

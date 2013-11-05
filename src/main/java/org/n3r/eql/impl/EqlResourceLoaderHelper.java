@@ -20,18 +20,24 @@ public class EqlResourceLoaderHelper {
                 new CacheLoader<EqlUniqueSqlId, Optional<EqlBlock>>() {
                     @Override
                     public Optional<EqlBlock> load(EqlUniqueSqlId eqlUniqueSqlId) throws Exception {
-                        Optional<Map<String, EqlBlock>> blocks;
-                        blocks = fileCache.getIfPresent(eqlUniqueSqlId.getSqlClassPath());
-                        if (!blocks.isPresent()) return Optional.absent();
-
-                        Map<String, EqlBlock> blockMap = blocks.get();
-                        EqlBlock eqlBlock = blockMap.get(eqlUniqueSqlId.getSqlId());
-                        eqlBlock.tryParseSqls();
-
-                        return Optional.of(eqlBlock);
+                        return loadBlocks(fileCache, eqlUniqueSqlId);
                     }
                 }
         );
+    }
+
+    private static Optional<EqlBlock> loadBlocks(
+            Cache<String, Optional<Map<String, EqlBlock>>> fileCache,
+            EqlUniqueSqlId eqlUniqueSqlId) {
+        Optional<Map<String, EqlBlock>> blocks;
+        blocks = fileCache.getIfPresent(eqlUniqueSqlId.getSqlClassPath());
+        if (!blocks.isPresent()) return Optional.absent();
+
+        Map<String, EqlBlock> blockMap = blocks.get();
+        EqlBlock eqlBlock = blockMap.get(eqlUniqueSqlId.getSqlId());
+        eqlBlock.tryParseSqls();
+
+        return Optional.of(eqlBlock);
     }
 
     public static void updateBlockCache(String sqlContent,
@@ -60,8 +66,8 @@ public class EqlResourceLoaderHelper {
 
     public static Map<String, EqlBlock> updateFileCache(String sqlContent,
                                                         EqlResourceLoader eqlResourceLoader,
-                                                        String sqlClassPath) {
+                                                        String sqlClassPath, boolean eqlLazyLoad) {
         EqlParser eqlParser = new EqlParser(eqlResourceLoader, sqlClassPath);
-        return eqlParser.delayParse(sqlContent);
+        return eqlLazyLoad ? eqlParser.delayParse(sqlContent) : eqlParser.parse(sqlContent);
     }
 }

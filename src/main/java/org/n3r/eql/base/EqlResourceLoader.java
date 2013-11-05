@@ -11,4 +11,6 @@ public interface EqlResourceLoader {
 
     void setDynamicLanguageDriver(DynamicLanguageDriver dynamicLanguageDriver);
     DynamicLanguageDriver getDynamicLanguageDriver();
+
+    void setEqlLazyLoad(boolean eqlLazyLoad);
 }
