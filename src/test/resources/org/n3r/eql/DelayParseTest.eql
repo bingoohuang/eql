@@ -1,0 +1,11 @@
+-- [test1]
+SELECT 'X'
+FROM DUAL
+
+
+-- [badTest2]
+SELECT 'X'
+FROM DUAL
+-- if
+    xxxx
+-- end

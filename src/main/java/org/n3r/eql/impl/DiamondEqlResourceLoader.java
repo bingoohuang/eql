@@ -4,12 +4,11 @@ import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.LoadingCache;
 import org.n3r.diamond.client.DiamondListener;
 import org.n3r.diamond.client.DiamondManager;
 import org.n3r.diamond.client.DiamondStone;
-import org.n3r.eql.base.DynamicLanguageDriver;
 import org.n3r.eql.base.EqlResourceLoader;
-import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.parser.EqlBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,21 +18,28 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
-import static org.n3r.eql.impl.FileEqlResourceLoader.updateBlockCache;
+import static org.n3r.eql.impl.EqlResourceLoaderHelper.updateBlockCache;
+import static org.n3r.eql.impl.EqlResourceLoaderHelper.updateFileCache;
 
-public class DiamondEqlResourceLoader implements EqlResourceLoader {
+public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
     static Logger log = LoggerFactory.getLogger(FileEqlResourceLoader.class);
-    static Cache<String, Optional<Map<String, EqlBlock>>> fileCache = CacheBuilder.newBuilder().build();
-    static Cache<String, EqlBlock> sqlCache = CacheBuilder.newBuilder().build();
+    static Cache<String, Optional<Map<String, EqlBlock>>> fileCache;
+    static LoadingCache<EqlUniqueSqlId, Optional<EqlBlock>> sqlCache;
     static FileEqlResourceLoader fileLoader = new FileEqlResourceLoader();
-    private DynamicLanguageDriver dynamicLanguageDriver;
+
+    static {
+        fileCache = CacheBuilder.newBuilder().build();
+        sqlCache = EqlResourceLoaderHelper.buildSqlCache(fileCache);
+    }
 
     @Override
     public EqlBlock loadEqlBlock(String sqlClassPath, String sqlId) {
         load(this, sqlClassPath);
 
-        EqlBlock eqlBlock = sqlCache.getIfPresent(cacheKey(sqlClassPath, sqlId));
-        if (eqlBlock == null) eqlBlock = fileLoader.loadEqlBlock(sqlClassPath, sqlId);
+        Optional<EqlBlock> blockOptional = sqlCache.getUnchecked(new EqlUniqueSqlId(sqlClassPath, sqlId));
+        if (blockOptional.isPresent()) return blockOptional.get();
+
+        EqlBlock eqlBlock = fileLoader.loadEqlBlock(sqlClassPath, sqlId);
         if (eqlBlock != null) return eqlBlock;
 
         throw new RuntimeException("unable to find sql id " + sqlId);
@@ -44,17 +50,7 @@ public class DiamondEqlResourceLoader implements EqlResourceLoader {
         return load(this, classPath);
     }
 
-    @Override
-    public void setDynamicLanguageDriver(DynamicLanguageDriver dynamicLanguageDriver) {
-        this.dynamicLanguageDriver = dynamicLanguageDriver;
-    }
-
-    @Override
-    public DynamicLanguageDriver getDynamicLanguageDriver() {
-        return dynamicLanguageDriver;
-    }
-
-    public static Map<String, EqlBlock> load(final EqlResourceLoader eqlResourceLoader, final String sqlClassPath) {
+    private Map<String, EqlBlock> load(final EqlResourceLoader eqlResourceLoader, final String sqlClassPath) {
         final String dataId = sqlClassPath.replaceAll("/", ".");
         Callable<Optional<Map<String, EqlBlock>>> valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
             @Override
@@ -69,7 +65,8 @@ public class DiamondEqlResourceLoader implements EqlResourceLoader {
 
                     @Override
                     public void accept(DiamondStone diamondStone) {
-                        updateBlockCache(diamondStone.getContent(), eqlResourceLoader, sqlClassPath);
+                        String eql = diamondStone.getContent();
+                        updateBlockCache(eql, eqlResourceLoader, sqlClassPath, sqlCache, fileCache);
                     }
                 });
 
@@ -78,7 +75,7 @@ public class DiamondEqlResourceLoader implements EqlResourceLoader {
                     return Optional.absent();
                 }
 
-                return Optional.of(updateBlockCache(sqlContent, eqlResourceLoader, sqlClassPath));
+                return Optional.of(updateFileCache(sqlContent, eqlResourceLoader, sqlClassPath));
             }
         };
 
@@ -90,7 +87,4 @@ public class DiamondEqlResourceLoader implements EqlResourceLoader {
         return null;
     }
 
-    private static String cacheKey(String sqlClassPath, String sqlId) {
-        return sqlClassPath + ":" + sqlId;
-    }
 }

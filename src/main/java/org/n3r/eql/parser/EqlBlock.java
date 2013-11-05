@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.n3r.eql.config.EqlConfigDecorator;
+import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.param.EqlParamsParser;
 import org.n3r.eql.util.EqlUtils;
@@ -14,8 +15,6 @@ import java.util.Map;
 
 public class EqlBlock {
     private int startLineNo;
-    private String sqlClassPath;
-    private String sqlId;
     private Map<String, String> options = Maps.newHashMap();
     private Class<?> returnType;
     private String onerr;
@@ -23,11 +22,10 @@ public class EqlBlock {
 
     private List<Sql> sqls = Lists.newArrayList();
     private Collection<String> sqlLines;
-
+    private EqlUniqueSqlId uniqueSqlId;
 
     public EqlBlock(String sqlClassPath, String sqlId, String options, int startLineNo) {
-        this.sqlClassPath = sqlClassPath;
-        this.sqlId = sqlId;
+        this.uniqueSqlId = new EqlUniqueSqlId(sqlClassPath, sqlId);
         this.startLineNo = startLineNo;
         this.options = BlockOptionsParser.parseOptions(options);
 
@@ -35,7 +33,7 @@ public class EqlBlock {
     }
 
     public EqlBlock() {
-
+        this.uniqueSqlId = new EqlUniqueSqlId("<DirectSql>", "<Auto>");
     }
 
     private void initSomeOptions() {
@@ -44,10 +42,6 @@ public class EqlBlock {
 
         split = options.get("split");
         if (Strings.isNullOrEmpty(split)) split = ";";
-    }
-
-    public String getSqlId() {
-        return sqlId;
     }
 
     public List<Sql> getSqls() {
@@ -154,7 +148,23 @@ public class EqlBlock {
         return split;
     }
 
-    public String getSqlClassPath() {
-        return sqlClassPath;
+    public void tryParseSqls() {
+        for (Sql sql : sqls) {
+            if (sql instanceof DelaySql) {
+                ((DelaySql) sql).parseSql();
+            }
+        }
+    }
+
+    public EqlUniqueSqlId getUniqueSqlId() {
+        return uniqueSqlId;
+    }
+
+    public String getUniqueSqlIdStr() {
+        return uniqueSqlId.getSqlClassPath() + ":" + uniqueSqlId.getSqlId();
+    }
+
+    public String getSqlId() {
+        return uniqueSqlId.getSqlId();
     }
 }

@@ -1,16 +1,22 @@
 package org.n3r.eql.parser;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.n3r.eql.base.DynamicLanguageDriver;
+import org.n3r.eql.util.EqlUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 
 public class EqlBlockParser {
+    private final boolean sqlParseDelay;
     private List<Sql> sqls = Lists.newArrayList();
     private DynamicLanguageDriver dynamicLanguageDriver;
 
-    public EqlBlockParser(DynamicLanguageDriver dynamicLanguageDriver) {
+    public EqlBlockParser(DynamicLanguageDriver dynamicLanguageDriver, boolean sqlParseDelay) {
         this.dynamicLanguageDriver = dynamicLanguageDriver;
+        this.sqlParseDelay = sqlParseDelay;
     }
 
     public void parse(EqlBlock block, List<String> sqlLines) {
@@ -34,9 +40,29 @@ public class EqlBlockParser {
 
     private void addSql(EqlBlock block, List<String> oneSqlLines) {
         if (oneSqlLines.size() == 0) return;
+        if (isAllComments(oneSqlLines))return;
 
-        Sql sql = dynamicLanguageDriver.parse(block, oneSqlLines);
+        Sql sql = sqlParseDelay ? new DelaySql(dynamicLanguageDriver, block, new ArrayList<String>(oneSqlLines))
+                : dynamicLanguageDriver.parse(block, oneSqlLines);
         if (sql != null) sqls.add(sql);
         oneSqlLines.clear();
+    }
+
+    private boolean isAllComments(List<String> oneSqlLines) {
+        List<String> linesWoLineComments = Lists.newArrayList();
+
+        for (String line : oneSqlLines) {
+            if (line.startsWith("--")) continue;
+
+            linesWoLineComments.add(line);
+        }
+
+        if (linesWoLineComments.size() == 0) return true;
+
+        String join = Joiner.on('\n').join(linesWoLineComments);
+        Matcher matcher = ParserUtils.inlineComment.matcher(join);
+        String pureSql = matcher.replaceAll("");
+
+        return EqlUtils.isBlank(pureSql);
     }
 }

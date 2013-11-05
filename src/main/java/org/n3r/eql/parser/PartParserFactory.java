@@ -6,7 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PartParserFactory {
-    static Pattern pattern = Pattern.compile("(\\w+)\\b(.+)");
+    static Pattern pattern = Pattern.compile("(\\w+)\\b(.*)", Pattern.DOTALL);
 
     public static PartParser tryParse(String clearLine) {
         Matcher matcher = pattern.matcher(clearLine);
@@ -15,22 +15,23 @@ public class PartParserFactory {
         String keyword = matcher.group(1).toLowerCase();
         String option = EqlUtils.trimToEmpty(matcher.group(2));
 
-        if (EqlUtils.isBlank(option))
+        PartParser partParser = null;
+        if (keyword.equals("if")) partParser = new IfParser(option);
+        else if (keyword.equals("iff")) partParser = new IffParser(option);
+        else if (keyword.equals("isempty")) partParser = new IsEmptyParser(option);
+        else if (keyword.equals("isnotempty")) partParser = new IsNotEmptyParser(option);
+        else if (keyword.equals("isnull")) partParser = new IsNullParser(option);
+        else if (keyword.equals("isnotnull")) partParser = new IsNotNullParser(option);
+        else if (keyword.equals("isblank")) partParser = new IsBlankParser(option);
+        else if (keyword.equals("isnotblank")) partParser = new IsNotBlankParser(option);
+        else if (keyword.equals("switch")) partParser = new SwitchParser(option);
+        else if (keyword.equals("for")) partParser = new ForParser(option);
+        else if (keyword.equals("trim")) partParser = new TrimParser(option);
+
+        if (partParser != null && EqlUtils.isBlank(option))
             throw new RuntimeException(clearLine + " is invalid");
 
-        if (keyword.equals("if")) return new IfParser(option);
-        if (keyword.equals("iff")) return new IffParser(option);
-        if (keyword.equals("isempty")) return new IsEmptyParser(option);
-        if (keyword.equals("isnotempty")) return new IsNotEmptyParser(option);
-        if (keyword.equals("isnull")) return new IsNullParser(option);
-        if (keyword.equals("isnotnull")) return new IsNotNullParser(option);
-        if (keyword.equals("isblank")) return new IsBlankParser(option);
-        if (keyword.equals("isnotblank")) return new IsNotBlankParser(option);
-        if (keyword.equals("switch")) return new SwitchParser(option);
-        if (keyword.equals("for")) return new ForParser(option);
-        if (keyword.equals("trim")) return new TrimParser(option);
-
-        return null;
+        return partParser;
     }
 
 }

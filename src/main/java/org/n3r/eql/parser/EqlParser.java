@@ -22,6 +22,7 @@ public class EqlParser {
 
     private EqlBlock block = null;
     private EqlResourceLoader eqlResourceLoader;
+    private boolean sqlParseDelay;
 
     public EqlParser(EqlResourceLoader eqlResourceLoader, String sqlClassPath) {
         this.eqlResourceLoader = eqlResourceLoader;
@@ -33,8 +34,13 @@ public class EqlParser {
             dynamicLanguageDriver = new DefaultDynamicLanguageDriver();
     }
 
-    public Map<String, EqlBlock> parse(String eqlStr) {
+    // delay sql parse
+    public Map<String, EqlBlock> delayParse(String eqlStr) {
+        this.sqlParseDelay = true;
+        return parse(eqlStr);
+    }
 
+    public Map<String, EqlBlock> parse(String eqlStr) {
         Iterable<String> lines = Splitter.on('\n').trimResults().split(eqlStr);
 
         int lineNo = 0;
@@ -67,8 +73,7 @@ public class EqlParser {
         return blocks;
     }
 
-    static Pattern includePattern = Pattern.compile("include\\s+([\\w\\.\\-\\d]+)",
-            Pattern.CASE_INSENSITIVE);
+    static Pattern includePattern = Pattern.compile("include\\s+([\\w\\.\\-\\d]+)");
 
     private boolean includeOtherSqlId(String cleanLine) {
         Matcher matcher = includePattern.matcher(cleanLine);
@@ -84,8 +89,7 @@ public class EqlParser {
         return true;
     }
 
-    static Pattern importPattern = Pattern.compile("import\\s+([/.\\w]+)(\\s+.*)?",
-            Pattern.CASE_INSENSITIVE);
+    static Pattern importPattern = Pattern.compile("import\\s+([/.\\w]+)(\\s+.*)?");
 
     private boolean importOtherSqlFile(String cleanLine) {
         Matcher matcher = importPattern.matcher(cleanLine);
@@ -122,7 +126,8 @@ public class EqlParser {
     private void importSqlBlocks(String cleanLine, Map<String, EqlBlock> temp) {
         for (EqlBlock eqlBlock : temp.values()) {
             if (blocks.containsKey(eqlBlock.getSqlId())) {
-                throw new RuntimeException(eqlBlock.getSqlId() + " deplicated when " + cleanLine + " in " + sqlClassPath);
+                throw new RuntimeException(eqlBlock.getSqlId() + " deplicated when "
+                        + cleanLine + " in " + sqlClassPath);
             }
 
             blocks.put(eqlBlock.getSqlId(), eqlBlock);
@@ -140,7 +145,7 @@ public class EqlParser {
 
     private void parseBlock() {
         if (block != null && sqlLines != null && sqlLines.size() > 0) {
-            new EqlBlockParser(dynamicLanguageDriver).parse(block, sqlLines);
+            new EqlBlockParser(dynamicLanguageDriver, sqlParseDelay).parse(block, sqlLines);
 
             block = null;
             sqlLines = null;

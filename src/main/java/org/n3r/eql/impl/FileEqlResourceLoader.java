@@ -4,10 +4,9 @@ import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.n3r.eql.base.DynamicLanguageDriver;
+import com.google.common.cache.LoadingCache;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.parser.EqlParser;
 import org.n3r.eql.util.EqlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +15,17 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-public class FileEqlResourceLoader implements EqlResourceLoader {
+import static org.n3r.eql.impl.EqlResourceLoaderHelper.updateFileCache;
+
+public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
     static Logger log = LoggerFactory.getLogger(FileEqlResourceLoader.class);
-    static Cache<String, Optional<Map<String, EqlBlock>>> fileCache = CacheBuilder.newBuilder().build();
-    static Cache<String, EqlBlock> sqlCache = CacheBuilder.newBuilder().build();
-    private DynamicLanguageDriver dynamicLanguageDriver;
+    static Cache<String, Optional<Map<String, EqlBlock>>> fileCache;
+    static LoadingCache<EqlUniqueSqlId, Optional<EqlBlock>> sqlCache;
+
+    static {
+        fileCache = CacheBuilder.newBuilder().build();
+        sqlCache = EqlResourceLoaderHelper.buildSqlCache(fileCache);
+    }
 
     public FileEqlResourceLoader() {
     }
@@ -29,8 +34,8 @@ public class FileEqlResourceLoader implements EqlResourceLoader {
     public EqlBlock loadEqlBlock(String sqlClassPath, String sqlId) {
         load(this, sqlClassPath);
 
-        EqlBlock eqlBlock = sqlCache.getIfPresent(EqlUtils.uniqueSqlId(sqlClassPath, sqlId));
-        if (eqlBlock != null) return eqlBlock;
+        Optional<EqlBlock> eqlBlock = sqlCache.getUnchecked(new EqlUniqueSqlId(sqlClassPath, sqlId));
+        if (eqlBlock.isPresent()) return eqlBlock.get();
 
         throw new RuntimeException("unable to find sql id " + sqlId);
     }
@@ -40,19 +45,10 @@ public class FileEqlResourceLoader implements EqlResourceLoader {
         return load(this, classPath);
     }
 
-    @Override
-    public void setDynamicLanguageDriver(DynamicLanguageDriver dynamicLanguageDriver) {
-        this.dynamicLanguageDriver = dynamicLanguageDriver;
-    }
-
-    @Override
-    public DynamicLanguageDriver getDynamicLanguageDriver() {
-        return dynamicLanguageDriver;
-    }
-
-    public static Map<String, EqlBlock> load(final EqlResourceLoader eqlResourceLoader,
-                                             final String sqlClassPath) {
-        Callable<Optional<Map<String, EqlBlock>>> valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
+    private Map<String, EqlBlock> load(final EqlResourceLoader eqlResourceLoader,
+                                       final String sqlClassPath) {
+        Callable<Optional<Map<String, EqlBlock>>> valueLoader;
+        valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
             @Override
             public Optional<Map<String, EqlBlock>> call() throws Exception {
                 String sqlContent = EqlUtils.classResourceToString(sqlClassPath);
@@ -61,7 +57,7 @@ public class FileEqlResourceLoader implements EqlResourceLoader {
                     return Optional.absent();
                 }
 
-                return Optional.of(updateBlockCache(sqlContent, eqlResourceLoader, sqlClassPath));
+                return Optional.of(updateFileCache(sqlContent, eqlResourceLoader, sqlClassPath));
             }
         };
 
@@ -71,17 +67,6 @@ public class FileEqlResourceLoader implements EqlResourceLoader {
             Throwables.propagateIfPossible(Throwables.getRootCause(e));
         }
         return null;
-    }
-
-    public static Map<String, EqlBlock> updateBlockCache(String sqlContent,
-                                                         EqlResourceLoader eqlResourceLoader,
-                                                         String sqlClassPath) {
-        Map<String, EqlBlock> sqlBlocks = new EqlParser(eqlResourceLoader, sqlClassPath).parse(sqlContent);
-        for (EqlBlock sqlBlock : sqlBlocks.values()) {
-            String key = EqlUtils.uniqueSqlId(sqlClassPath, sqlBlock.getSqlId());
-            sqlCache.put(key, sqlBlock);
-        }
-        return sqlBlocks;
     }
 
 

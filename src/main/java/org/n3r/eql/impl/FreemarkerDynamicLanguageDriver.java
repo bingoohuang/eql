@@ -30,11 +30,11 @@ public class FreemarkerDynamicLanguageDriver implements DynamicLanguageDriver {
         StringTemplateLoader stringLoader = new StringTemplateLoader();
         ftlConfig.setTemplateLoader(stringLoader);
 
-        String uniqueSqlId = EqlUtils.uniqueSqlId(block.getSqlClassPath(), block.getSqlId());
-        stringLoader.putTemplate(uniqueSqlId, template);
+        String uniqueSqlIdStr = block.getUniqueSqlIdStr();
+        stringLoader.putTemplate(uniqueSqlIdStr, template);
         Template temp;
         try {
-            temp = ftlConfig.getTemplate(uniqueSqlId);
+            temp = ftlConfig.getTemplate(uniqueSqlIdStr);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

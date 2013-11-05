@@ -4,21 +4,27 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
 import com.google.common.primitives.Primitives;
 import org.n3r.eql.EqlTran;
 import org.n3r.eql.map.EqlRun;
 
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -544,8 +550,28 @@ public class EqlUtils {
         return null;
     }
 
-    public static String uniqueSqlId(String sqlClassPath, String sqlId) {
-        return sqlClassPath + ":" + sqlId;
+    public static Map<String, Object> mergeProperties(Map<String, Object> context, Object bean) throws Exception {
+        Map<String, Object> map = Maps.newHashMap();
+        map.putAll(context);
+
+        if (bean == null) return map;
+
+        if (bean instanceof Map) {
+            map.putAll((Map<String, Object>) bean);
+            return map;
+        }
+
+        BeanInfo info = Introspector.getBeanInfo(bean.getClass());
+        for (PropertyDescriptor pDesc : info.getPropertyDescriptors()) {
+            Method method = pDesc.getReadMethod();
+            if (method == null) continue;
+
+            String name = pDesc.getName();
+            Object value = method.invoke(bean);
+            if (value != null) map.put(name, value);
+        }
+
+        return map;
     }
 
 }

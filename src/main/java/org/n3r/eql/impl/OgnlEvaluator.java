@@ -1,18 +1,14 @@
 package org.n3r.eql.impl;
 
-import ognl.NoSuchPropertyException;
 import ognl.Ognl;
-import ognl.OgnlException;
 import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.map.EqlRun;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.n3r.eql.util.EqlUtils;
 
 import java.util.Map;
 
 public class OgnlEvaluator implements ExpressionEvaluator {
-    private Logger log = LoggerFactory.getLogger(OgnlEvaluator.class);
-
+    // private Logger log = LoggerFactory.getLogger(OgnlEvaluator.class);
 
     @Override
     public Object eval(String expr, EqlRun eqlRun) {
@@ -32,17 +28,28 @@ public class OgnlEvaluator implements ExpressionEvaluator {
     }
 
     private Object eval(String expr, Map<String, Object> context, Object bean) {
+        try {
+            Map<String, Object> map = EqlUtils.mergeProperties(context, bean);
+            return Ognl.getValue(expr, map);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /*
+    private Object eval2(String expr, Map<String, Object> context, Object bean) {
         Exception ex = null;
         try {
             return Ognl.getValue(expr, bean);
         } catch (NoSuchPropertyException e) {
             // will try again from context
         } catch (Exception e) {
-            ex = e;
+            // ex = e;
         }
 
         try {
-            if (ex == null) return Ognl.getValue(expr, context);
+            return Ognl.getValue(expr, context);
         } catch (OgnlException e) {
             ex = e;
         }
@@ -50,4 +57,5 @@ public class OgnlEvaluator implements ExpressionEvaluator {
         log.error("eval {} with {} and context {} error", expr, bean, context, ex);
         return null;
     }
+    */
 }

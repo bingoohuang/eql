@@ -87,7 +87,16 @@ public class Eql implements Closeable {
 
         if (directSqls.length > 0) eqlBlock = new EqlBlock();
 
-        return eqlBlock.createEqlRuns(eqlConfig, executionContext, params, dynamics, directSqls);
+        List<EqlRun> runs = eqlBlock.createEqlRuns(eqlConfig,
+                executionContext, params, dynamics, directSqls);
+
+        if (logger.isDebugEnabled()) {
+            for (EqlRun run : runs) {
+                logger.debug(run.getPrintSql());
+            }
+        }
+
+        return runs;
     }
 
     @SuppressWarnings("unchecked")

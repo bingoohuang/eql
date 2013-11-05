@@ -38,7 +38,7 @@ public class ForTest {
         columnDefs.add(ImmutableMap.of("name", "bingoovalue", "search", "searchvalue"));
         sortingColumnDefs.add(ImmutableMap.of("name", "bingoovalue", "sortDirection", "desc"));
 
-        List<EqlRun> eqlRuns = new Eql().id("findPageAddressInfo").params(map).evaluate();
+        new Eql().id("findPageAddressInfo").params(map).evaluate();
 
     }
 }
