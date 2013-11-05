@@ -1,7 +1,58 @@
 eql
 ====
 
-an easy sql of an alternative to ibatis.
+An easy framework of java JDBC to be an alternative to ibatis/mybatis.
+
+I dont's like XML in ibatis. 
++ excuse 1:
+
+```xml
+<select id="selectAB">
+<![CDATA[
+   SELELCT A,B
+   FROM SOME_TABLE
+   WHERE A > #a#
+]]>
+</select>
+```
+Wooh, for a simple sql of only three lines, we need add a CDATA block to use **>** (I alwasy forget how to write CDATA, and every time I have to lookup XML CDATA reference). It's so bad. And also the **select** is redundant because the SQL itself is telling us it is a SELECT SQL and not some others. 
+
++ excuse 2:
+
+When two or more members are working on the same XML file, only one bad SQL will corrupt all the SQLs in the same file:
+
+```xml
+<update id="xxx">
+SELECT 1 FROM DUAL WHERE 1 > 0
+</update>
+```
+
+Ooh, that is "one rotten apple could ruin a whole barrel of apples."
+
++ excuse 3:
+
+Every time, when I code with ibatis, I forget how to begin (eg. how to create Sqlmap and how to write valid ibatis xml) and have to copy some initial code from others.
+
++ excuse 4:
+
+There is no else in its dynamic. I have to write like:
+
+```sql
+<select id="xxx">
+   SELECT 1 FROM DUAL
+   WHERE 1 = 1
+   <isEmpty property="name">
+     AND name = #name#
+   </isEmpty>
+   <isNotEmpty property="name">
+     AND id = #id#
+   </isNotEmpty>
+</select>
+```
+
++ excuse 5:
+
+I don't like XML. I like free text and freedom. And so I created EQL which is realy very easy.
 
 #One minute tutorial
 * copy [eql-DEFAULT.properties](https://github.com/bingoohuang/eql/blob/master/src/test/resources/eql/eql-DEFAULT.properties) to your classpath eql and do some changes for your database connection info such as url, password and username.
