@@ -1,14 +1,13 @@
 package org.n3r.eql;
 
-import org.n3r.eql.impl.EqlRsRetriever;
 import org.n3r.eql.ex.EqlExecuteException;
-import org.n3r.eql.param.EqlParamsBinder;
+import org.n3r.eql.impl.EqlRsRetriever;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.util.EqlUtils;
 import org.slf4j.Logger;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;

@@ -1,7 +1,6 @@
 package org.n3r.eql.map;
 
 import com.google.common.base.Throwables;
-import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.PlaceholderType;

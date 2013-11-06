@@ -9,7 +9,7 @@ import static org.junit.Assert.assertEquals;
 public class NestedSelectTest {
     @Test
     public void test1() throws Exception {
-        List list = new Eql().id("bug0").execute();
+        List<Object> list = new Eql().id("bug0").execute();
         assertEquals(1, list.size());
 
         List<Bean> beans = new Eql().id("bug0").returnType(Bean.class).execute();

@@ -11,10 +11,8 @@ import static org.n3r.eql.util.EqlUtils.mergeProperties;
 
 public class FreemarkerSql implements Sql {
     private final Template ftlTemplate;
-    private final Configuration ftlConfig;
 
     public FreemarkerSql(Configuration ftlConfig, Template ftlTemplate) {
-        this.ftlConfig = ftlConfig;
         this.ftlTemplate = ftlTemplate;
     }
 

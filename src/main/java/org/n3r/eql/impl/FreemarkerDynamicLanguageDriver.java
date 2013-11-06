@@ -2,18 +2,13 @@ package org.n3r.eql.impl;
 
 import com.google.common.base.Joiner;
 import freemarker.cache.StringTemplateLoader;
-import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
-import freemarker.template.TemplateHashModel;
-import freemarker.template.TemplateModelException;
 import org.n3r.eql.base.DynamicLanguageDriver;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.parser.FreemarkerSql;import org.n3r.eql.parser.Sql;
+import org.n3r.eql.parser.FreemarkerSql;
+import org.n3r.eql.parser.Sql;
 import org.n3r.eql.parser.StaticSql;
-import org.n3r.eql.util.EqlUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;

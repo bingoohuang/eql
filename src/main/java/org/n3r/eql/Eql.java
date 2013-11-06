@@ -137,7 +137,7 @@ public class Eql implements Closeable {
     private void updateLastResultToExecutionContext(Object ret) {
         Object lastResult = ret;
         if (ret instanceof List) {
-            List list = (List) ret;
+            List<Object> list = (List<Object>) ret;
             if (list.size() == 0) lastResult = null;
             else if (list.size() == 1) lastResult = list.get(0);
         }

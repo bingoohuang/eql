@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.Test;
-import org.n3r.eql.map.EqlRun;
 
 import java.sql.Timestamp;
 import java.util.List;

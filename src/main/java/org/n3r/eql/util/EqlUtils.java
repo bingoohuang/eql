@@ -323,10 +323,6 @@ public class EqlUtils {
     }
 
 
-    private static boolean startsWith(String str, String start) {
-        return str != null ? str.startsWith(start) : false;
-    }
-
     public static int indexOfBlank(CharSequence cs) {
         int sz = cs.length();
         for (int i = 0; i < sz; i++)
