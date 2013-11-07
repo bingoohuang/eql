@@ -35,6 +35,8 @@ public class EqlResourceLoaderHelper {
 
         Map<String, EqlBlock> blockMap = blocks.get();
         EqlBlock eqlBlock = blockMap.get(eqlUniqueSqlId.getSqlId());
+        if (eqlBlock == null) return Optional.absent();
+
         eqlBlock.tryParseSqls();
 
         return Optional.of(eqlBlock);

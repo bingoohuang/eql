@@ -1,0 +1,38 @@
+-- [setup onerr=resume]
+drop table MVC_ADMIN;
+
+create table MVC_ADMIN
+(
+  admin_id               VARCHAR2(255) not null,
+  create_date            TIMESTAMP(6),
+  modify_date            TIMESTAMP(6),
+  department             VARCHAR2(255),
+  email                  VARCHAR2(255) not null,
+  is_account_enabled     NUMBER not null,
+  is_account_expired     NUMBER not null,
+  is_account_locked      NUMBER not null,
+  is_credentials_expired NUMBER not null,
+  locked_date            TIMESTAMP(6),
+  login_date             TIMESTAMP(6),
+  login_failure_count    NUMBER(11) not null,
+  login_ip               VARCHAR2(255),
+  NAME             VARCHAR2(255),
+  PASSWORD         VARCHAR2(255) not null,
+  username               VARCHAR2(255) not null
+)
+;
+
+insert into MVC_ADMIN (ADMIN_ID, CREATE_DATE, MODIFY_DATE, DEPARTMENT, EMAIL, IS_ACCOUNT_ENABLED, IS_ACCOUNT_EXPIRED, IS_ACCOUNT_LOCKED, IS_CREDENTIALS_EXPIRED, LOCKED_DATE, LOGIN_DATE, LOGIN_FAILURE_COUNT, LOGIN_IP, NAME, PASSWORD, USERNAME)
+values ('1',  SYSDATE, SYSDATE, null, '1@1.com', 1, 0, 0, 0, null, null, 0, null, 'admin', '21232f297a57a5a743894a0e4a801fc3', 'lvyong');
+
+--[findAdmin]
+SELECT
+  username,
+  password,
+  name,
+  is_account_locked      accountLocked,
+  is_account_enabled     accountEnabled,
+  is_account_expired     accountExpired,
+  is_credentials_expired credentialsExpired
+FROM mvc_admin
+WHERE lower(username) = lower(##)
