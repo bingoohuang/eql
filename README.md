@@ -683,4 +683,28 @@ Supported configs are listed below:
 + Default: false.
 + Samples: true or yes.
 
+# Integrated with [diamond-client](https://github.com/bingoohuang/diamond-miner)
+## Read connection configuration from diamond
+* Add a diamond stone: 
+
+```
+group=EqlConfig,dataId=DEFAULT,content=
+driver=oracle.jdbc.driver.OracleDriver
+url=jdbc:oracle:thin:@127.0.0.1:1521:orcl
+user=orcl
+password=orcl
+```
+
+* Use Dql to replace Eql to work with diamond connection configuration.
+
+```java
+// read diamand content of group=EqlConfig, dataId=DEFAULT as connection config
+new Eql().id("xxx").execute();
+
+// read diamond content of group=EqlConfig, dataId=DSMALL as connection config
+new Eql("DSMALL").id("yyy").execute();
+```
+
+## Read eql from diamond
+
 
