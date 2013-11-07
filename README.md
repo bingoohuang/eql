@@ -498,7 +498,7 @@ Eql also can be loaded from diamond.
 First create eql/eql-diamond.properties on classpath like:
 
 ```
-sql.resource.loader=org.n3r.eql.impl.DiamondEqlResourceLoader
+sql.resource.loader=org.n3r.eql.diamond.DiamondEqlResourceLoader
 
 transactionType=jdbc
 driver=oracle.jdbc.driver.OracleDriver
@@ -671,7 +671,7 @@ Supported configs are listed below:
 ## **sql.resource.loader**
 + Meaning: EQL resource loader. FQCN which implements `org.n3r.eql.base.EqlResourceLoader`.
 + Default: `org.n3r.eql.impl.FileEqlResourceLoader` which read eql file of the same package and same base name with Eql's used java class.
-+ Samples: `org.n3r.eql.impl.DiamondEqlResourceLoader` or customed implementation.
++ Samples: `org.n3r.eql.diamond.DiamondEqlResourceLoader` or customed implementation.
 
 ## **dynamic.language.driver**
 + Meaning: EQL dynamic support language dirver. FQCN which implements `org.n3r.eql.base.DynamicLanguageDriver`.

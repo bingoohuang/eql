@@ -1,4 +1,4 @@
-package org.n3r.eql.impl;
+package org.n3r.eql.diamond;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
@@ -9,6 +9,10 @@ import org.n3r.diamond.client.DiamondListener;
 import org.n3r.diamond.client.DiamondManager;
 import org.n3r.diamond.client.DiamondStone;
 import org.n3r.eql.base.EqlResourceLoader;
+import org.n3r.eql.impl.AbstractEqlResourceLoader;
+import org.n3r.eql.impl.EqlResourceLoaderHelper;
+import org.n3r.eql.impl.EqlUniqueSqlId;
+import org.n3r.eql.impl.FileEqlResourceLoader;
 import org.n3r.eql.parser.EqlBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
