@@ -706,5 +706,19 @@ new Eql("DSMALL").id("yyy").execute();
 ```
 
 ## Read eql from diamond
+In the connection config, set `sql.resource.loader` to `org.n3r.eql.diamond.DiamondEqlResourceLoader`.
 
+```java
+package org.n3r.eql;
+
+public class DiamondTest {
+    @Test
+    public void test1() throws InterruptedException {
+        // Will read diamond content of group=EQL,dataId=org.n3r.eql.DiamondTest.eql
+        // The diamond content can have the same structure with normal eql file.
+        String str = new Eql("diamond").selectFirst("diamondDemo").execute();
+        System.out.println(str);
+    }
+}
+```
 
