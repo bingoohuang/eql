@@ -722,3 +722,7 @@ public class DiamondTest {
 }
 ```
 
+
+# TODO
++ Inline comment such as `/* iff ... */` is parsed by regular expression, and this method will not ignore `/* ... */` in the literal string such as `'literal string /* if xxx */'`.
++ TO support some simple CRUD base on POJO.
