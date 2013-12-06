@@ -730,7 +730,7 @@ Sql query result caching can be enabled with cache keyword in sql options:
 SELECT TO_CHAR(SYSTIMESTAMP, 'HH24:MI:SS.FF6') FROM DUAL
 ```
 
-The default cache model is based on guava cache with 1 day write expired.
+The default cache model is based on guava cache with 1 day expired after write.
 
 If you want to use an alternative cache model, you can use write like following:
 ```sql
