@@ -722,6 +722,26 @@ public class DiamondTest {
 }
 ```
 
+## Caching sql query result
+Sql query result caching can be enabled with cache keyword in sql options:
+
+```sql
+-- [test1 cache]
+SELECT TO_CHAR(SYSTIMESTAMP, 'HH24:MI:SS.FF6') FROM DUAL
+```
+
+The default cache model is based on guava cache with 1 day write expired.
+
+If you want to use an alternative cache model, you can use write like following:
+```sql
+-- global settings cacheModel.impl.myCache=@org.n3r.eql.cache.GuavaCacheProvider("expireAfterWrite=3s,maximumSize=1000")
+
+-- [test1 cache cacheModel=myCache]
+SELECT TO_CHAR(SYSTIMESTAMP, 'HH24:MI:SS.FF6') FROM DUAL
+```
+
+The class `org.n3r.eql.cache.GuavaCacheProvider` is provided by eql and its cache builder spec is same to guava [guava spec](http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/cache/CacheBuilderSpec.html).
+Custom class should implement interface `org.n3r.eql.cache.EqlCacheProvider` and optionally to implement interface `org.n3r.eql.spec.ParamsAppliable` when there are parameters to set.
 
 # TODO
 + Inline comment such as `/* iff ... */` is parsed by regular expression, and this method will not ignore `/* ... */` in the literal string such as `'literal string /* if xxx */'`.

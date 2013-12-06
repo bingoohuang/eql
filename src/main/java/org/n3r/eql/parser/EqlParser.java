@@ -6,12 +6,16 @@ import com.google.common.collect.Maps;
 import org.n3r.eql.base.DynamicLanguageDriver;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.impl.DefaultDynamicLanguageDriver;
+import org.n3r.eql.settings.EqlFileGlobalSettings;
 
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Parse a whole eql file.
+ */
 public class EqlParser {
     static Pattern blockPattern = Pattern.compile("\\[\\s*([\\w\\.\\-\\d]+)\\b(.*)\\]");
 
@@ -54,11 +58,14 @@ public class EqlParser {
                 String cleanLine = ParserUtils.substr(line, "--".length());
                 if (importOtherSqlFile(cleanLine)) continue;
                 if (includeOtherSqlId(cleanLine)) continue;
+                if (globalSettings(cleanLine)) continue;
 
                 Matcher matcher = blockPattern.matcher(cleanLine);
                 if (matcher.matches()) { // new sql block found
-                    parseBlock();
-                    block = new EqlBlock(sqlClassPath, matcher.group(1), matcher.group(2), lineNo);
+                    parsePreviousBlock();
+                    String sqlId = matcher.group(1);
+                    String options = matcher.group(2);
+                    block = new EqlBlock(sqlClassPath, sqlId, options, lineNo);
                     addBlock(block);
                     continue;
                 }
@@ -68,9 +75,22 @@ public class EqlParser {
             sqlLines.add(line);
         }
 
-        parseBlock();
+        parsePreviousBlock();
 
         return blocks;
+    }
+
+    static Pattern globalSettingsPattern = Pattern.compile("global\\s+settings\\s+(.+)");
+
+    private boolean globalSettings(String cleanLine) {
+        Matcher matcher = globalSettingsPattern.matcher(cleanLine);
+        if (!matcher.matches()) return false;
+
+        String globalSettings = matcher.group(1).trim();
+
+        EqlFileGlobalSettings.process(sqlClassPath, globalSettings);
+
+        return true;
     }
 
     static Pattern includePattern = Pattern.compile("include\\s+([\\w\\.\\-\\d]+)");
@@ -95,7 +115,7 @@ public class EqlParser {
         Matcher matcher = importPattern.matcher(cleanLine);
         if (!matcher.matches()) return false;
 
-        parseBlock();
+        parsePreviousBlock();
 
         String classPath = matcher.group(1).trim();
         String patterns = ParserUtils.trim(matcher.group(2));
@@ -143,7 +163,7 @@ public class EqlParser {
         sqlLines = Lists.newArrayList();
     }
 
-    private void parseBlock() {
+    private void parsePreviousBlock() {
         if (block != null && sqlLines != null && sqlLines.size() > 0) {
             new EqlBlockParser(dynamicLanguageDriver, sqlParseDelay).parse(block, sqlLines);
 

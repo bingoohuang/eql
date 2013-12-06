@@ -1,5 +1,6 @@
 package org.n3r.eql;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
@@ -47,19 +48,33 @@ public class Eql implements Closeable {
     private List<EqlRun> eqlRuns;
     private EqlRun currRun;
     private Map<String, Object> executionContext;
+    private String defaultSqlId;
+    private boolean cached = true;
 
     public Eql() {
-        this(DEFAULT_CONN_NAME);
+        init(EqlConfigCache.getEqlConfig(DEFAULT_CONN_NAME));
     }
 
     public Eql(String connectionName) {
-        this(EqlConfigCache.getEqlConfig(connectionName));
+        init(EqlConfigCache.getEqlConfig(connectionName));
     }
 
     public Eql(EqlConfig eqlConfig) {
+        init(eqlConfig);
+    }
+
+    private void init(EqlConfig eqlConfig) {
         this.eqlConfig = eqlConfig instanceof EqlConfigDecorator
                 ? (EqlConfigDecorator) eqlConfig
                 : new DefaultEqlConfigDecorator(eqlConfig);
+
+        prepareDefaultSqlId();
+    }
+
+    private void prepareDefaultSqlId() {
+        StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
+        StackTraceElement e = stacktrace[4];
+        defaultSqlId = e.getMethodName();
     }
 
     public Connection getConnection() {
@@ -103,6 +118,12 @@ public class Eql implements Closeable {
     public <T> T execute(String... directSqls) {
         checkPreconditions(directSqls);
 
+        boolean cacheUsable = directSqls.length == 0 && cached;
+        Optional<Object> cachedResult = cacheUsable
+                ? eqlBlock.getCachedResult(params, dynamics) : null;
+
+        if (cachedResult != null) return (T) cachedResult.orNull();
+
         newExecutionContext();
         Object ret = null;
         try {
@@ -118,6 +139,8 @@ public class Eql implements Closeable {
                 ret = runEql();
                 updateLastResultToExecutionContext(ret);
                 currRun.setResult(ret);
+
+                if(cacheUsable) eqlBlock.cacheResult(currRun);
             }
 
             if (batch == null) tranCommit();
@@ -223,7 +246,9 @@ public class Eql implements Closeable {
     private void checkPreconditions(String... directSqls) {
         if (eqlBlock != null || directSqls.length > 0) return;
 
-        throw new EqlExecuteException("No sqlid defined!");
+        if (EqlUtils.isBlank(defaultSqlId)) throw new EqlExecuteException("No sqlid defined!");
+
+        initSqlId(defaultSqlId, 5);
     }
 
     private Object runEql() throws SQLException {
@@ -351,9 +376,13 @@ public class Eql implements Closeable {
     }
 
 
-    protected void initSqlId(String sqlId, String sqlClassPath) {
+    protected void initSqlId(String sqlId) {
+        initSqlId(sqlId, 5);
+    }
+
+    protected void initSqlId(String sqlId, int level) {
         this.sqlClassPath = Strings.isNullOrEmpty(sqlClassPath)
-                ? EqlUtils.getSqlClassPath(4) : sqlClassPath;
+                ? EqlUtils.getSqlClassPath(level) : sqlClassPath;
 
         eqlBlock = eqlConfig.getSqlResourceLoader()
                 .loadEqlBlock(this.sqlClassPath, sqlId);
@@ -372,43 +401,43 @@ public class Eql implements Closeable {
     }
 
     public Eql id(String sqlId) {
-        initSqlId(sqlId, sqlClassPath);
+        initSqlId(sqlId);
         return this;
     }
 
     public Eql merge(String sqlId) {
-        initSqlId(sqlId, sqlClassPath);
+        initSqlId(sqlId);
         return this;
     }
 
     public Eql update(String sqlId) {
-        initSqlId(sqlId, sqlClassPath);
+        initSqlId(sqlId);
         return this;
     }
 
     public Eql insert(String sqlId) {
-        initSqlId(sqlId, sqlClassPath);
+        initSqlId(sqlId);
         return this;
     }
 
     public Eql delete(String sqlId) {
-        initSqlId(sqlId, sqlClassPath);
+        initSqlId(sqlId);
         return this;
     }
 
     public Eql select(String sqlId) {
-        initSqlId(sqlId, sqlClassPath);
+        initSqlId(sqlId);
         return this;
     }
 
     public Eql selectFirst(String sqlId) {
-        initSqlId(sqlId, sqlClassPath);
+        initSqlId(sqlId);
         limit(1);
         return this;
     }
 
     public Eql procedure(String sqlId) {
-        initSqlId(sqlId, sqlClassPath);
+        initSqlId(sqlId);
         return this;
     }
 
@@ -524,6 +553,11 @@ public class Eql implements Closeable {
 
     public Eql setFetchSize(int fetchSize) {
         this.fetchSize = fetchSize;
+        return this;
+    }
+
+    public Eql cached(boolean cached) {
+        this.cached = cached;
         return this;
     }
 }

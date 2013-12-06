@@ -1,8 +1,13 @@
 package org.n3r.eql.parser;
 
+import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.n3r.eql.cache.EqlCacheKey;
+import org.n3r.eql.cache.EqlCacheProvider;
+import org.n3r.eql.cache.EqlCacheSettings;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.map.EqlRun;
@@ -23,6 +28,7 @@ public class EqlBlock {
     private List<Sql> sqls = Lists.newArrayList();
     private Collection<String> sqlLines;
     private EqlUniqueSqlId uniqueSqlId;
+    private EqlCacheProvider cacheProvider;
 
     public EqlBlock(String sqlClassPath, String sqlId, String options, int startLineNo) {
         this.uniqueSqlId = new EqlUniqueSqlId(sqlClassPath, sqlId);
@@ -42,6 +48,15 @@ public class EqlBlock {
 
         split = options.get("split");
         if (Strings.isNullOrEmpty(split)) split = ";";
+
+        initEqlCache(options.containsKey("cache"), options.get("cacheModel"));
+    }
+
+    private void initEqlCache(boolean useCache, String cacheModel) {
+        if (Strings.isNullOrEmpty(cacheModel) && !useCache) return;
+
+        cacheProvider = EqlCacheSettings.getCacheProvider(uniqueSqlId,
+                Objects.firstNonNull(cacheModel, EqlCacheSettings.defaultCacheModel));
     }
 
     public List<Sql> getSqls() {
@@ -166,5 +181,19 @@ public class EqlBlock {
 
     public String getSqlId() {
         return uniqueSqlId.getSqlId();
+    }
+
+    public Optional<Object> getCachedResult(Object[] params, Object[] dynamics) {
+        if (cacheProvider == null) return null;
+
+        return cacheProvider.getCache(new EqlCacheKey(uniqueSqlId, params, dynamics));
+    }
+
+    public void cacheResult(EqlRun currRun) {
+        if (cacheProvider == null) return;
+        if (!currRun.isLastSelectSql()) return;
+
+        cacheProvider.setCache(new EqlCacheKey(uniqueSqlId, currRun.getParams(), currRun.getDynamics()),
+                currRun.getResult());
     }
 }

@@ -1,0 +1,8 @@
+-- global settings cacheModel.impl.guava=@org.n3r.eql.cache.GuavaCacheProvider("expireAfterWrite=3s,maximumSize=1000")
+
+-- [test1 cache]
+SELECT TO_CHAR(SYSTIMESTAMP, 'HH24:MI:SS.FF6') FROM DUAL
+
+-- [test2]
+SELECT TO_CHAR(SYSTIMESTAMP, 'HH24:MI:SS.FF6') FROM DUAL
+
