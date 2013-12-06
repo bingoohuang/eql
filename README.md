@@ -740,8 +740,8 @@ If you want to use an alternative cache model, you can use write like following:
 SELECT TO_CHAR(SYSTIMESTAMP, 'HH24:MI:SS.FF6') FROM DUAL
 ```
 
-The class `org.n3r.eql.cache.GuavaCacheProvider` is provided by eql and its cache builder spec is same to guava [guava spec](http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/cache/CacheBuilderSpec.html).
-Custom class should implement interface `org.n3r.eql.cache.EqlCacheProvider` and optionally to implement interface `org.n3r.eql.spec.ParamsAppliable` when there are parameters to set.
+The class `org.n3r.eql.cache.GuavaCacheProvider` is provided by eql and its cache builder spec is same to guava [cache spec](http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/cache/CacheBuilderSpec.html).
+Custom cache provider class should implement `org.n3r.eql.cache.EqlCacheProvider` and optionally to implement `org.n3r.eql.spec.ParamsAppliable` when there are parameters to set.
 
 # TODO
 + Inline comment such as `/* iff ... */` is parsed by regular expression, and this method will not ignore `/* ... */` in the literal string such as `'literal string /* if xxx */'`.
