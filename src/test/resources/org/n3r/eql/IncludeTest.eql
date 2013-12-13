@@ -6,11 +6,14 @@ update ESQL_TEST set C = #c1# where A = #a1#
 -- [test2]
 update ESQL_TEST set C = #c2# where A = #a2#
 
+-- [partial ref]
+SELECT C
 
 -- [include]
 -- include test1
-;
 -- include test2
-;
 
-
+-- [selectC]
+-- include partial
+FROM ESQL_TEST
+WHERE A = ##

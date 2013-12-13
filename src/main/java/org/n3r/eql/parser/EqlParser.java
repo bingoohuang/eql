@@ -105,6 +105,7 @@ public class EqlParser {
         EqlBlock eqlBlock = blocks.get(includeSqlId);
         if (eqlBlock == null) throw new RuntimeException(cleanLine + " not found");
         sqlLines.addAll(eqlBlock.getSqlLines());
+        if (!eqlBlock.isRef()) sqlLines.add(";");
 
         return true;
     }

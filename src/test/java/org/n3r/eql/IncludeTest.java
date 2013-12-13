@@ -5,6 +5,9 @@ import org.junit.Test;
 
 import java.sql.Timestamp;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
 public class IncludeTest {
     @Test
     public void testInclude() {
@@ -17,5 +20,12 @@ public class IncludeTest {
                         .put("c1", "ccc111").put("a1", 3)
                         .put("c2", "ccc222").put("a2", 4).build())
         .execute();
+
+
+        String c3 = new Eqll().selectFirst("selectC").params(3).execute();
+        assertThat(c3, is("ccc111"));
+
+        String c4 = new Eqll().selectFirst("selectC").params(4).execute();
+        assertThat(c4, is("ccc222"));
     }
 }

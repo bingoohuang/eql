@@ -29,6 +29,7 @@ public class EqlBlock {
     private Collection<String> sqlLines;
     private EqlUniqueSqlId uniqueSqlId;
     private EqlCacheProvider cacheProvider;
+    private boolean ref; // used to be referred as a partial common sql
 
     public EqlBlock(String sqlClassPath, String sqlId, String options, int startLineNo) {
         this.uniqueSqlId = new EqlUniqueSqlId(sqlClassPath, sqlId);
@@ -48,6 +49,8 @@ public class EqlBlock {
 
         split = options.get("split");
         if (Strings.isNullOrEmpty(split)) split = ";";
+
+        ref = options.containsKey("ref");
 
         initEqlCache(options.containsKey("cache"), options.get("cacheModel"));
     }
@@ -195,5 +198,9 @@ public class EqlBlock {
 
         cacheProvider.setCache(new EqlCacheKey(uniqueSqlId, currRun.getParams(), currRun.getDynamics()),
                 currRun.getResult());
+    }
+
+    public boolean isRef() {
+        return ref;
     }
 }
