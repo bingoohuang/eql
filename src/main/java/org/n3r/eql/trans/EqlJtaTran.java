@@ -1,5 +1,6 @@
 package org.n3r.eql.trans;
 
+import org.n3r.eql.Eql;
 import org.n3r.eql.EqlTran;
 
 import java.io.IOException;
@@ -9,7 +10,7 @@ public class EqlJtaTran implements EqlTran {
 
     private final Connection connection;
 
-    public EqlJtaTran(Connection connection) {
+    public EqlJtaTran(Eql eql, Connection connection) {
         this.connection = connection;
     }
 

@@ -52,33 +52,37 @@ public class Eql implements Closeable {
     private boolean cached = true;
 
     public Eql() {
-        init(EqlConfigCache.getEqlConfig(DEFAULT_CONN_NAME));
+        init(EqlConfigCache.getEqlConfig(DEFAULT_CONN_NAME), 4);
     }
 
     public Eql(String connectionName) {
-        init(EqlConfigCache.getEqlConfig(connectionName));
+        init(EqlConfigCache.getEqlConfig(connectionName), 4);
     }
 
     public Eql(EqlConfig eqlConfig) {
-        init(eqlConfig);
+        init(eqlConfig, 4);
     }
 
-    private void init(EqlConfig eqlConfig) {
+    public Eql(EqlConfig eqlConfig, int stackDeep) {
+        init(eqlConfig, stackDeep);
+    }
+
+    private void init(EqlConfig eqlConfig, int stackDeep) {
         this.eqlConfig = eqlConfig instanceof EqlConfigDecorator
                 ? (EqlConfigDecorator) eqlConfig
                 : new DefaultEqlConfigDecorator(eqlConfig);
 
-        prepareDefaultSqlId();
+        prepareDefaultSqlId(stackDeep);
     }
 
-    private void prepareDefaultSqlId() {
+    private void prepareDefaultSqlId(int stackDeep) {
         StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
-        StackTraceElement e = stacktrace[4];
+        StackTraceElement e = stacktrace[stackDeep];
         defaultSqlId = e.getMethodName();
     }
 
     public Connection getConnection() {
-        return newTran(eqlConfig).getConn();
+        return newTran(eqlConfig, this).getConn();
     }
 
     private void createConn() {
@@ -135,12 +139,13 @@ public class Eql implements Closeable {
             eqlRuns = eqlBlock.createEqlRuns(eqlConfig, executionContext, params, dynamics, directSqls);
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
+                checkBatchCmdsSupporting(currRun);
 
                 ret = runEql();
                 updateLastResultToExecutionContext(ret);
                 currRun.setResult(ret);
 
-                if(cacheUsable) eqlBlock.cacheResult(currRun);
+                if (cacheUsable) eqlBlock.cacheResult(currRun);
             }
 
             if (batch == null) tranCommit();
@@ -155,6 +160,21 @@ public class Eql implements Closeable {
         }
 
         return (T) ret;
+    }
+
+    private void checkBatchCmdsSupporting(EqlRun currRun) {
+        if (batch == null) return;
+
+        switch (currRun.getSqlType()) {
+            case INSERT:
+            case UPDATE:
+            case MERGE:
+            case DELETE:
+                // OK!
+                break;
+            default:
+                throw new EqlExecuteException(currRun.getPrintSql() + " is not supported in batch mode");
+        }
     }
 
     private void updateLastResultToExecutionContext(Object ret) {
@@ -177,7 +197,15 @@ public class Eql implements Closeable {
         executionContext.put("_results", Lists.newArrayList());
         executionContext.put("_lastResult", "");
         executionContext.put("_params", params);
+        if (params != null) {
+            executionContext.put("_paramsCount", params.length);
+            for (int i = 0; i < params.length; ++i)
+                executionContext.put("_" + (i + 1), params[i]);
+        }
+
+
         executionContext.put("_dynamics", dynamics);
+        if (dynamics != null) executionContext.put("_dynamicsCount", dynamics.length);
     }
 
     public List<EqlRun> getEqlRuns() {
@@ -449,7 +477,7 @@ public class Eql implements Closeable {
         if (externalTran != null) return;
         if (internalTran != null) return;
 
-        internalTran = newTran(eqlConfig);
+        internalTran = newTran(eqlConfig, this);
         internalTran.start();
     }
 
@@ -466,7 +494,7 @@ public class Eql implements Closeable {
     }
 
     public EqlTran newTran() {
-        EqlTran tran = newTran(eqlConfig);
+        EqlTran tran = newTran(eqlConfig, this);
         connection = tran.getConn();
         useTran(tran);
 
@@ -478,8 +506,8 @@ public class Eql implements Closeable {
         return this;
     }
 
-    public static EqlTran newTran(EqlConfig eqlConfig) {
-        return EqlConfigManager.getConfig(eqlConfig).createTran();
+    public static EqlTran newTran(EqlConfig eqlConfig, Eql eql) {
+        return EqlConfigManager.getConfig(eqlConfig).createTran(eql);
     }
 
     public EqlConfig getEqlConfig() {
@@ -522,9 +550,9 @@ public class Eql implements Closeable {
             throw new EqlExecuteException("executeBatch failed:" + e.getMessage());
         } finally {
             tranClose();
+            batch = null;
         }
 
-        batch = null;
         return totalRows;
     }
 
@@ -559,5 +587,10 @@ public class Eql implements Closeable {
     public Eql cached(boolean cached) {
         this.cached = cached;
         return this;
+    }
+
+    public void resetTran() {
+        externalTran = null;
+        internalTran = null;
     }
 }

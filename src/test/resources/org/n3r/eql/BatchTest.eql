@@ -19,3 +19,6 @@ VALUES(##, ##, ##, ##, SYSDATE)
 
 -- [afterClass onerr=resume]
 drop table EQL_TEST_BINGOO
+
+-- [test]
+SELECT 'x' FROM DUAL

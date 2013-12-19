@@ -20,6 +20,6 @@ public class Eqll extends Eql {
     }
 
     public Eqll() {
-        super(eqlConfigLocal.get());
+        super(eqlConfigLocal.get(), 5);
     }
 }

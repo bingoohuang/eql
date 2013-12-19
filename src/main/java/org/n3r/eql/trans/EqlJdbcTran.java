@@ -1,5 +1,6 @@
 package org.n3r.eql.trans;
 
+import org.n3r.eql.Eql;
 import org.n3r.eql.EqlTran;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.util.EqlUtils;
@@ -9,9 +10,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 public class EqlJdbcTran implements EqlTran {
+    private final Eql eql;
     private Connection connection;
 
-    public EqlJdbcTran(Connection connection) {
+    public EqlJdbcTran(Eql eql, Connection connection) {
+        this.eql = eql;
         this.connection = connection;
     }
 
@@ -61,6 +64,7 @@ public class EqlJdbcTran implements EqlTran {
     @Override
     public void close() throws IOException {
         EqlUtils.closeQuietly(connection);
+        eql.resetTran();
     }
 
 }
