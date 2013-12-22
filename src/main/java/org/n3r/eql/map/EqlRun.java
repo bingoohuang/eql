@@ -1,14 +1,58 @@
 package org.n3r.eql.map;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.tuple.Pair;
 import org.n3r.eql.config.EqlConfigDecorator;
+import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.PlaceholderType;
 import org.n3r.eql.parser.EqlBlock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.sql.CallableStatement;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 public class EqlRun implements Cloneable {
+    public List<Pair<Integer, Object>> realParams = Lists.newArrayList();
+    private String boundParams;
+
+    public void addRealParam(int index, Object value) {
+        realParams.add(Pair.of(index, value));
+    }
+
+    List<Pair<Integer, Integer>> outParameters = Lists.newArrayList();
+
+    public void registerOutParameter(int index, int type) {
+        outParameters.add(Pair.of(index, type));
+    }
+
+    public void setBoundParams(String boundParams) {
+        this.boundParams = boundParams;
+    }
+
+    Logger logger = LoggerFactory.getLogger(EqlRun.class);
+
+    public void bindParams(PreparedStatement ps) {
+        try {
+            for (Pair<Integer, Object> param : realParams) {
+                ps.setObject(param.getLeft(), param.getRight());
+            }
+            for (Pair<Integer, Integer> out : outParameters) {
+                ((CallableStatement) ps).registerOutParameter(out.getLeft(), out.getRight());
+            }
+        } catch (SQLException e) {
+            throw new EqlExecuteException(e);
+        }
+
+        if (boundParams != null && boundParams.length() > 0) logger.debug("param: {}", boundParams);
+    }
+
+
     public static enum EqlType {
         SELECT, UPDATE, INSERT, MERGE, DELETE,
         DROP, CREATE, TRUNCATE, CALL, COMMENT, ALTER, BEGIN, DECLARE;

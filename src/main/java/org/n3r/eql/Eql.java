@@ -30,24 +30,24 @@ import java.util.Map;
 
 public class Eql implements Closeable {
     public static final String DEFAULT_CONN_NAME = "DEFAULT";
-    private static Logger logger = LoggerFactory.getLogger(Eql.class);
+    protected static Logger logger = LoggerFactory.getLogger(Eql.class);
 
-    private EqlConfigDecorator eqlConfig;
-    private EqlBlock eqlBlock;
-    private Object[] params;
+    protected EqlConfigDecorator eqlConfig;
+    protected EqlBlock eqlBlock;
+    protected Object[] params;
     private String sqlClassPath;
     private EqlPage page;
-    private EqlBatch batch;
-    private Object[] dynamics;
+    protected EqlBatch batch;
+    protected Object[] dynamics;
     private EqlTran externalTran;
     private EqlTran internalTran;
     private Connection connection;
     private DbDialect dbDialect;
     private EqlRsRetriever rsRetriever = new EqlRsRetriever();
     private int fetchSize;
-    private List<EqlRun> eqlRuns;
-    private EqlRun currRun;
-    private Map<String, Object> executionContext;
+    protected List<EqlRun> eqlRuns;
+    protected EqlRun currRun;
+    protected Map<String, Object> executionContext;
     private String defaultSqlId;
     private boolean cached = true;
 
@@ -85,7 +85,7 @@ public class Eql implements Closeable {
         return newTran(eqlConfig, this).getConn();
     }
 
-    private void createConn() {
+    protected void getConn() {
         if (connection != null) return;
 
         connection = internalTran != null ? internalTran.getConn() : externalTran.getConn();
@@ -132,13 +132,14 @@ public class Eql implements Closeable {
         Object ret = null;
         try {
             if (batch == null) tranStart();
-            createConn();
+            getConn();
 
             if (directSqls.length > 0) eqlBlock = new EqlBlock();
 
             eqlRuns = eqlBlock.createEqlRuns(eqlConfig, executionContext, params, dynamics, directSqls);
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
+                new EqlParamsBinder().preparBindParams(currRun);
                 checkBatchCmdsSupporting(currRun);
 
                 ret = runEql();
@@ -177,7 +178,7 @@ public class Eql implements Closeable {
         }
     }
 
-    private void updateLastResultToExecutionContext(Object ret) {
+    protected void updateLastResultToExecutionContext(Object ret) {
         Object lastResult = ret;
         if (ret instanceof List) {
             List<Object> list = (List<Object>) ret;
@@ -188,7 +189,7 @@ public class Eql implements Closeable {
         executionContext.put("_lastResult", lastResult);
     }
 
-    private void newExecutionContext() {
+    protected void newExecutionContext() {
         executionContext = Maps.newHashMap();
         executionContext.put("_time", new Timestamp(System.currentTimeMillis()));
         executionContext.put("_date", new java.util.Date());
@@ -212,7 +213,7 @@ public class Eql implements Closeable {
         return eqlRuns;
     }
 
-    private void resetState() {
+    protected void resetState() {
         rsRetriever.resetMaxRows();
     }
 
@@ -226,7 +227,7 @@ public class Eql implements Closeable {
     public ESelectStmt selectStmt() {
         newExecutionContext();
         tranStart();
-        createConn();
+        getConn();
 
         List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(eqlConfig, executionContext, params, dynamics);
         if (sqlSubs.size() != 1)
@@ -251,7 +252,7 @@ public class Eql implements Closeable {
     public EUpdateStmt updateStmt() {
         newExecutionContext();
         tranStart();
-        createConn();
+        getConn();
 
         List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(eqlConfig, executionContext, params, dynamics);
         if (sqlSubs.size() != 1)
@@ -271,7 +272,7 @@ public class Eql implements Closeable {
         return updateStmt;
     }
 
-    private void checkPreconditions(String... directSqls) {
+    protected void checkPreconditions(String... directSqls) {
         if (eqlBlock != null || directSqls.length > 0) return;
 
         if (EqlUtils.isBlank(defaultSqlId)) throw new EqlExecuteException("No sqlid defined!");
@@ -279,7 +280,7 @@ public class Eql implements Closeable {
         initSqlId(defaultSqlId, 5);
     }
 
-    private Object runEql() throws SQLException {
+    protected Object runEql() throws SQLException {
         try {
             return EqlUtils.isDdl(currRun) ? execDdl() : pageExecute();
         } catch (Exception ex) {
@@ -364,7 +365,7 @@ public class Eql implements Closeable {
         PreparedStatement ps = null;
         try {
             ps = prepareSql();
-            new EqlParamsBinder().bindParams(ps, currRun, logger);
+            currRun.bindParams(ps);
 
             if (currRun.getSqlType() == EqlRun.EqlType.SELECT) {
                 rs = ps.executeQuery();
@@ -473,7 +474,7 @@ public class Eql implements Closeable {
         return eqlBlock.getSqlId();
     }
 
-    private void tranStart() {
+    protected void tranStart() {
         if (externalTran != null) return;
         if (internalTran != null) return;
 
@@ -481,7 +482,7 @@ public class Eql implements Closeable {
         internalTran.start();
     }
 
-    private void tranCommit() {
+    protected void tranCommit() {
         if (externalTran != null) return;
 
         internalTran.commit();

@@ -64,4 +64,20 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
         return expressionEvaluator;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DefaultEqlConfigDecorator that = (DefaultEqlConfigDecorator) o;
+
+        if (!eqlConfig.equals(that.eqlConfig)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return eqlConfig.hashCode();
+    }
 }

@@ -40,7 +40,7 @@ public class EqlBatch {
             batchedPs.add(ps);
         }
 
-        new EqlParamsBinder().bindParams(ps, eqlRun, eql.getLogger());
+        eqlRun.bindParams(ps);
         ps.addBatch();
 
         ++currentBatches;

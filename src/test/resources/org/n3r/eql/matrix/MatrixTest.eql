@@ -1,0 +1,23 @@
+-- [setup onerr=resume]
+drop table person;
+
+create table person
+(
+  id VARCHAR(100),
+  sex varchar(1),
+  name varchar(100)
+);
+
+
+-- [addPerson]
+insert into person(id, sex, name)
+values(##, ##, ##)
+
+-- [getPerson]
+select name from person where id = ##
+
+-- [updatePerson]
+update person
+set sex = #2#, name = #3#
+where id = #1#
+

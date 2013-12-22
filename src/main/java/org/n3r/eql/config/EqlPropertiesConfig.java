@@ -30,4 +30,20 @@ public class EqlPropertiesConfig implements EqlConfig {
         return properties.getProperty(key);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        EqlPropertiesConfig that = (EqlPropertiesConfig) o;
+
+        if (!properties.equals(that.properties)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return properties.hashCode();
+    }
 }

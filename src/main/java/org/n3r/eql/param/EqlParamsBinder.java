@@ -5,24 +5,23 @@ import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.EqlUtils;
-import org.slf4j.Logger;
 
-import java.sql.*;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.Date;
 
 public class EqlParamsBinder {
     private EqlRun eqlRun;
     private StringBuilder boundParams;
-    private PreparedStatement ps;
 
     private static enum ParamExtra {
         Extra, Normal
     }
 
-    public void bindParams(PreparedStatement ps, EqlRun eqlRun, Logger logger) {
+    public void preparBindParams(EqlRun eqlRun) {
         this.eqlRun = eqlRun;
         boundParams = new StringBuilder();
-        this.ps = ps;
 
         switch (eqlRun.getPlaceHolderType()) {
             case AUTO_SEQ:
@@ -43,7 +42,8 @@ public class EqlParamsBinder {
 
         bindExtraParams();
 
-        if (boundParams.length() > 0) logger.debug("param: {}", boundParams);
+        eqlRun.setBoundParams(boundParams.toString());
+        // if (boundParams.length() > 0) logger.debug("param: {}", boundParams);
     }
 
     private void bindExtraParams() {
@@ -73,15 +73,15 @@ public class EqlParamsBinder {
     private void setParamExtra(EqlParamPlaceholder placeHolder, int index, Object value) throws SQLException {
         if (value instanceof Date) {
             Timestamp date = new Timestamp(((Date) value).getTime());
-            ps.setTimestamp(index + 1, date);
             boundParams.append('[').append(EqlUtils.toDateTimeStr(date)).append(']');
+            eqlRun.addRealParam(index + 1, date);
         } else {
             Object paramValue = value;
             if (placeHolder != null && placeHolder.getOption().contains("LOB") && value instanceof String)
                 paramValue = EqlUtils.toBytes((String) value);
 
-            ps.setObject(index + 1, paramValue);
             boundParams.append('[').append(value).append(']');
+            eqlRun.addRealParam(index + 1, paramValue);
         }
     }
 
@@ -93,8 +93,10 @@ public class EqlParamsBinder {
 
     private boolean regiesterOut(int index) throws SQLException {
         EqlParamPlaceholder.InOut inOut = eqlRun.getPlaceHolders()[index].getInOut();
-        if (EqlUtils.isProcedure(eqlRun.getSqlType()) && inOut != EqlParamPlaceholder.InOut.IN)
-            ((CallableStatement) ps).registerOutParameter(index + 1, Types.VARCHAR);
+        if (EqlUtils.isProcedure(eqlRun.getSqlType()) && inOut != EqlParamPlaceholder.InOut.IN) {
+            // ((CallableStatement) ps).registerOutParameter(index + 1, Types.VARCHAR);
+            eqlRun.registerOutParameter(index + 1, Types.VARCHAR);
+        }
 
         return inOut == EqlParamPlaceholder.InOut.OUT;
     }

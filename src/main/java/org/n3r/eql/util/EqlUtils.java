@@ -532,6 +532,12 @@ public class EqlUtils {
         return getClassLoader().getResourceAsStream(resourceName);
     }
 
+
+    public static boolean classResourceExists(String classPath) {
+        URL url = getClassLoader().getResource(classPath);
+        return url != null;
+    }
+
     public static String classResourceToString(String classPath) {
         URL url = getClassLoader().getResource(classPath);
         if (url == null) return null;

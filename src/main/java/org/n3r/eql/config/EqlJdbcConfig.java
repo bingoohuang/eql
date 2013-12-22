@@ -19,4 +19,28 @@ public class EqlJdbcConfig implements EqlConfig {
 
         return "";
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        EqlJdbcConfig that = (EqlJdbcConfig) o;
+
+        if (!driver.equals(that.driver)) return false;
+        if (!password.equals(that.password)) return false;
+        if (!url.equals(that.url)) return false;
+        if (!user.equals(that.user)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = driver.hashCode();
+        result = 31 * result + url.hashCode();
+        result = 31 * result + user.hashCode();
+        result = 31 * result + password.hashCode();
+        return result;
+    }
 }
