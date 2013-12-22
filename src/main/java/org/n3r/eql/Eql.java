@@ -238,11 +238,8 @@ public class Eql implements Closeable {
             throw new EqlExecuteException("only one select sql supported");
 
         ESelectStmt selectStmt = new ESelectStmt();
-        try {
-            prepareStmt(selectStmt);
-        } catch (SQLException e) {
-            throw new EqlExecuteException("prepareSelectStmt fail", e);
-        }
+        prepareStmt(selectStmt);
+
         selectStmt.setRsRetriever(rsRetriever);
         selectStmt.setFetchSize(fetchSize);
 
@@ -263,11 +260,7 @@ public class Eql implements Closeable {
             throw new EqlExecuteException("only one update/merge/delete/insert sql supported in this method");
 
         EUpdateStmt updateStmt = new EUpdateStmt();
-        try {
-            prepareStmt(updateStmt);
-        } catch (SQLException e) {
-            throw new EqlExecuteException("prepareSelectStmt fail", e);
-        }
+        prepareStmt(updateStmt);
 
         return updateStmt;
     }
@@ -316,6 +309,8 @@ public class Eql implements Closeable {
         EqlRun temp = currRun;
         currRun = dbDialect.createPageSql(currRun, page);
 
+        new EqlParamsBinder().preparBindParams(currRun);
+
         Object o = execDml();
         currRun = temp;
 
@@ -345,7 +340,7 @@ public class Eql implements Closeable {
         return batch.addBatch(currRun);
     }
 
-    private void prepareStmt(EStmt stmt) throws SQLException {
+    private void prepareStmt(EStmt stmt) {
         PreparedStatement ps = null;
         try {
             ps = prepareSql();
@@ -357,6 +352,7 @@ public class Eql implements Closeable {
             stmt.setEqlTran(externalTran != null ? externalTran : internalTran);
         } catch (Exception ex) {
             EqlUtils.closeQuietly(ps);
+            throw new EqlExecuteException(ex);
         }
     }
 
