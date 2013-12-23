@@ -8,6 +8,7 @@ import com.google.common.cache.LoadingCache;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.trans.EqlConnection;
+import org.n3r.eql.util.EqlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +17,7 @@ import java.sql.SQLException;
 import java.util.Map;
 
 public class EqlMatrixConnection implements EqlConnection {
+    public static final String DEFAULT = "default";
     LoadingCache<String, DruidDataSource> dataSourceCache;
     static ThreadLocal<String> databaseNameTl = new ThreadLocal<String>();
     Logger logger = LoggerFactory.getLogger(EqlMatrixConnection.class);
@@ -26,7 +28,7 @@ public class EqlMatrixConnection implements EqlConnection {
 
 
     public static void chooseDefaultDatabase() {
-        databaseNameTl.set("default");
+        databaseNameTl.set(DEFAULT);
     }
 
     @Override
@@ -121,7 +123,7 @@ public class EqlMatrixConnection implements EqlConnection {
             String map = param.substring(leftBracePos + 1, rightBracePos);
             Map<String, String> data = splitter.split(map);
             String specified = data.get(database);
-            if (specified == null) data.get("default");
+            if (specified == null) data.get(DEFAULT);
             if (specified == null) {
                 logger.warn("invalid parameter mapping format: " + param);
                 return param;
@@ -137,6 +139,7 @@ public class EqlMatrixConnection implements EqlConnection {
     public Connection getConnection() {
         try {
             String databaseName = databaseNameTl.get();
+            if (EqlUtils.isBlank(databaseName)) databaseName = DEFAULT;
             logger.debug("current use partition [{}]", databaseName);
             return dataSourceCache.getUnchecked(databaseName).getConnection();
         } catch (SQLException e) {
