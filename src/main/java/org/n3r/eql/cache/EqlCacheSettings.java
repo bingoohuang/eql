@@ -3,9 +3,9 @@ package org.n3r.eql.cache;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.n3r.diamond.client.cache.Spec;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.spec.ParamsAppliable;
+import org.n3r.eql.spec.Spec;
 import org.n3r.eql.spec.SpecParser;
 import org.n3r.eql.util.KeyValue;
 import org.slf4j.Logger;

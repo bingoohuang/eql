@@ -2,12 +2,12 @@ package org.n3r.eql.map;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.tuple.Pair;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.PlaceholderType;
 import org.n3r.eql.parser.EqlBlock;
+import org.n3r.eql.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,10 +40,10 @@ public class EqlRun implements Cloneable {
     public void bindParams(PreparedStatement ps) {
         try {
             for (Pair<Integer, Object> param : realParams) {
-                ps.setObject(param.getLeft(), param.getRight());
+                ps.setObject(param._1, param._2);
             }
             for (Pair<Integer, Integer> out : outParameters) {
-                ((CallableStatement) ps).registerOutParameter(out.getLeft(), out.getRight());
+                ((CallableStatement) ps).registerOutParameter(out._1, out._2);
             }
         } catch (SQLException e) {
             throw new EqlExecuteException(e);

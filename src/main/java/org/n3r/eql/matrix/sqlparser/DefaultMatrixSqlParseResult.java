@@ -19,7 +19,7 @@ public class DefaultMatrixSqlParseResult implements MatrixSqlParseResult {
         MatrixTableFieldValue[] values = new MatrixTableFieldValue[sqlFieldIndexes.length];
         for (int i = 0; i < values.length; ++i) {
             values[i] = new MatrixTableFieldValue(sqlFieldIndexes[i]);
-            values[i].fieldValue = "" + eqlRun.realParams.get(sqlFieldIndexes[i].variantIndex).getRight();
+            values[i].fieldValue = "" + eqlRun.realParams.get(sqlFieldIndexes[i].variantIndex)._2;
         }
 
         RealPartition realPartition = ruleSet.find(values);

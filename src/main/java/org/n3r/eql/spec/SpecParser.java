@@ -7,14 +7,14 @@ import java.util.List;
 import static java.lang.Character.*;
 
 public class SpecParser {
-    public static org.n3r.diamond.client.cache.Spec parseSpecLeniently(String spec) {
-        org.n3r.diamond.client.cache.Spec[] specs = parseSpecs(spec);
+    public static Spec parseSpecLeniently(String spec) {
+        Spec[] specs = parseSpecs(spec);
 
         return specs.length == 0 ? null : specs[0];
     }
 
-    public static org.n3r.diamond.client.cache.Spec parseSpec(String spec) {
-        org.n3r.diamond.client.cache.Spec[] specs = parseSpecs(spec);
+    public static Spec parseSpec(String spec) {
+        Spec[] specs = parseSpecs(spec);
         if (specs.length > 1) {
             throw new RuntimeException("too many spec defined");
         }
@@ -22,14 +22,14 @@ public class SpecParser {
         return specs.length == 0 ? null : specs[0];
     }
 
-    public static org.n3r.diamond.client.cache.Spec[] parseSpecs(String specs) {
+    public static Spec[] parseSpecs(String specs) {
         char[] chars = specs.toCharArray();
         SpecState specState = SpecState.SpecClose;
         StringBuilder name = new StringBuilder();
         StringBuilder param = new StringBuilder();
         ParamQuoteState paramQuoteState = ParamQuoteState.None;
-        ArrayList<org.n3r.diamond.client.cache.Spec> specsDefs = new ArrayList<org.n3r.diamond.client.cache.Spec>();
-        org.n3r.diamond.client.cache.Spec spec = null;
+        ArrayList<Spec> specsDefs = new ArrayList<Spec>();
+        Spec spec = null;
         int i = 0;
         char ch = ' ';
         for (int ii = chars.length; i < ii; ++i) {
@@ -127,11 +127,11 @@ public class SpecParser {
         }
 
 
-        return specsDefs.toArray(new org.n3r.diamond.client.cache.Spec[0]);
+        return specsDefs.toArray(new Spec[0]);
     }
 
-    private static org.n3r.diamond.client.cache.Spec addSpec(StringBuilder name, List<org.n3r.diamond.client.cache.Spec> specsDefs) {
-        org.n3r.diamond.client.cache.Spec spec = new org.n3r.diamond.client.cache.Spec();
+    private static Spec addSpec(StringBuilder name, List<Spec> specsDefs) {
+        Spec spec = new Spec();
         spec.setName(name.toString());
         clear(name);
         specsDefs.add(spec);
@@ -139,7 +139,7 @@ public class SpecParser {
         return spec;
     }
 
-    private static void addSpecParam(StringBuilder param, ParamQuoteState paramInQuote, org.n3r.diamond.client.cache.Spec spec) {
+    private static void addSpecParam(StringBuilder param, ParamQuoteState paramInQuote, Spec spec) {
         spec.addParam(paramInQuote == ParamQuoteState.Right ? param.toString() : trimSubstring(param));
         clear(param);
     }
@@ -160,7 +160,7 @@ public class SpecParser {
         return sb.substring(first, last);
     }
 
-    private static org.n3r.diamond.client.cache.Spec[] error(String specs, int i, char ch) {
+    private static Spec[] error(String specs, int i, char ch) {
         throw new RuntimeException(specs + " is invalid at pos " + i + " with char " + ch);
     }
 

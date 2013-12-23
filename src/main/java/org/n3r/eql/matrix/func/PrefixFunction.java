@@ -4,7 +4,7 @@ package org.n3r.eql.matrix.func;
 import org.n3r.eql.matrix.MatrixTableFieldValue;
 
 public class PrefixFunction extends SingleFieldBaseFunction {
-    private int prefixSize;
+    protected int prefixSize;
 
 
     @Override
@@ -17,7 +17,7 @@ public class PrefixFunction extends SingleFieldBaseFunction {
     @Override
     public void configFunctionParameters(String... realFuncParams) {
         if (realFuncParams.length != 1) {
-            throw new RuntimeException("prefix function need only size param");
+            throw new RuntimeException("prefix/postfix function need only size param");
         }
 
         prefixSize = Integer.parseInt(realFuncParams[0]);

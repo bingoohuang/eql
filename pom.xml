@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.n3r</groupId>
     <artifactId>eql</artifactId>
-    <version>0.0.4.SNATSHOT</version>
+    <version>0.0.4.SNAPSHOT</version>
 
     <dependencies>
         <dependency>
@@ -35,6 +35,7 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>15.0</version>
+            <classifier>cdi1.0</classifier>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

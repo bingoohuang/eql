@@ -13,7 +13,7 @@ public class RuleParserTest {
      * rule(1) pre(.order.id, 2) map(db$)
      */
     @Test
-    public void test1() {
+    public void testPrefix() {
         RuleParser ruleParser = new RuleParser();
         RulesSet rulesSet = ruleParser.parse("alias(pre, " + PrefixFunction.class.getName() + ")\n"
                 + "rule(1) pre(.order.id, 2) map(db$)");
@@ -25,6 +25,42 @@ public class RuleParserTest {
         realPartition = rulesSet.find(new MatrixTableFieldValue("order", "id", "2011"));
         assertThat(realPartition.databaseName, is("db20"));
         assertThat(realPartition.tableName, is(""));
+    }
+
+    @Test
+    public void testPostfix() {
+        RuleParser ruleParser = new RuleParser();
+        RulesSet rulesSet = ruleParser.parse("rule(1) post(.order.id, 2) map(db$)");
+
+        RealPartition realPartition = rulesSet.find(new MatrixTableFieldValue("order", "id", "1011"));
+        assertThat(realPartition.databaseName, is("db11"));
+        assertThat(realPartition.tableName, is(""));
+
+        realPartition = rulesSet.find(new MatrixTableFieldValue("order", "id", "2012"));
+        assertThat(realPartition.databaseName, is("db12"));
+        assertThat(realPartition.tableName, is(""));
+    }
+
+    @Test
+    public void testMiddle() {
+        RuleParser ruleParser = new RuleParser();
+        RulesSet rulesSet = ruleParser.parse("rule(1) mid(.order.id, 1, 2) map(db$)");
+
+        RealPartition realPartition = rulesSet.find(new MatrixTableFieldValue("order", "id", "1011"));
+        assertThat(realPartition.databaseName, is("db01"));
+        assertThat(realPartition.tableName, is(""));
+
+        realPartition = rulesSet.find(new MatrixTableFieldValue("order", "id", "2032"));
+        assertThat(realPartition.databaseName, is("db03"));
+        assertThat(realPartition.tableName, is(""));
+    }
+
+    @Test(expected = Exception.class)
+    public void testMiddleEx1() {
+        RuleParser ruleParser = new RuleParser();
+        RulesSet rulesSet = ruleParser.parse("rule(1) mid(.order.id, 1, 2) map(db$)");
+
+        rulesSet.find(new MatrixTableFieldValue("order", "id", "10"));
     }
 
     /**

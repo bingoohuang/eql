@@ -2,10 +2,7 @@ package org.n3r.eql.matrix;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.n3r.eql.matrix.func.ModFunction;
-import org.n3r.eql.matrix.func.PrefixFunction;
-import org.n3r.eql.matrix.func.RangeFunction;
-import org.n3r.eql.matrix.func.ValFunction;
+import org.n3r.eql.matrix.func.*;
 import org.n3r.eql.matrix.impl.GotoRealPartition;
 import org.n3r.eql.matrix.impl.MatrixFunction;
 import org.n3r.eql.matrix.impl.MatrixMapper;
@@ -23,6 +20,8 @@ public class RulesSet {
 
     {
         funcAlias.put("pre", PrefixFunction.class);
+        funcAlias.put("mid", MiddleFunction.class);
+        funcAlias.put("post", PostFunction.class);
         funcAlias.put("mod", ModFunction.class);
         funcAlias.put("val", ValFunction.class);
         funcAlias.put("range", RangeFunction.class);
