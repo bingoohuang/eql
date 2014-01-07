@@ -15,9 +15,9 @@ public class EqlTranFactory {
     }
 
     public EqlTran createTran(Eql eql) {
-        Connection connection = eqlConnection.getConnection();
+        // Connection connection = eqlConnection.getConnection();
 
-        return isJTA ? new EqlJtaTran(eql, connection)
-                : new EqlJdbcTran(eql, connection);
+        return isJTA ? new EqlJtaTran(eql, eqlConnection)
+                : new EqlJdbcTran(eql, eqlConnection);
     }
 }

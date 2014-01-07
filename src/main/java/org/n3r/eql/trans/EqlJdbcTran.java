@@ -11,24 +11,16 @@ import java.sql.SQLException;
 
 public class EqlJdbcTran implements EqlTran {
     private final Eql eql;
+    private EqlConnection eqlConnection;
     private Connection connection;
 
-    public EqlJdbcTran(Eql eql, Connection connection) {
+    public EqlJdbcTran(Eql eql, EqlConnection connection) {
         this.eql = eql;
-        this.connection = connection;
+        this.eqlConnection = connection;
     }
 
     @Override
     public void start() {
-        try {
-            if (connection == null) throw new EqlExecuteException(
-                    "EqlJdbcTran could not start transaction. " +
-                            " Cause: The DataSource returned a null connection.");
-
-            if (connection.getAutoCommit()) connection.setAutoCommit(false);
-        } catch (SQLException e) {
-            throw new EqlExecuteException(e);
-        }
     }
 
     @Override
@@ -55,6 +47,21 @@ public class EqlJdbcTran implements EqlTran {
 
     @Override
     public Connection getConn() {
+        return getConnection();
+    }
+
+    protected Connection getConnection() {
+        if (connection == null) connection = eqlConnection.getConnection();
+
+        if (connection == null) throw new EqlExecuteException(
+                "EqlJdbcTran could not start transaction. " +
+                        " Cause: The DataSource returned a null connection.");
+        try {
+            if (connection.getAutoCommit()) connection.setAutoCommit(false);
+        } catch (SQLException e) {
+            throw new EqlExecuteException(e);
+        }
+
         return connection;
     }
 

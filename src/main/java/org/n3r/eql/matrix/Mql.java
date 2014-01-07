@@ -12,6 +12,7 @@ import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.EqlUtils;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -47,6 +48,7 @@ public class Mql extends Eql {
 
         newExecutionContext();
         Object ret = null;
+        Connection conn = null;
         try {
             if (directSqls.length > 0) eqlBlock = new EqlBlock();
 
@@ -58,9 +60,11 @@ public class Mql extends Eql {
                 new EqlParamsBinder().preparBindParams(currRun);
                 MatrixSqlParserUtils.parse(eqlConfig, eqlRun);
                 tranStart();
-                getConn();
+                conn = getConn();
+                currRun.setConnection(conn);
 
                 ret = runEql();
+                currRun.setConnection(null);
                 updateLastResultToExecutionContext(ret);
                 currRun.setResult(ret);
             }

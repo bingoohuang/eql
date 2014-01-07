@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.CallableStatement;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.Map;
 public class EqlRun implements Cloneable {
     public List<Pair<Integer, Object>> realParams = Lists.newArrayList();
     private String boundParams;
+    private Connection connection;
 
     public void addRealParam(int index, Object value) {
         realParams.add(Pair.of(index, value));
@@ -50,6 +52,14 @@ public class EqlRun implements Cloneable {
         }
 
         if (boundParams != null && boundParams.length() > 0) logger.debug("param: {}", boundParams);
+    }
+
+    public void setConnection(Connection connection) {
+        this.connection = connection;
+    }
+
+    public Connection getConnection() {
+        return connection;
     }
 
 

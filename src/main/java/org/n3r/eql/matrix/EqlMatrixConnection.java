@@ -123,7 +123,7 @@ public class EqlMatrixConnection implements EqlConnection {
             String map = param.substring(leftBracePos + 1, rightBracePos);
             Map<String, String> data = splitter.split(map);
             String specified = data.get(database);
-            if (specified == null) data.get(DEFAULT);
+            if (specified == null) specified = data.get(DEFAULT);
             if (specified == null) {
                 logger.warn("invalid parameter mapping format: " + param);
                 return param;
@@ -140,7 +140,7 @@ public class EqlMatrixConnection implements EqlConnection {
         try {
             String databaseName = databaseNameTl.get();
             if (EqlUtils.isBlank(databaseName)) databaseName = DEFAULT;
-            logger.debug("current use partition [{}]", databaseName);
+            logger.debug("use database [{}]", databaseName);
             return dataSourceCache.getUnchecked(databaseName).getConnection();
         } catch (SQLException e) {
             throw new EqlExecuteException(e);

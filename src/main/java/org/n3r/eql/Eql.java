@@ -41,7 +41,6 @@ public class Eql implements Closeable {
     protected Object[] dynamics;
     private EqlTran externalTran;
     private EqlTran internalTran;
-    private Connection connection;
     private DbDialect dbDialect;
     private EqlRsRetriever rsRetriever = new EqlRsRetriever();
     private int fetchSize;
@@ -85,12 +84,14 @@ public class Eql implements Closeable {
         return newTran(eqlConfig, this).getConn();
     }
 
-    protected void getConn() {
-        if (connection != null) return;
+    protected Connection getConn() {
+        // if (connection != null) return;
 
-        connection = internalTran != null ? internalTran.getConn() : externalTran.getConn();
+        Connection connection = internalTran != null ? internalTran.getConn() : externalTran.getConn();
         dbDialect = DbDialect.parseDbType(connection);
         executionContext.put("_databaseId", dbDialect.getDatabaseId());
+
+        return connection;
     }
 
     public Eql addContext(String key, Object value) {
@@ -130,9 +131,10 @@ public class Eql implements Closeable {
 
         newExecutionContext();
         Object ret = null;
+        Connection conn = null;
         try {
             if (batch == null) tranStart();
-            getConn();
+            conn = getConn();
 
             if (directSqls.length > 0) eqlBlock = new EqlBlock();
 
@@ -142,7 +144,9 @@ public class Eql implements Closeable {
                 new EqlParamsBinder().preparBindParams(currRun);
                 checkBatchCmdsSupporting(currRun);
 
+                currRun.setConnection(conn);
                 ret = runEql();
+                currRun.setConnection(null);
                 updateLastResultToExecutionContext(ret);
                 currRun.setResult(ret);
 
@@ -220,14 +224,13 @@ public class Eql implements Closeable {
     @Override
     public void close() {
         if (batch == null) tranClose();
-        connection = null;
     }
 
 
     public ESelectStmt selectStmt() {
         newExecutionContext();
         tranStart();
-        getConn();
+        Connection conn = getConn();
 
         List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(eqlConfig, executionContext, params, dynamics);
         if (sqlSubs.size() != 1)
@@ -237,6 +240,7 @@ public class Eql implements Closeable {
         if (currRun.getSqlType() != EqlRun.EqlType.SELECT)
             throw new EqlExecuteException("only one select sql supported");
 
+        currRun.setConnection(conn);
         ESelectStmt selectStmt = new ESelectStmt();
         prepareStmt(selectStmt);
 
@@ -249,7 +253,7 @@ public class Eql implements Closeable {
     public EUpdateStmt updateStmt() {
         newExecutionContext();
         tranStart();
-        getConn();
+        Connection conn = getConn();
 
         List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(eqlConfig, executionContext, params, dynamics);
         if (sqlSubs.size() != 1)
@@ -259,6 +263,7 @@ public class Eql implements Closeable {
         if (!EqlUtils.isUpdateStmt(currRun))
             throw new EqlExecuteException("only one update/merge/delete/insert sql supported in this method");
 
+        currRun.setConnection(conn);
         EUpdateStmt updateStmt = new EUpdateStmt();
         prepareStmt(updateStmt);
 
@@ -288,7 +293,7 @@ public class Eql implements Closeable {
         Statement stmt = null;
         logger.debug("ddl sql {}: {}", getSqlId(), currRun.getPrintSql());
         try {
-            stmt = connection.createStatement();
+            stmt = currRun.getConnection().createStatement();
             return stmt.execute(currRun.getRunSql());
         } catch (SQLException ex) {
             throw new EqlExecuteException(ex);
@@ -387,7 +392,8 @@ public class Eql implements Closeable {
     public PreparedStatement prepareSql(EqlRun eqlRun) throws SQLException {
         logger.debug("prepare sql {}: {} ", getSqlId(), eqlRun.getPrintSql());
         return EqlUtils.isProcedure(eqlRun.getSqlType())
-                ? connection.prepareCall(eqlRun.getRunSql()) : connection.prepareStatement(eqlRun.getRunSql());
+                ? eqlRun.getConnection().prepareCall(eqlRun.getRunSql())
+                : eqlRun.getConnection().prepareStatement(eqlRun.getRunSql());
     }
 
     public Eql returnType(Class<?> returnType) {
@@ -492,7 +498,7 @@ public class Eql implements Closeable {
 
     public EqlTran newTran() {
         EqlTran tran = newTran(eqlConfig, this);
-        connection = tran.getConn();
+        // connection = tran.getConn();
         useTran(tran);
 
         return tran;

@@ -8,10 +8,11 @@ import java.sql.Connection;
 
 public class EqlJtaTran implements EqlTran {
 
-    private final Connection connection;
+    private final EqlConnection eqlConnection;
+    private Connection connection;
 
-    public EqlJtaTran(Eql eql, Connection connection) {
-        this.connection = connection;
+    public EqlJtaTran(Eql eql, EqlConnection connection) {
+        this.eqlConnection = connection;
     }
 
     @Override
@@ -35,6 +36,8 @@ public class EqlJtaTran implements EqlTran {
 
     @Override
     public Connection getConn() {
+        if (connection == null) connection = eqlConnection.getConnection();
+
         return connection;
     }
 
