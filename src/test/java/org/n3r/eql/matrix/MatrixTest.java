@@ -2,7 +2,9 @@ package org.n3r.eql.matrix;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.n3r.eql.EqlTran;
 import org.n3r.eql.Eqll;
+import org.n3r.eql.util.EqlUtils;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -39,5 +41,26 @@ public class MatrixTest {
         new Mql().id("updatePerson").params("a001", "0", "red").execute();
         new Mql().id("updatePerson").params("b001", "0", "blue").execute();
         new Mql().id("updatePerson").params("c001", "1", "black").execute();
+    }
+
+    @Test
+    public void test2() throws Exception {
+        Mql mql = new Mql();
+        EqlTran eqlTran = mql.newTran();
+
+        try {
+            eqlTran.start();
+            mql.id("addPerson").params("a002", "0", "order123").execute();
+            eqlTran.commit();
+
+            String name = new Mql().id("getPerson").params("a002").limit(1).execute();
+            assertThat(name, is("order123"));
+
+        }catch (Exception e) {
+            eqlTran.rollback();
+            throw e;
+        } finally {
+            EqlUtils.closeQuietly(eqlTran);
+        }
     }
 }
