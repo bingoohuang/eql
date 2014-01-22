@@ -56,9 +56,9 @@ I don't like XML. I like free text and freedom. And so I created EQL which is re
 
 #One minute tutorial
 * copy [eql-DEFAULT.properties](https://github.com/bingoohuang/eql/blob/master/src/test/resources/eql/eql-DEFAULT.properties) to your classpath eql and do some changes for your database connection info such as url, password and username.
-* create a Demo class.
-* create a Demo.eql resouce in classpath.
-* write following code in your Demo main method:
+* create com/xxx/Demo.java.
+* create com/xxx/Demo.eql(***keep the same package and base filename***) in classpath.
+* write following code in com.xxx.Demo main method:
 
 ```java
 String str = new Eql().selectFirst("demo").execute();
