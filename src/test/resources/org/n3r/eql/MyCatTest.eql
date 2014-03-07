@@ -1,0 +1,9 @@
+-- [test]
+select count(*) from tf_b_pay_order where order_no in (##)
+
+
+-- [testMaxIn]
+select count(*) from tf_b_pay_order where order_no in
+-- for item=item index=index collection=list open=( separator=, close=)
+#item#
+-- end

@@ -3,7 +3,9 @@ package org.n3r.eql.util;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
 import com.google.common.primitives.Primitives;
@@ -545,10 +547,21 @@ public class EqlUtils {
         try {
             return Resources.toString(url, Charsets.UTF_8);
         } catch (IOException e) {
-
+            throw Throwables.propagate(e);
         }
 
-        return null;
+    }
+
+    public static List<String> classResourceToLines(String classPath) {
+        URL url = getClassLoader().getResource(classPath);
+        if (url == null) return null;
+
+        try {
+            return Resources.readLines(url, Charsets.UTF_8);
+        } catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+
     }
 
     public static Map<String, Object> mergeProperties(Map<String, Object> context, Object bean) throws Exception {
