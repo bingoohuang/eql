@@ -77,12 +77,34 @@ public class EqlParamsBinder {
             eqlRun.addRealParam(index + 1, date);
         } else {
             Object paramValue = value;
-            if (placeHolder != null && placeHolder.getOption().contains("LOB") && value instanceof String)
-                paramValue = EqlUtils.toBytes((String) value);
+            if (placeHolder != null  && value instanceof String) {
+                String strValue = (String)value;
+                if (placeHolder.isLob()) {
+                    paramValue = EqlUtils.toBytes(strValue);
+                } else if (placeHolder.getLike() == EqlParamPlaceholder.Like.Like) {
+                    paramValue = tryAddLeftAndRightPercent(strValue);
+                } else if (placeHolder.getLike() == EqlParamPlaceholder.Like.RightLike) {
+                    paramValue = tryAddRightPercent(strValue);
+                } else if (placeHolder.getLike() == EqlParamPlaceholder.Like.LeftLike) {
+                    paramValue = tryAddLeftPercent(strValue);
+                }
+            }
 
-            boundParams.append('[').append(value).append(']');
+            boundParams.append('[').append(paramValue).append(']');
             eqlRun.addRealParam(index + 1, paramValue);
         }
+    }
+
+    private String tryAddLeftPercent(String strValue) {
+        return (strValue.startsWith("%") ? "" : "%") + strValue;
+    }
+
+    private String tryAddRightPercent(String strValue) {
+        return strValue + (strValue.endsWith("%") ? "" : "%");
+    }
+
+    private String tryAddLeftAndRightPercent(String strValue) {
+        return (strValue.startsWith("%") ? "" : "%") + strValue + (strValue.endsWith("%") ? "" : "%");
     }
 
     private void setParamEx(EqlParamPlaceholder placeHolder, int index, Object value) throws SQLException {
@@ -124,12 +146,10 @@ public class EqlParamsBinder {
         if (params != null && index < params.length)
             return params[index];
 
-        throw new EqlExecuteException("[" + eqlRun.getSqlId() + "]执行过程中缺少参数");
+        throw new EqlExecuteException("[" + eqlRun.getSqlId() + "] lack parameters at runtime");
     }
 
     private Object findParamBySeq(int index) {
         return getParamByIndex(eqlRun.getPlaceHolders()[index - 1].getSeq() - 1);
     }
-
-
 }

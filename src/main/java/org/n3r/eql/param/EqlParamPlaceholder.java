@@ -4,8 +4,15 @@ import com.google.common.base.Splitter;
 import org.n3r.eql.util.EqlUtils;
 
 public class EqlParamPlaceholder {
+    private boolean lob;
+    private Like like = Like.None;
+
     public static enum InOut {
         IN, OUT, INOUT
+    }
+
+    public static enum Like {
+        None, Like, LeftLike, RightLike
     }
 
     private String placeholder;
@@ -49,13 +56,29 @@ public class EqlParamPlaceholder {
     public void setOption(String placeHolderOption) {
         this.option = placeHolderOption;
         Iterable<String> optionParts = Splitter.on(',').omitEmptyStrings().trimResults().split(this.option);
-        for (String optionPart : optionParts)
+        for (String optionPart : optionParts) {
             if (EqlUtils.equalsIgnoreCase("OUT", optionPart)) setInOut(InOut.OUT);
             else if (EqlUtils.equalsIgnoreCase("INOUT", optionPart)) setInOut(InOut.INOUT);
+            else if (EqlUtils.equalsIgnoreCase("LOB", optionPart)) setLob(true);
+            else if (EqlUtils.equalsIgnoreCase("Like", optionPart)) setLike(Like.Like);
+            else if (EqlUtils.equalsIgnoreCase("LeftLike", optionPart)) setLike(Like.LeftLike);
+            else if (EqlUtils.equalsIgnoreCase("RightLike", optionPart)) setLike(Like.RightLike);
+        }
     }
 
+    public void setLob(boolean lob) {
+        this.lob = lob;
+    }
 
-    public String getOption() {
-        return option;
+    public boolean isLob() {
+        return lob;
+    }
+
+    public void setLike(Like like) {
+        this.like = like;
+    }
+
+    public Like getLike() {
+        return like;
     }
 }

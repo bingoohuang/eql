@@ -443,6 +443,33 @@ INSERT INTO EQL_TEST_BINGOO(ORDER_NO, ACTIVITY_ID, ITEM_ID, USER_ID, BINGOO_TIME
 VALUES(##, ##, ##, ##, SYSDATE)
 ```
 
+# Like option support
+
+```sql
+-- [likeDemo]
+select 'x' from demo where name like #:Like#
+
+-- [leftLikeDemo]
+select 'x' from demo where name like #:LeftLike#
+
+-- [rightLikeDemo]
+select 'x' from demo where name like #:RightLike#
+```
+
+```java
+new Eql().id("likeDemo").params("b").execute();
+// 16:12:51.316 [main] DEBUG org.n3r.eql.Eql - prepare sql likeDemo: select 'x' from demo where name like ?
+// 16:12:51.317 [main] DEBUG org.n3r.eql.map.EqlRun - param: [%b%]
+
+new Eql().id("leftLikeDemo").params("c").execute();
+// 16:12:51.326 [main] DEBUG org.n3r.eql.Eql - prepare sql leftLikeDemo: select 'x' from demo where name like ?
+// 16:12:51.326 [main] DEBUG org.n3r.eql.map.EqlRun - param: [%c]
+
+new Eql().id("rightLikeDemo").params("a").execute();
+// 16:12:51.331 [main] DEBUG org.n3r.eql.Eql - prepare sql rightLikeDemo: select 'x' from demo where name like ?
+// 16:12:51.331 [main] DEBUG org.n3r.eql.map.EqlRun - param: [a%]
+```
+
 # Oracle Blob support
 
 ```java
