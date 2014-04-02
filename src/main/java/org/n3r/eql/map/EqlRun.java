@@ -162,7 +162,7 @@ public class EqlRun implements Cloneable {
     }
 
     public void createPrintSql() {
-        printSql = runSql.replaceAll("\\r?\\n", "\\\\n");
+        printSql = runSql.replaceAll("\\r?\\n", " ");
     }
 
 
