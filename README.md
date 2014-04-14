@@ -600,7 +600,7 @@ SET C = #2#
 WHERE A = #1#
 ```
 
-# Custome result mapper example
+# Custom result mapper example
 
 ```java
 import org.n3r.eql.map.EqlRowMapper;

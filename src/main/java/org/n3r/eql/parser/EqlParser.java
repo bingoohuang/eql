@@ -93,7 +93,7 @@ public class EqlParser {
         return true;
     }
 
-    static Pattern includePattern = Pattern.compile("include\\s+([\\w\\.\\-\\d]+)");
+    static Pattern includePattern = Pattern.compile("(include|ref)\\s+([\\w\\.\\-\\d]+)");
 
     private boolean includeOtherSqlId(String cleanLine) {
         Matcher matcher = includePattern.matcher(cleanLine);
@@ -101,11 +101,13 @@ public class EqlParser {
 
         if (block == null) return true;
 
-        String includeSqlId = matcher.group(1);
+        String includeSqlId = matcher.group(2);
         EqlBlock eqlBlock = blocks.get(includeSqlId);
         if (eqlBlock == null) throw new RuntimeException(cleanLine + " not found");
         sqlLines.addAll(eqlBlock.getSqlLines());
-        if (!eqlBlock.isRef()) sqlLines.add(";");
+
+        String ref = matcher.group(1);
+        if (!"ref".equals(ref)) sqlLines.add(";");
 
         return true;
     }
