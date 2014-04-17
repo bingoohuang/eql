@@ -7,7 +7,7 @@
     </parent>
     <groupId>com.github.bingoohuang</groupId>
     <artifactId>eql</artifactId>
-    <version>0.0.11-SNAPSHOT</version>
+    <version>0.0.11</version>
     <packaging>jar</packaging>
 
     <name>easy sql</name>
@@ -24,9 +24,7 @@
         <connection>scm:git:git@github.com:bingoohuang/eql.git</connection>
         <url>http://github.com/bingoohuang/eql</url>
         <developerConnection>scm:git:git@github.com:bingoohuang/eql.git</developerConnection>
-  </scm>
-
-
+    </scm>
 
     <developers>
         <developer>
