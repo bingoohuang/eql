@@ -3,7 +3,7 @@ eql
 
 An easy framework of java JDBC to be an alternative to ibatis/mybatis.
 
-I dont's like XML in ibatis. 
+I don't like XML in ibatis.
 + excuse 1:
 
 ```xml
@@ -15,7 +15,7 @@ I dont's like XML in ibatis.
 ]]>
 </select>
 ```
-Wooh, for a simple sql of only three lines, we need add a CDATA block to use **>** (I alwasy forget how to write CDATA, and every time I have to lookup XML CDATA reference). It's so bad. And also the **select** is redundant because the SQL itself is telling us it is a SELECT SQL and not some others. 
+Wooh, for a simple sql of only three lines, we need add a CDATA block to use **>** (I always forget how to write CDATA, and every time I have to lookup XML CDATA reference). It's so bad. And also the **select** is redundant because the SQL itself is telling us it is a SELECT SQL and not some others. 
 
 + excuse 2:
 
@@ -52,7 +52,7 @@ There is no else in its dynamic. I have to write like:
 
 + excuse 5:
 
-I don't like XML. I like free text and freedom. And so I created EQL which is realy very easy.
+I don't like XML. I like free text and freedom. And so I created EQL which is really very easy.
 
 #One minute tutorial
 * copy [eql-DEFAULT.properties](https://github.com/bingoohuang/eql/blob/master/src/test/resources/eql/eql-DEFAULT.properties) to your classpath eql and do some changes for your database connection info such as url, password and username.
@@ -126,7 +126,7 @@ select 'X' from dual
 where 'x' = ##
 ```
 
-* exmpale 2
+* example 2
 
 ```java
 String x = new Eql().selectFirst("autoSeq2")
@@ -141,7 +141,7 @@ where 'x' = ##
 and 'y' = ##
 ```
 
-* exmpale 3
+* example 3
 
 ```java
 String x = new Eql().selectFirst("autoSeq3")
@@ -294,7 +294,7 @@ WHERE
 
 -- [switchSelectWithDefault returnType=org.n3r.eql.SimpleTest$Bean]
 SELECT A,B,C,D,E
-FROM ESQL_TEST
+FROM eql_TEST
 WHERE
 -- switch a
 --   case 1
@@ -331,14 +331,14 @@ WHERE 'x' in
 ```sql
 -- [isEmpty]
 SELECT B
-FROM ESQL_TEST
+FROM eql_TEST
 -- isEmpty a
 WHERE A in (1,2)
 -- end
 
 -- [isNotEmpty]
 SELECT B
-FROM ESQL_TEST
+FROM eql_TEST
 -- isNotEmpty a
 WHERE A = #a#
 -- end
@@ -389,7 +389,7 @@ assertThat(page.getTotalRows(), is(10));
 ```sql
 -- [testPage]
 SELECT A,B,C,D,E
-FROM ESQL_TEST
+FROM eql_TEST
 WHERE C = ##
 ```
 
@@ -421,20 +421,20 @@ WHERE 'x' = ##
 # Batch execute
 
 ```java
-Eql esql = new Eql();
-esql.startBatch(/*batchSize*/10);
+Eql eql = new Eql();
+eql.startBatch(/*batchSize*/10);
 for (int i = 0; i < 10; ++i) {
     String orderNo = randLetters(10);
     String userId = randLetters(10);
     int prizeItem = randInt(10);
-    int ret = esql.insert("insertPrizeBingoo")
+    int ret = eql.insert("insertPrizeBingoo")
            .params(orderNo, "Olympic", "" + prizeItem, userId)
            .execute();
     
     assertEquals(0, ret);
 }
 
-esql.executeBatch();
+eql.executeBatch();
 ```
 
 ```sql
@@ -502,22 +502,22 @@ public static class AsResult {
 
 ```sql
 -- [insertBlob onerr=resume]
-DROP TABLE ESQL_BLOB;
-CREATE TABLE ESQL_BLOB (BOB BLOB);
-INSERT INTO ESQL_BLOB(BOB) VALUES(#:LOB#)
+DROP TABLE eql_BLOB;
+CREATE TABLE eql_BLOB (BOB BLOB);
+INSERT INTO eql_BLOB(BOB) VALUES(#:LOB#)
 
 -- [selectBlob]
-SELECT BOB FROM ESQL_BLOB
+SELECT BOB FROM eql_BLOB
 
 -- [selectBlobString returnType=string]
-SELECT BOB FROM ESQL_BLOB
+SELECT BOB FROM eql_BLOB
 
 
 -- [selectBlobAsResult returnType=org.n3r.eql.JavaBlobTest$AsResult]
-SELECT 1 as seq, BOB as remark FROM ESQL_BLOB
+SELECT 1 as seq, BOB as remark FROM eql_BLOB
 
 -- [updateBlob]
-UPDATE ESQL_BLOB SET BOB = #:LOB#
+UPDATE eql_BLOB SET BOB = #:LOB#
 ```
 
 # [Diamond-miner](https://github.com/bingoohuang/diamond-miner) support example
@@ -591,11 +591,11 @@ eql.close();
 ```sql
 -- [selectStmt]
 SELECT C
-FROM ESQL_TEST
+FROM eql_TEST
 WHERE A = ##
 
 -- [updateStmt]
-UPDATE ESQL_TEST
+UPDATE eql_TEST
 SET C = #2#
 WHERE A = #1#
 ```
@@ -648,10 +648,10 @@ Supported configs are listed below:
 ## **connection.impl**   
 + Meaning: Full qualified class name(FQCN) that implemented `org.n3r.eql.trans.EqlConnection` interface.
 + Default: When jndiName is set, use `org.n3r.eql.trans.EqlJndiConnection`, otherwise `org.n3r.eql.trans.EqlSimpleConnection`.
-+ Samples: `org.n3r.eql.trans.EqlC3p0Connection` or your customed implementation.
++ Samples: `org.n3r.eql.trans.EqlC3p0Connection` or your custom implementation.
 
 ## **jndiName**
-+ Meaning: Specified JNDI name to use JNDI datasource.
++ Meaning: Specified JNDI name to use JNDI data source.
 + Default: N/A.
 + Samples: N/A.
 
@@ -691,19 +691,19 @@ Supported configs are listed below:
 + Samples: orcl.
 
 ## **expression.evaluator**
-+ Meaning: Full quartified class name which implements `org.n3r.eql.base.ExpressionEvaluator`.
++ Meaning: Full quantified class name which implements `org.n3r.eql.base.ExpressionEvaluator`.
 + Default: `org.n3r.eql.impl.OgnlEvaluator`.
 + Samples: customed implementation.
 
 ## **sql.resource.loader**
 + Meaning: EQL resource loader. FQCN which implements `org.n3r.eql.base.EqlResourceLoader`.
 + Default: `org.n3r.eql.impl.FileEqlResourceLoader` which read eql file of the same package and same base name with Eql's used java class.
-+ Samples: `org.n3r.eql.diamond.DiamondEqlResourceLoader` or customed implementation.
++ Samples: `org.n3r.eql.diamond.DiamondEqlResourceLoader` or custom implementation.
 
 ## **dynamic.language.driver**
-+ Meaning: EQL dynamic support language dirver. FQCN which implements `org.n3r.eql.base.DynamicLanguageDriver`.
++ Meaning: EQL dynamic support language driver. FQCN which implements `org.n3r.eql.base.DynamicLanguageDriver`.
 + Default: `org.n3r.eql.impl.DefaultDynamicLanguageDriver` which use SQL special comment to achieve dynamic SQL.
-+ Samples: `org.n3r.eql.impl.FreemarkerDynamicLanguageDriver` or customed implementation.
++ Samples: `org.n3r.eql.impl.FreemarkerDynamicLanguageDriver` or custom implementation.
 
 ## **sql.parse.lazy**
 + Meaning: Parse dynamic EQL while execution or not.
