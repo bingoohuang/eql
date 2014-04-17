@@ -1,9 +1,6 @@
 package org.n3r.eql.util;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Objects;
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
+import com.google.common.base.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -298,6 +295,10 @@ public class EqlUtils {
             }
         }
         return result.toString();
+    }
+
+    public static String convertCamelToUnderscore(String className) {
+        return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, className);
     }
 
     /**

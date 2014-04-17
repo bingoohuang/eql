@@ -37,5 +37,4 @@ public class FreemarkerDynamicLanguageDriver implements DynamicLanguageDriver {
         return new FreemarkerSql(ftlConfig, temp);
     }
 
-
 }

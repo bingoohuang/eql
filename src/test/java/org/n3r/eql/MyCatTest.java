@@ -1,7 +1,5 @@
 package org.n3r.eql;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.Test;
 import org.n3r.eql.util.EqlUtils;

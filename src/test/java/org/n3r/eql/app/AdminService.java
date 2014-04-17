@@ -1,6 +1,7 @@
 package org.n3r.eql.app;
 
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.n3r.eql.Eql;
 
@@ -10,6 +11,7 @@ import static org.junit.Assert.assertThat;
 
 public class AdminService {
     @Test
+    @Ignore
     public void test() {
         new Eql().id("setup").execute();
         Admin lvyong = findAdmin("lvyong");

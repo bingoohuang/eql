@@ -56,7 +56,6 @@ public class DefaultDynamicLanguageDriver implements DynamicLanguageDriver {
         return new DynamicSql(multiPart);
     }
 
-
     private List<String> standardLines(List<String> oneSqlLines) {
         return rearrangeLinesForInlineComments(rearrangeLinesForLineCommentsAndOthers(oneSqlLines));
     }

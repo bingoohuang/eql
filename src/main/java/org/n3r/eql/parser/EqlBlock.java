@@ -95,7 +95,7 @@ public class EqlBlock {
 
 
     private void addEqlRun(EqlRun eqlRun, String sqlStr) {
-        new EqlParamsParser(eqlRun).parseParams(sqlStr);
+        EqlParamsParser.parseParams(eqlRun, sqlStr);
         new DynamicReplacer().replaceDynamics(eqlRun);
 
         eqlRun.createPrintSql();

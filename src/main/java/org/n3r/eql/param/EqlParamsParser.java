@@ -1,8 +1,12 @@
 package org.n3r.eql.param;
 
 import com.google.common.base.Splitter;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
 import org.n3r.eql.ex.EqlConfigException;
+import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.EqlUtils;
@@ -14,19 +18,46 @@ import java.util.regex.Pattern;
 
 public class EqlParamsParser {
     private static Pattern PARAM_PATTERN = Pattern.compile("#(.*?)#");
-    private EqlBlock eqlBlock;
-    private String templateSql;
-    private EqlRun eqlRun;
 
-    public EqlParamsParser(EqlRun eqlRun) {
-        this.eqlRun = eqlRun;
-        eqlBlock = eqlRun.getEqlBlock();
+    static LoadingCache<EqlUniqueSqlTemplate, EqlParamsParserResult> cache = CacheBuilder.newBuilder().build(
+            new CacheLoader<EqlUniqueSqlTemplate, EqlParamsParserResult>() {
+                @Override
+                public EqlParamsParserResult load(EqlUniqueSqlTemplate eqlUniqueSqlTemplate) throws Exception {
+                    EqlParamsParserResult result = new EqlParamsParserResult();
+                    new EqlParamsParser(result, eqlUniqueSqlTemplate).parseParams();
+                    return result;
+                }
+            }
+    );
+
+    public static void parseParams(EqlRun eqlRun, String sqlStr) {
+        EqlBlock eqlBlock = eqlRun.getEqlBlock();
+        EqlUniqueSqlId uniqueSqlId = eqlBlock != null ? eqlBlock.getUniqueSqlId() : null;
+        EqlUniqueSqlTemplate sqlTemplate = new EqlUniqueSqlTemplate(uniqueSqlId, sqlStr);
+
+        EqlParamsParserResult result = cache.getUnchecked(sqlTemplate);
+
+        eqlRun.setSqlType(result.getSqlType());
+        eqlRun.setRunSql(result.getRunSql());
+        eqlRun.setPlaceholderNum(result.getPlaceholderNum());
+        eqlRun.setPlaceHolderType(result.getPlaceHolderType());
+        eqlRun.setPlaceHolderOutType(result.getPlaceHolderOutType());
+        eqlRun.setPlaceHolders(result.getPlaceHolders());
     }
 
-    public EqlRun parseParams(String templateSql) {
-        this.templateSql = templateSql;
+    private final EqlParamsParserResult result;
+    private final EqlUniqueSqlId eqlUniqueSqlId;
+    private final String templateSql;
 
-        eqlRun.setSqlType(EqlUtils.parseSqlType(templateSql));
+    public EqlParamsParser(EqlParamsParserResult result, EqlUniqueSqlTemplate eqlUniqueSqlTemplate) {
+        this.result = result;
+        this.eqlUniqueSqlId = eqlUniqueSqlTemplate.getEqlUniqueSqlId();
+        this.templateSql = eqlUniqueSqlTemplate.getTemplateSql();
+    }
+
+    private void parseParams() {
+        EqlRun.EqlType eqlType = EqlUtils.parseSqlType(templateSql);
+        result.setSqlType(eqlType);
 
         Matcher matcher = PARAM_PATTERN.matcher(templateSql);
         List<String> placeHolders = new ArrayList<String>();
@@ -51,7 +82,7 @@ public class EqlParamsParser {
             }
 
             if ("?".equals(placeHolder))
-                placeHolder = inferVarName(eqlRun.getSqlType(), templateSql, startPos, matcher.start());
+                placeHolder = inferVarName(eqlType, templateSql, startPos, matcher.start());
 
             placeHolders.add(placeHolder);
             placeHolderOptions.add(paramOptions);
@@ -62,13 +93,10 @@ public class EqlParamsParser {
 
         sql.append(templateSql.substring(startPos));
         String onelineSql = sql.toString();
-        eqlRun.setRunSql(hasEscape ? unescape(onelineSql) : onelineSql);
-        eqlRun.setEqlBlock(eqlBlock);
-        eqlRun.setPlaceholderNum(placeHolders.size());
+        result.setRunSql(hasEscape ? unescape(onelineSql) : onelineSql);
+        result.setPlaceholderNum(placeHolders.size());
 
         parsePlaceholders(placeHolders, placeHolderOptions);
-
-        return eqlRun;
     }
 
     private String unescape(String sql) {
@@ -193,12 +221,12 @@ public class EqlParamsParser {
             } else paramPlaceholder.setPlaceholderType(PlaceholderType.VAR_NAME);
         }
 
-        eqlRun.setPlaceHolderType(setAndCheckPlaceholderInType(paramPlaceholders, EqlParamPlaceholder.InOut.OUT));
-        eqlRun.setPlaceHolderOutType(setAndCheckPlaceholderInType(paramPlaceholders, EqlParamPlaceholder.InOut.IN));
-        if (eqlRun.getPlaceHolderType() == PlaceholderType.UNSET)
-            eqlRun.setPlaceHolderType(eqlRun.getPlaceHolderOutType());
+        result.setPlaceHolderType(setAndCheckPlaceholderInType(paramPlaceholders, EqlParamPlaceholder.InOut.OUT));
+        result.setPlaceHolderOutType(setAndCheckPlaceholderInType(paramPlaceholders, EqlParamPlaceholder.InOut.IN));
+        if (result.getPlaceHolderType() == PlaceholderType.UNSET)
+            result.setPlaceHolderType(result.getPlaceHolderOutType());
 
-        eqlRun.setPlaceHolders(paramPlaceholders.toArray(new EqlParamPlaceholder[0]));
+        result.setPlaceHolders(paramPlaceholders.toArray(new EqlParamPlaceholder[0]));
     }
 
     private PlaceholderType setAndCheckPlaceholderInType(List<EqlParamPlaceholder> paramPlaceholders, EqlParamPlaceholder.InOut inOut) {
@@ -208,17 +236,18 @@ public class EqlParamsParser {
                     && paramPlaceholder.getInOut() != inOut) {
                 if (placeHolderInType != PlaceholderType.UNSET)
                     throw new EqlConfigException("["
-                            + (eqlBlock != null ? eqlBlock.getSqlId() : templateSql)
+                            + (eqlUniqueSqlId != null ? eqlUniqueSqlId.getSqlId() : templateSql)
                             + "] with different param binding types");
 
                 placeHolderInType = paramPlaceholder.getPlaceholderType();
             }
 
         if (placeHolderInType == PlaceholderType.MANU_SEQ
-                && eqlRun.getSqlType() == EqlRun.EqlType.CALL)
+                && result.getSqlType() == EqlRun.EqlType.CALL)
             throw new EqlConfigException("["
-                    + (eqlBlock != null ? eqlBlock.getSqlId() : templateSql) + "] is a procedure without manually bind seq support");
+                    + (eqlUniqueSqlId != null ? eqlUniqueSqlId.getSqlId() : templateSql) + "] is a procedure without manually bind seq support");
 
         return placeHolderInType;
     }
+
 }

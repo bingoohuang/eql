@@ -23,12 +23,11 @@ import org.n3r.eql.util.HostAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.sql.*;
 import java.util.List;
 import java.util.Map;
 
-public class Eql implements Closeable {
+public class Eql {
     public static final String DEFAULT_CONN_NAME = "DEFAULT";
     protected static Logger logger = LoggerFactory.getLogger(Eql.class);
 
@@ -42,7 +41,7 @@ public class Eql implements Closeable {
     private EqlTran externalTran;
     private EqlTran internalTran;
     private DbDialect dbDialect;
-    private EqlRsRetriever rsRetriever = new EqlRsRetriever();
+    protected EqlRsRetriever rsRetriever = new EqlRsRetriever();
     private int fetchSize;
     protected List<EqlRun> eqlRuns;
     protected EqlRun currRun;
@@ -221,7 +220,6 @@ public class Eql implements Closeable {
         rsRetriever.resetMaxRows();
     }
 
-    @Override
     public void close() {
         if (batch == null) tranClose();
     }
@@ -596,4 +594,5 @@ public class Eql implements Closeable {
         externalTran = null;
         internalTran = null;
     }
+
 }

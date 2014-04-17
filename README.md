@@ -770,6 +770,80 @@ SELECT TO_CHAR(SYSTIMESTAMP, 'HH24:MI:SS.FF6') FROM DUAL
 The class `org.n3r.eql.cache.GuavaCacheProvider` is provided by eql and its cache builder spec is same to guava [cache spec](http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/cache/CacheBuilderSpec.html).
 Custom cache provider class should implement `org.n3r.eql.cache.EqlCacheProvider` and optionally to implement `org.n3r.eql.spec.ParamsAppliable` when there are parameters to set.
 
+
+# simple POJO-based CRUD supported
+
+**@EqlTable**
+
+To specify the table name related to the class.
+If class is not annotated by @EqlTable, the default table name will be underscore_lowercase converted from CamelClass name. eg. Person to person, PersonInfo to person_info.
+
+**@EqlId**
+
+To specify whether the field is a Primary Key in the table.
+If the property name is **id**, it is also regarded as implicit @EqlId.
+
+**@EqlColumn**
+
+To specify the column name which is different with POJO's property name.
+When non-annotated with @EqlColumn, the default column name will be underscore_lowercase converted from propertyName. eg. name to name, personName to person_name.
+
+**@EqlSkip**
+
+To skip the mapping to table field.
+
+**CRUD**
+
+the update and delete api will use the id field as its condition.
+the read api will use all the non-null fields as its combined condition.
+
+```java
+@EqlTable(name = "personx")
+public static class Person2 {
+    @EqlId
+    @EqlColumn(name = "id")
+    private String pid;
+    @EqlColumn(name = "name")
+    private String pname;
+    private Integer age;
+
+    @EqlSkip
+    private String remark;
+
+    // getters and setters
+}
+
+@Test
+public void testAnnotation() {
+    Person2 person = new Person2();
+    person.setPid("1002");
+    person.setPname("bingoo");
+    person.setAge(30);
+
+    // delete from person where id = ?
+    new Pql("mysql").delete(person);
+
+    // insert into person（id,name,age) values(?,?,?)
+    new Pql("mysql").create(person);
+
+    person.setPname("huang");
+    person.setAge(null);
+    // update person set age = ? where id = ?
+    int effectedRows = new Pql("mysql").update(person);
+    assertThat(effectedRows, is(1));
+
+    Person2 queryPerson = new Person2();
+    queryPerson.setPid("1002");
+
+    // select id,name,age from person where id = ?
+    List<Person2> resultPerson = new Pql("mysql").read(queryPerson);
+    assertThat(resultPerson.size(), is(1));
+
+    effectedRows = new Pql("mysql").delete(queryPerson);
+    assertThat(effectedRows, is(1));
+}
+```
+
 # TODO
 + Inline comment such as `/* iff ... */` is parsed by regular expression, and this method will not ignore `/* ... */` in the literal string such as `'literal string /* if xxx */'`.
-+ TO support some simple CRUD base on POJO.
+
