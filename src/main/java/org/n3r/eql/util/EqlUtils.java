@@ -2,11 +2,11 @@ package org.n3r.eql.util;
 
 import com.google.common.base.*;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
 import com.google.common.primitives.Primitives;
 import org.n3r.eql.EqlTran;
+import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 
 import java.beans.BeanInfo;
@@ -565,7 +565,7 @@ public class EqlUtils {
 
     }
 
-    public static Map<String, Object> mergeProperties(Map<String, Object> context, Object bean) throws Exception {
+    public static Map<String, Object> mergeProperties(Map<String, Object> context, Object bean) {
         Map<String, Object> map = Maps.newHashMap();
         map.putAll(context);
 
@@ -576,14 +576,18 @@ public class EqlUtils {
             return map;
         }
 
-        BeanInfo info = Introspector.getBeanInfo(bean.getClass());
-        for (PropertyDescriptor pDesc : info.getPropertyDescriptors()) {
-            Method method = pDesc.getReadMethod();
-            if (method == null) continue;
+        try {
+            BeanInfo info = Introspector.getBeanInfo(bean.getClass());
+            for (PropertyDescriptor pDesc : info.getPropertyDescriptors()) {
+                Method method = pDesc.getReadMethod();
+                if (method == null) continue;
 
-            String name = pDesc.getName();
-            Object value = method.invoke(bean);
-            if (value != null) map.put(name, value);
+                String name = pDesc.getName();
+                Object value = method.invoke(bean);
+                if (value != null) map.put(name, value);
+            }
+        } catch (Exception e) {
+            throw new EqlExecuteException(e);
         }
 
         return map;

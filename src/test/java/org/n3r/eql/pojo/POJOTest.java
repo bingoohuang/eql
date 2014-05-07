@@ -25,8 +25,10 @@ public class POJOTest {
         new Pql("mysql").create(person); // insert into person（id,name,age) values(?,?,?)
 
         person.setName("huang");
-        person.setAge(null);
-        int effectedRows = new Pql("mysql").update(person); // update person set age = ? where id = ?
+        int effectedRows = new Pql("mysql").update(person); // update person set name = ?, age = ? where id = ?
+        assertThat(effectedRows, is(1));
+
+        effectedRows = new Pql("mysql").update(person, "name");// update person set name = ? where id = ?
         assertThat(effectedRows, is(1));
 
         Personx queryPerson = new Personx();
@@ -70,7 +72,7 @@ public class POJOTest {
     public static class Personx {
         private String id;
         private String name;
-        private Integer age;
+        private int age;
 
         public String getId() {
             return id;
@@ -88,11 +90,11 @@ public class POJOTest {
             this.name = name;
         }
 
-        public Integer getAge() {
+        public int getAge() {
             return age;
         }
 
-        public void setAge(Integer age) {
+        public void setAge(int age) {
             this.age = age;
         }
     }

@@ -92,7 +92,7 @@ public class PojoParser {
     static LoadingCache<Class<?>, String> updateSqlCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
         @Override
         public String load(Class<?> pojoClass) throws Exception {
-            return parseUpdateSqlWoCache(pojoClass);
+            return parseUpdateSqlWoCache(pojoClass, "");
         }
     });
 
@@ -100,7 +100,19 @@ public class PojoParser {
         return updateSqlCache.getUnchecked(pojoClass);
     }
 
-    public static String parseUpdateSqlWoCache(Class<?> pojoClass) {
+    static public String PREFIX_FLAG = "_flag_";
+    static LoadingCache<Class<?>, String> updateSqlCache2 = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
+        @Override
+        public String load(Class<?> pojoClass) throws Exception {
+            return parseUpdateSqlWoCache(pojoClass, PREFIX_FLAG);
+        }
+    });
+
+    public static String parseUpdateSql2(Class<?> pojoClass) {
+        return updateSqlCache2.getUnchecked(pojoClass);
+    }
+
+    public static String parseUpdateSqlWoCache(Class<?> pojoClass, String fieldFlagPrefix) {
         StringBuilder setSql = new StringBuilder();
         StringBuilder whereSql = new StringBuilder();
 
@@ -114,7 +126,7 @@ public class PojoParser {
                 if (whereSql.length() > 0) whereSql.append(" and ");
                 whereSql.append(columnName).append("=#").append(field.getName()).append("#");
             } else {
-                setSql.append("-- isNotEmpty ").append(field.getName()).append("\r\n");
+                setSql.append("-- isNotEmpty ").append(fieldFlagPrefix + field.getName()).append("\r\n");
                 setSql.append(columnName).append("=#").append(field.getName()).append("#,\r\n");
                 setSql.append("-- end\r\n");
             }
