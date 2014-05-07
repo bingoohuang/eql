@@ -4,13 +4,17 @@ package org.n3r.eql.pojo.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Lists;
 import org.n3r.eql.pojo.annotations.EqlColumn;
 import org.n3r.eql.pojo.annotations.EqlId;
 import org.n3r.eql.pojo.annotations.EqlSkip;
 import org.n3r.eql.pojo.annotations.EqlTable;
 import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Pair;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.List;
 
 public class PojoParser {
     static LoadingCache<Class<?>, String> createSqlCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
@@ -24,14 +28,24 @@ public class PojoParser {
         return createSqlCache.getUnchecked(pojoClass);
     }
 
+    private static Field[] parsePropertiesName(Class<?> pojoClass) {
+        Field[] declaredFields = pojoClass.getDeclaredFields();
+        List<Field> properties = Lists.newArrayList();
+        for (Field field : declaredFields) {
+            if (Modifier.isStatic(field.getModifiers())) continue;
+            if (field.getAnnotation(EqlSkip.class) != null) continue;
+
+            properties.add(field);
+        }
+
+        return properties.toArray(new Field[properties.size()]);
+    }
+
     static String parseCreateSqlWoCache(Class<?> pojoClass) {
         String tableName = parseTableName(pojoClass);
         StringBuilder createSql = new StringBuilder("insert into ").append(tableName).append("(");
         StringBuilder valueSql = new StringBuilder(") values(");
-        Field[] declaredFields = pojoClass.getDeclaredFields();
-        for (Field field : declaredFields) {
-            if (field.getAnnotation(EqlSkip.class) != null) continue;
-
+        for (Field field : parsePropertiesName(pojoClass)) {
             String columnName = parseColumnName(field);
             createSql.append(columnName).append(',');
             valueSql.append('#').append(field.getName()).append("#,");
@@ -66,10 +80,7 @@ public class PojoParser {
         StringBuilder whereSql = new StringBuilder();
         int initialLen = selectSql.length();
 
-        Field[] declaredFields = pojoClass.getDeclaredFields();
-        for (Field field : declaredFields) {
-            if (field.getAnnotation(EqlSkip.class) != null) continue;
-
+        for (Field field : parsePropertiesName(pojoClass)) {
             String columnName = parseColumnName(field);
             if (selectSql.length() > initialLen) selectSql.append(',');
             selectSql.append(columnName).append(" as ").append(field.getName());
@@ -116,10 +127,7 @@ public class PojoParser {
         StringBuilder setSql = new StringBuilder();
         StringBuilder whereSql = new StringBuilder();
 
-        Field[] declaredFields = pojoClass.getDeclaredFields();
-        for (Field field : declaredFields) {
-            if (field.getAnnotation(EqlSkip.class) != null) continue;
-
+        for (Field field : parsePropertiesName(pojoClass)) {
             String columnName = parseColumnName(field);
             boolean isIdColumn = isIdColumn(field, columnName);
             if (isIdColumn) {
@@ -163,13 +171,9 @@ public class PojoParser {
         StringBuilder sql = new StringBuilder("delete from ").append(tableName).append(" where ");
         int initialLen = sql.length();
 
-        Field[] declaredFields = pojoClass.getDeclaredFields();
-        for (Field field : declaredFields) {
-            if (field.getAnnotation(EqlSkip.class) != null) continue;
-
+        for (Field field : parsePropertiesName(pojoClass)) {
             String columnName = parseColumnName(field);
             boolean isIdColumn = isIdColumn(field, columnName);
-
             if (!isIdColumn) continue;
 
             if (sql.length() > initialLen) sql.append(" and ");
