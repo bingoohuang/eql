@@ -36,26 +36,4 @@ public class OgnlEvaluator implements ExpressionEvaluator {
             throw new RuntimeException(e);
         }
     }
-
-    /*
-    private Object eval2(String expr, Map<String, Object> context, Object bean) {
-        Exception ex = null;
-        try {
-            return Ognl.getValue(expr, bean);
-        } catch (NoSuchPropertyException e) {
-            // will try again from context
-        } catch (Exception e) {
-            // ex = e;
-        }
-
-        try {
-            return Ognl.getValue(expr, context);
-        } catch (OgnlException e) {
-            ex = e;
-        }
-
-        log.error("eval {} with {} and context {} error", expr, bean, context, ex);
-        return null;
-    }
-    */
 }

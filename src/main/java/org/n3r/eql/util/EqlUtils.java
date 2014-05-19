@@ -10,6 +10,7 @@ import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 
 import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.*;
@@ -570,27 +571,39 @@ public class EqlUtils {
         map.putAll(context);
 
         if (bean == null) return map;
-
         if (bean instanceof Map) {
             map.putAll((Map<String, Object>) bean);
             return map;
         }
 
-        try {
-            BeanInfo info = Introspector.getBeanInfo(bean.getClass());
-            for (PropertyDescriptor pDesc : info.getPropertyDescriptors()) {
-                Method method = pDesc.getReadMethod();
-                if (method == null) continue;
+        BeanInfo info = getBeanInfo(bean.getClass());
 
-                String name = pDesc.getName();
-                Object value = method.invoke(bean);
-                if (value != null) map.put(name, value);
-            }
-        } catch (Exception e) {
-            throw new EqlExecuteException(e);
+        for (PropertyDescriptor pDesc : info.getPropertyDescriptors()) {
+            Method method = pDesc.getReadMethod();
+            if (method == null) continue;
+
+            String name = pDesc.getName();
+            Optional<Object> value = invokeMethod(bean, method);
+            if (value.isPresent()) map.put(name, value.get());
         }
 
         return map;
+    }
+
+    private static Optional<Object> invokeMethod(Object bean, Method method) {
+        try {
+            return Optional.fromNullable(method.invoke(bean));
+        } catch (Exception e) {
+            return Optional.absent();
+        }
+    }
+
+    private static BeanInfo getBeanInfo(Class<?> aClass) {
+        try {
+            return Introspector.getBeanInfo(aClass);
+        } catch (IntrospectionException e) {
+            throw new EqlExecuteException(e);
+        }
     }
 
     public static Properties toProperties(String properties) {
