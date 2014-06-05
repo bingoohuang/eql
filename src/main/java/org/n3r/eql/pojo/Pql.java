@@ -26,11 +26,11 @@ public class Pql extends Eql {
     private String sql;
 
     public Pql() {
-        super(EqlConfigCache.getEqlConfig(Eql.DEFAULT_CONN_NAME), 4);
+        super(EqlConfigCache.getEqlConfig(Eql.DEFAULT_CONN_NAME), Eql.STACKTRACE_DEEP_FOUR);
     }
 
     public Pql(String connectionName) {
-        super(EqlConfigCache.getEqlConfig(connectionName), 4);
+        super(EqlConfigCache.getEqlConfig(connectionName), Eql.STACKTRACE_DEEP_FOUR);
     }
 
     public <T> void create(T pojo) {

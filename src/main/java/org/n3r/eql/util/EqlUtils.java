@@ -50,7 +50,13 @@ public class EqlUtils {
 
     public static String getSqlClassPath(int num) {
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-        String callerClassName = stackTraceElements[num].getClassName();
+
+        // Remark: when running on IBM jdk (eg. IBM JDK 1.6),
+        // the first stackTraceElement will be getStackTraceImpl with
+        // lineNo -2 (non-positive), which add one more stack trace deep than ORACLE/SUN jdk.
+        int adjusted = stackTraceElements[0].getLineNumber() > 0 ? 0 : 1;
+
+        String callerClassName = stackTraceElements[num + adjusted].getClassName();
         return callerClassName.replace('.', '/') + ".eql";
     }
 

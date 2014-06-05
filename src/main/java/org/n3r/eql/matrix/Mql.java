@@ -18,15 +18,15 @@ import java.util.Properties;
 
 public class Mql extends Eql {
     public Mql() {
-        super(autoDetect("config"), 4);
+        super(autoDetect("config"), Eql.STACKTRACE_DEEP_FOUR);
     }
 
     public Mql(String key) {
-        super(autoDetect(key), 4);
+        super(autoDetect(key), Eql.STACKTRACE_DEEP_FOUR);
     }
 
     public Mql(EqlConfig config) {
-        super(config, 4);
+        super(config, Eql.STACKTRACE_DEEP_FOUR);
     }
 
     private static EqlConfig autoDetect(String connName) {

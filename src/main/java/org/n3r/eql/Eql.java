@@ -29,6 +29,8 @@ import java.util.Map;
 
 public class Eql {
     public static final String DEFAULT_CONN_NAME = "DEFAULT";
+    public static final int STACKTRACE_DEEP_FOUR = 4;
+    public static final int STACKTRACE_DEEP_FIVE = 5;
     protected static Logger logger = LoggerFactory.getLogger(Eql.class);
 
     protected EqlConfigDecorator eqlConfig;
@@ -50,15 +52,15 @@ public class Eql {
     private boolean cached = true;
 
     public Eql() {
-        init(EqlConfigCache.getEqlConfig(DEFAULT_CONN_NAME), 4);
+        init(EqlConfigCache.getEqlConfig(DEFAULT_CONN_NAME), STACKTRACE_DEEP_FOUR);
     }
 
     public Eql(String connectionName) {
-        init(EqlConfigCache.getEqlConfig(connectionName), 4);
+        init(EqlConfigCache.getEqlConfig(connectionName), STACKTRACE_DEEP_FOUR);
     }
 
     public Eql(EqlConfig eqlConfig) {
-        init(eqlConfig, 4);
+        init(eqlConfig, STACKTRACE_DEEP_FOUR);
     }
 
     public Eql(EqlConfig eqlConfig, int stackDeep) {
@@ -273,7 +275,7 @@ public class Eql {
 
         if (EqlUtils.isBlank(defaultSqlId)) throw new EqlExecuteException("No sqlid defined!");
 
-        initSqlId(defaultSqlId, 5);
+        initSqlId(defaultSqlId, STACKTRACE_DEEP_FIVE);
     }
 
     protected Object runEql() throws SQLException {
@@ -406,7 +408,7 @@ public class Eql {
 
 
     protected void initSqlId(String sqlId) {
-        initSqlId(sqlId, 5);
+        initSqlId(sqlId, STACKTRACE_DEEP_FIVE);
     }
 
     protected void initSqlId(String sqlId, int level) {

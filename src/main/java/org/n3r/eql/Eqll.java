@@ -20,6 +20,6 @@ public class Eqll extends Eql {
     }
 
     public Eqll() {
-        super(eqlConfigLocal.get(), 5);
+        super(eqlConfigLocal.get(), Eql.STACKTRACE_DEEP_FIVE);
     }
 }
