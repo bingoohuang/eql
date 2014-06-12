@@ -123,6 +123,14 @@ public class DbDialect {
 
         if (fromPos < 0) fromPos = 0;
 
+        // if bound parameter if found before 'from', we can not remove the select part.
+        if (oneFromWoDistinctOrGroupby) {
+            int paramBoundPos = sql.indexOf('?');
+            if (paramBoundPos >= 0 && paramBoundPos < fromPos) {
+                oneFromWoDistinctOrGroupby = false;
+            }
+        }
+
         return oneFromWoDistinctOrGroupby
                 ? "SELECT COUNT(*) AS CNT " + runSql.substring(fromPos)
                 : "SELECT COUNT(*) CNT__ FROM (" + runSql + ") TOTAL";
