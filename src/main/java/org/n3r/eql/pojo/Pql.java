@@ -7,6 +7,7 @@ import com.google.common.hash.Hashing;
 import org.apache.commons.io.Charsets;
 import org.n3r.eql.Eql;
 import org.n3r.eql.EqlPage;
+import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigCache;
 import org.n3r.eql.impl.DefaultDynamicLanguageDriver;
 import org.n3r.eql.parser.EqlBlock;
@@ -26,11 +27,15 @@ public class Pql extends Eql {
     private String sql;
 
     public Pql() {
-        super(EqlConfigCache.getEqlConfig(Eql.DEFAULT_CONN_NAME), Eql.STACKTRACE_DEEP_FOUR);
+        super();
+    }
+
+    public Pql(EqlConfig eqlConfig) {
+        super(eqlConfig);
     }
 
     public Pql(String connectionName) {
-        super(EqlConfigCache.getEqlConfig(connectionName), Eql.STACKTRACE_DEEP_FOUR);
+        super(connectionName);
     }
 
     public <T> void create(T pojo) {

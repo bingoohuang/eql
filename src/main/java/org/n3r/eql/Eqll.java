@@ -5,7 +5,7 @@ import org.n3r.eql.config.EqlConfigCache;
 import org.n3r.eql.util.EqlPropertiesConfigFactory;
 
 public class Eqll extends Eql {
-    private static ThreadLocal<EqlConfig> eqlConfigLocal = new ThreadLocal<EqlConfig>(){
+    static ThreadLocal<EqlConfig> eqlConfigLocal = new ThreadLocal<EqlConfig>(){
         @Override
         protected EqlConfig initialValue() {
             return EqlConfigCache.getEqlConfig(Eql.DEFAULT_CONN_NAME);

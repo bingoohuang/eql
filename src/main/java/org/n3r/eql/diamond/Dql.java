@@ -7,11 +7,15 @@ import org.n3r.eql.config.EqlPropertiesConfig;
 
 public class Dql extends Eql {
     public Dql() {
-        this(Eql.DEFAULT_CONN_NAME);
+        super(createEqlConfig(), Eql.STACKTRACE_DEEP_FIVE);
     }
 
     public Dql(String connectionName) {
-        super(createEqlConfig(connectionName));
+        super(createEqlConfig(connectionName), Eql.STACKTRACE_DEEP_FIVE);
+    }
+
+    private static EqlConfig createEqlConfig() {
+        return createEqlConfig(Eql.DEFAULT_CONN_NAME);
     }
 
     private static EqlConfig createEqlConfig(String connectionName) {

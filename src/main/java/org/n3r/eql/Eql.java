@@ -52,7 +52,16 @@ public class Eql {
     private boolean cached = true;
 
     public Eql() {
-        init(EqlConfigCache.getEqlConfig(DEFAULT_CONN_NAME), STACKTRACE_DEEP_FOUR);
+        this(Eql.STACKTRACE_DEEP_FIVE);
+    }
+
+    public Eql(int stackDeep) {
+        EqlConfig localConfig = Eqll.eqlConfigLocal.get();
+        if (localConfig == null) {
+            init(EqlConfigCache.getEqlConfig(DEFAULT_CONN_NAME), stackDeep);
+        } else {
+            init(localConfig, stackDeep);
+        }
     }
 
     public Eql(String connectionName) {
