@@ -14,11 +14,11 @@ public class Dql extends Eql {
         super(createEqlConfig(connectionName), Eql.STACKTRACE_DEEP_FIVE);
     }
 
-    private static EqlConfig createEqlConfig() {
+    public static EqlConfig createEqlConfig() {
         return createEqlConfig(Eql.DEFAULT_CONN_NAME);
     }
 
-    private static EqlConfig createEqlConfig(String connectionName) {
+    public static EqlConfig createEqlConfig(String connectionName) {
         String eqlConfig = DiamondMiner.getStone("EqlConfig", connectionName);
         return new EqlPropertiesConfig(eqlConfig);
     }
