@@ -72,15 +72,15 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.n3r.diamond</groupId>
+            <groupId>com.github.bingoohuang</groupId>
             <artifactId>diamond-client</artifactId>
-            <version>0.0.2</version>
+            <version>0.0.5</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.7</version>
             <optional>true</optional>
         </dependency>
 
@@ -130,6 +130,7 @@
             <version>1.0.13</version>
             <scope>test</scope>
         </dependency>
+
         <!--
         <dependency>
             <groupId>weblogic</groupId>
@@ -138,6 +139,7 @@
             <scope>test</scope>
         </dependency>
         -->
+
     </dependencies>
 
 

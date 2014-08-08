@@ -1,3 +1,9 @@
+-- [beforeClass onerr=resume]
+drop table tf_b_pay_order;
+create table tf_b_pay_order(
+order_no varchar(50)
+);
+
 -- [test]
 select count(*) from tf_b_pay_order where order_no in (##)
 
