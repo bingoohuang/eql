@@ -133,15 +133,12 @@ public class Eql {
     public <T> T execute(String... directSqls) {
         checkPreconditions(directSqls);
 
-        boolean cacheUsable = directSqls.length == 0 && cached;
-        Optional<Object> cachedResult = cacheUsable
-                ? eqlBlock.getCachedResult(params, dynamics) : null;
-
-        if (cachedResult != null) return (T) cachedResult.orNull();
+        Object o = tryGetCache(directSqls);
+        if (o != null) return (T) o;
 
         newExecutionContext();
         Object ret = null;
-        Connection conn = null;
+        Connection conn;
         try {
             if (batch == null) tranStart();
             conn = getConn();
@@ -160,7 +157,7 @@ public class Eql {
                 updateLastResultToExecutionContext(ret);
                 currRun.setResult(ret);
 
-                if (cacheUsable) eqlBlock.cacheResult(currRun);
+                trySetCache(directSqls);
             }
 
             if (batch == null) tranCommit();
@@ -175,6 +172,25 @@ public class Eql {
         }
 
         return (T) ret;
+    }
+
+    private void trySetCache(String[] directSqls) {
+        if (!isCachUsable(directSqls)) return;
+
+        eqlBlock.cacheResult(currRun, page);
+    }
+
+    private Object tryGetCache(String[] directSqls) {
+        if (!isCachUsable(directSqls)) return null;
+
+        Optional<Object> cachedResult =  eqlBlock.getCachedResult(params, dynamics, page);
+        if (cachedResult == null) return null;
+
+        return cachedResult.orNull();
+    }
+
+    private boolean isCachUsable(String[] directSqls) {
+        return directSqls.length == 0 && cached;
     }
 
     private void checkBatchCmdsSupporting(EqlRun currRun) {

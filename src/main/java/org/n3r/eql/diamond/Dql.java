@@ -5,6 +5,8 @@ import org.n3r.eql.Eql;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlPropertiesConfig;
 
+import java.util.Properties;
+
 public class Dql extends Eql {
     public Dql() {
         super(createEqlConfig(), Eql.STACKTRACE_DEEP_FIVE);
@@ -19,7 +21,7 @@ public class Dql extends Eql {
     }
 
     public static EqlConfig createEqlConfig(String connectionName) {
-        String eqlConfig = DiamondMiner.getStone("EqlConfig", connectionName);
+        Properties eqlConfig = DiamondMiner.getProperties("EqlConfig", connectionName);
         return new EqlPropertiesConfig(eqlConfig);
     }
 }

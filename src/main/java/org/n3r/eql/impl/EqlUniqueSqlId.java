@@ -51,4 +51,8 @@ public class EqlUniqueSqlId {
         result = 31 * result + sqlId.hashCode();
         return result;
     }
+
+    public EqlUniqueSqlId newTotalRowSqlId() {
+        return new EqlUniqueSqlId(sqlClassPath, "__total_rows." + sqlId);
+    }
 }

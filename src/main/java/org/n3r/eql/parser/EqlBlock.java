@@ -5,6 +5,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.n3r.eql.EqlPage;
 import org.n3r.eql.cache.EqlCacheKey;
 import org.n3r.eql.cache.EqlCacheProvider;
 import org.n3r.eql.cache.EqlCacheSettings;
@@ -183,17 +184,32 @@ public class EqlBlock {
         return uniqueSqlId.getSqlId();
     }
 
-    public Optional<Object> getCachedResult(Object[] params, Object[] dynamics) {
+    public Optional<Object> getCachedResult(Object[] params, Object[] dynamics, EqlPage page) {
         if (cacheProvider == null) return null;
 
-        return cacheProvider.getCache(new EqlCacheKey(uniqueSqlId, params, dynamics));
+        EqlCacheKey cacheKey = new EqlCacheKey(uniqueSqlId, params, dynamics, page);
+        Optional<Object> cache = cacheProvider.getCache(cacheKey);
+        if (cache != null && page != null) {
+            EqlUniqueSqlId totalRowSqlId = uniqueSqlId.newTotalRowSqlId();
+            cacheKey = new EqlCacheKey(totalRowSqlId, params, dynamics, page);
+            Optional<Object> totalNumber = cacheProvider.getCache(cacheKey);
+            if (totalNumber.isPresent()) page.setTotalRows((Integer)totalNumber.get());
+        }
+
+        return cache;
     }
 
-    public void cacheResult(EqlRun currRun) {
+    public void cacheResult(EqlRun currRun, EqlPage page) {
         if (cacheProvider == null) return;
         if (!currRun.isLastSelectSql()) return;
 
-        cacheProvider.setCache(new EqlCacheKey(uniqueSqlId, currRun.getParams(), currRun.getDynamics()),
-                currRun.getResult());
+        EqlCacheKey cacheKey = new EqlCacheKey(uniqueSqlId, currRun.getParams(), currRun.getDynamics(), page);
+        cacheProvider.setCache(cacheKey, currRun.getResult());
+
+        if (page != null) {
+            EqlUniqueSqlId totalRowSqlId = uniqueSqlId.newTotalRowSqlId();
+            cacheKey = new EqlCacheKey(totalRowSqlId, currRun.getParams(), currRun.getDynamics(), page);
+            cacheProvider.setCache(cacheKey, page.getTotalRows());
+        }
     }
 }

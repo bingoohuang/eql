@@ -2,8 +2,10 @@ package org.n3r.eql;
 
 import org.junit.Test;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
@@ -33,5 +35,17 @@ public class CacheTest {
         String str2 = new Eql().limit(1).execute();
 
         assertThat(str1, is(not(str2)));
+    }
+
+    @Test
+    public void test3() throws InterruptedException {
+        EqlPage eqlPage = new EqlPage(0, 10);
+        List<String> strs1 = new Eql().limit(eqlPage).execute();
+        TimeUnit.SECONDS.sleep(1);
+        eqlPage.setTotalRows(0);
+        List<String> strs2 = new Eql().limit(eqlPage).execute();
+
+        assertThat(strs1, is(equalTo(strs2)));
+        assertThat(eqlPage.getTotalRows(), is (11));
     }
 }
