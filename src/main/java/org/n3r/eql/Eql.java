@@ -16,6 +16,7 @@ import org.n3r.eql.impl.EqlProc;
 import org.n3r.eql.impl.EqlRsRetriever;
 import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.map.EqlType;
 import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.EqlUtils;
@@ -183,7 +184,7 @@ public class Eql {
     private Object tryGetCache(String[] directSqls) {
         if (!isCachUsable(directSqls)) return null;
 
-        Optional<Object> cachedResult =  eqlBlock.getCachedResult(params, dynamics, page);
+        Optional<Object> cachedResult = eqlBlock.getCachedResult(params, dynamics, page);
         if (cachedResult == null) return null;
 
         return cachedResult.orNull();
@@ -262,7 +263,7 @@ public class Eql {
             throw new EqlExecuteException("only one select sql supported");
 
         currRun = sqlSubs.get(0);
-        if (currRun.getSqlType() != EqlRun.EqlType.SELECT)
+        if (currRun.getSqlType() != EqlType.SELECT)
             throw new EqlExecuteException("only one select sql supported");
 
         currRun.setConnection(conn);
@@ -285,7 +286,7 @@ public class Eql {
             throw new EqlExecuteException("only one update sql supported in this method");
 
         currRun = sqlSubs.get(0);
-        if (!EqlUtils.isUpdateStmt(currRun))
+        if (!currRun.getSqlType().isUpdateStmt())
             throw new EqlExecuteException("only one update/merge/delete/insert sql supported in this method");
 
         currRun.setConnection(conn);
@@ -305,7 +306,7 @@ public class Eql {
 
     protected Object runEql() throws SQLException {
         try {
-            return EqlUtils.isDdl(currRun) ? execDdl() : pageExecute();
+            return currRun.getSqlType().isDdl() ? execDdl() : pageExecute();
         } catch (Exception ex) {
             if (!currRun.getEqlBlock().isOnerrResume()) throw Throwables.propagate(ex);
             else logger.warn("execute sql {} error", currRun.getPrintSql(), ex);
@@ -393,7 +394,7 @@ public class Eql {
             ps = prepareSql();
             currRun.bindParams(ps);
 
-            if (currRun.getSqlType() == EqlRun.EqlType.SELECT) {
+            if (currRun.getSqlType() == EqlType.SELECT) {
                 rs = ps.executeQuery();
                 if (fetchSize > 0) rs.setFetchSize(fetchSize);
 
@@ -462,6 +463,11 @@ public class Eql {
     }
 
     public Eql merge(String sqlId) {
+        initSqlId(sqlId);
+        return this;
+    }
+
+    public Eql replace(String sqlId) {
         initSqlId(sqlId);
         return this;
     }

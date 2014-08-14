@@ -8,6 +8,7 @@ import com.google.common.collect.Iterables;
 import org.n3r.eql.ex.EqlConfigException;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.map.EqlType;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.EqlUtils;
 
@@ -56,7 +57,7 @@ public class EqlParamsParser {
     }
 
     private void parseParams() {
-        EqlRun.EqlType eqlType = EqlUtils.parseSqlType(templateSql);
+        EqlType eqlType = EqlUtils.parseSqlType(templateSql);
         result.setSqlType(eqlType);
 
         Matcher matcher = PARAM_PATTERN.matcher(templateSql);
@@ -126,7 +127,7 @@ public class EqlParamsParser {
     private static final Pattern lastWord = Pattern.compile(".*\\b([\\w_\\d]+)\\b.*$", Pattern.DOTALL);
     private static final Pattern questionPattern = Pattern.compile("#\\s*\\?\\s*(:.*)?\\s*#");
 
-    private String inferVarName(EqlRun.EqlType sqlType, String rawSql, int startPos, int endPos) {
+    private String inferVarName(EqlType sqlType, String rawSql, int startPos, int endPos) {
         String variableName = null;
         switch (sqlType) {
             case SELECT:
@@ -243,7 +244,7 @@ public class EqlParamsParser {
             }
 
         if (placeHolderInType == PlaceholderType.MANU_SEQ
-                && result.getSqlType() == EqlRun.EqlType.CALL)
+                && result.getSqlType() == EqlType.CALL)
             throw new EqlConfigException("["
                     + (eqlUniqueSqlId != null ? eqlUniqueSqlId.getSqlId() : templateSql) + "] is a procedure without manually bind seq support");
 

@@ -1,6 +1,5 @@
 package org.n3r.eql.parser;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -12,6 +11,7 @@ import org.n3r.eql.cache.EqlCacheSettings;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.map.EqlType;
 import org.n3r.eql.param.EqlParamsParser;
 import org.n3r.eql.util.EqlUtils;
 
@@ -85,7 +85,7 @@ public class EqlBlock {
             addEqlRun(eqlRun, sqlStr);
 
 
-            if (eqlRun.getSqlType() == EqlRun.EqlType.SELECT) lastSelectSql = eqlRun;
+            if (eqlRun.getSqlType() == EqlType.SELECT) lastSelectSql = eqlRun;
         }
 
         if (lastSelectSql != null) lastSelectSql.setLastSelectSql(true);
@@ -112,7 +112,7 @@ public class EqlBlock {
 
             addEqlRun(eqlRun, sql);
 
-            if (eqlRun.getSqlType() == EqlRun.EqlType.SELECT) lastSelectSql = eqlRun;
+            if (eqlRun.getSqlType() == EqlType.SELECT) lastSelectSql = eqlRun;
         }
 
         if (lastSelectSql != null) lastSelectSql.setLastSelectSql(true);

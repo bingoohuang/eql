@@ -1,21 +1,21 @@
 package org.n3r.eql.param;
 
 
-import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.map.EqlType;
 
 public class EqlParamsParserResult {
-    private EqlRun.EqlType sqlType;
+    private EqlType sqlType;
     private String runSql;
     private int placeholderNum;
     private PlaceholderType placeHolderType;
     private PlaceholderType placeHolderOutType;
     private EqlParamPlaceholder[] placeHolders;
 
-    public void setSqlType(EqlRun.EqlType sqlType) {
+    public void setSqlType(EqlType sqlType) {
         this.sqlType = sqlType;
     }
 
-    public EqlRun.EqlType getSqlType() {
+    public EqlType getSqlType() {
         return sqlType;
     }
 

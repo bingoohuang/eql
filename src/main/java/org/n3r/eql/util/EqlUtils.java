@@ -7,7 +7,7 @@ import com.google.common.io.Resources;
 import com.google.common.primitives.Primitives;
 import org.n3r.eql.EqlTran;
 import org.n3r.eql.ex.EqlExecuteException;
-import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.map.EqlType;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -37,15 +37,15 @@ public class EqlUtils {
         return false;
     }
 
-    public static boolean isProcedure(EqlRun.EqlType sqlType) {
-        return in(sqlType, EqlRun.EqlType.CALL, EqlRun.EqlType.DECLARE, EqlRun.EqlType.BEGIN);
+    public static boolean isProcedure(EqlType sqlType) {
+        return in(sqlType, EqlType.CALL, EqlType.DECLARE, EqlType.BEGIN);
     }
 
-    public static EqlRun.EqlType parseSqlType(String rawSql) {
+    public static EqlType parseSqlType(String rawSql) {
         Matcher matcher = FIRST_WORD.matcher(rawSql);
         matcher.find();
         String firstWord = matcher.group(1).toUpperCase();
-        return EqlRun.EqlType.valueOf(firstWord);
+        return EqlType.valueOf(firstWord);
     }
 
     public static String getSqlClassPath(int num) {
@@ -153,35 +153,6 @@ public class EqlUtils {
 
     public static String bytesToStr(byte[] bytes) {
         return new String(bytes, Charsets.UTF_8);
-    }
-
-
-    public static boolean isUpdateStmt(EqlRun sqlSub) {
-        switch (sqlSub.getSqlType()) {
-            case UPDATE:
-            case MERGE:
-            case DELETE:
-            case INSERT:
-                return true;
-            default:
-                break;
-        }
-        return false;
-    }
-
-
-    public static boolean isDdl(EqlRun eqlRun) {
-        switch (eqlRun.getSqlType()) {
-            case CREATE:
-            case DROP:
-            case TRUNCATE:
-            case ALTER:
-            case COMMENT:
-                return true;
-            default:
-                break;
-        }
-        return false;
     }
 
     public static String autoTrimLastUnusedPart(String sql) {

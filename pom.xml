@@ -131,14 +131,12 @@
             <scope>test</scope>
         </dependency>
 
-        <!--
         <dependency>
             <groupId>weblogic</groupId>
             <artifactId>wlfullclient</artifactId>
             <version>10.3</version>
             <scope>test</scope>
         </dependency>
-        -->
 
     </dependencies>
 

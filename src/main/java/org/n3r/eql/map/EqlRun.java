@@ -62,12 +62,6 @@ public class EqlRun implements Cloneable {
         return connection;
     }
 
-
-    public static enum EqlType {
-        SELECT, UPDATE, INSERT, MERGE, DELETE,
-        DROP, CREATE, TRUNCATE, CALL, COMMENT, ALTER, BEGIN, DECLARE;
-    }
-
     private String runSql;
     private String printSql;
     private Object result;
@@ -268,5 +262,4 @@ public class EqlRun implements Cloneable {
     public void setPlaceHolderOutType(PlaceholderType placeHolderOutType) {
         this.placeHolderOutType = placeHolderOutType;
     }
-
 }
