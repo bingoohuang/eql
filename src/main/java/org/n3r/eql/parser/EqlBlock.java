@@ -56,8 +56,7 @@ public class EqlBlock {
     private void initEqlCache(boolean useCache, String cacheModel) {
         if (Strings.isNullOrEmpty(cacheModel) && !useCache) return;
 
-        cacheProvider = EqlCacheSettings.getCacheProvider(uniqueSqlId,
-                Objects.firstNonNull(cacheModel, EqlCacheSettings.defaultCacheModel));
+        cacheProvider = EqlCacheSettings.getCacheProvider(uniqueSqlId, cacheModel);
     }
 
     public List<Sql> getSqls() {

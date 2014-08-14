@@ -13,10 +13,10 @@ public class EqlFileGlobalSettings {
         KeyValue globalSettingKeyValue = KeyValue.parse(globalSettings);
 
         if (globalSettingKeyValue.keyStartsWith("cacheModel")) {
-            KeyValue cacheModel = globalSettingKeyValue.removeKeyPrefix("cacheModel");
-            EqlCacheSettings.processCacheModel(sqlClassPath, cacheModel);
+            KeyValue cacheModelSetting = globalSettingKeyValue.removeKeyPrefix("cacheModel");
+            EqlCacheSettings.processCacheModel(sqlClassPath, cacheModelSetting);
         } else {
-            logger.warn("global settings {} is unkown", globalSettings);
+            logger.warn("global settings {} is unknown", globalSettings);
         }
     }
 

@@ -19,6 +19,22 @@ public class EqlCacheKey {
         this.page = page;
     }
 
+    public EqlUniqueSqlId getUniqueSqlId() {
+        return uniqueSqlId;
+    }
+
+    public Object[] getParams() {
+        return params;
+    }
+
+    public Object[] getDynamics() {
+        return dynamics;
+    }
+
+    public EqlPage getPage() {
+        return page;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
