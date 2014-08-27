@@ -1,5 +1,6 @@
 package org.n3r.eql.impl;
 
+import ognl.NoSuchPropertyException;
 import ognl.Ognl;
 import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.map.EqlRun;
@@ -31,7 +32,8 @@ public class OgnlEvaluator implements ExpressionEvaluator {
         try {
             Map<String, Object> map = EqlUtils.mergeProperties(context, bean);
             return Ognl.getValue(expr, map);
-
+        } catch (NoSuchPropertyException e) {
+            return null;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

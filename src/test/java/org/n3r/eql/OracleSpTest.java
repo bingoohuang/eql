@@ -114,8 +114,8 @@ public class OracleSpTest {
         new Eqll().update("createSpEql12").execute();
         List<String> rets = new Eqll().procedure("callSpEql12").execute();
 
-        assertThat(rets.get(0), is("HELLO") );
-        assertThat(rets.get(1), is("WORLD") );
+        assertThat(rets.get(0), is("HELLO"));
+        assertThat(rets.get(1), is("WORLD"));
     }
 
     @Test
