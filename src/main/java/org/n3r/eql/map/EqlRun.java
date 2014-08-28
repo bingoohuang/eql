@@ -7,6 +7,7 @@ import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.PlaceholderType;
 import org.n3r.eql.parser.EqlBlock;
+import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +85,9 @@ public class EqlRun implements Cloneable {
     private Object[] dynamics;
     private Object paramBean;
 
+    Map<String, Object> mergedParamProperties;
+    Map<String, Object> mergedDynamicsProperties;
+
     @Override
     public EqlRun clone() {
         try {
@@ -92,7 +96,6 @@ public class EqlRun implements Cloneable {
             throw Throwables.propagate(e);
         }
     }
-
 
     public EqlConfigDecorator getEqlConfig() {
         return eqlConfig;
@@ -118,10 +121,9 @@ public class EqlRun implements Cloneable {
         return dynamics;
     }
 
-    public Object getDynamicsBean() {
+    private Object getDynamicsBean() {
         return dynamics == null || dynamics.length == 0 ? null : dynamics[0];
     }
-
 
     public void setExecutionContext(Map<String, Object> executionContext) {
         this.executionContext = executionContext;
@@ -261,5 +263,19 @@ public class EqlRun implements Cloneable {
 
     public void setPlaceHolderOutType(PlaceholderType placeHolderOutType) {
         this.placeHolderOutType = placeHolderOutType;
+    }
+
+    public Map<String, Object> getMergedParamProperties() {
+        if (mergedParamProperties != null) return mergedParamProperties;
+        mergedParamProperties = EqlUtils.mergeProperties(executionContext, getParamBean());
+
+        return mergedParamProperties;
+    }
+
+    public Map<String, Object> getMergedDynamicsProperties() {
+        if (mergedDynamicsProperties != null) return mergedDynamicsProperties;
+        mergedDynamicsProperties = EqlUtils.mergeProperties(executionContext, getDynamicsBean());
+
+        return mergedDynamicsProperties;
     }
 }

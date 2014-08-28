@@ -28,6 +28,7 @@ import java.sql.*;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unchecked")
 public class Eql {
     public static final String DEFAULT_CONN_NAME = "DEFAULT";
     public static final int STACKTRACE_DEEP_FOUR = 4;

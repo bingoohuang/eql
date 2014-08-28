@@ -74,7 +74,7 @@
         <dependency>
             <groupId>com.github.bingoohuang</groupId>
             <artifactId>diamond-client</artifactId>
-            <version>0.0.5</version>
+            <version>0.0.10</version>
             <optional>true</optional>
         </dependency>
         <dependency>

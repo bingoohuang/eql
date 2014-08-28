@@ -14,6 +14,7 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -27,6 +28,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("unchecked")
 public class EqlUtils {
     private static Pattern FIRST_WORD = Pattern.compile("\\b(\\w+)\\b");
 
@@ -548,11 +550,30 @@ public class EqlUtils {
         map.putAll(context);
 
         if (bean == null) return map;
+
         if (bean instanceof Map) {
             map.putAll((Map<String, Object>) bean);
             return map;
         }
 
+        mergeDelcaredProeprties(bean, map);
+        mergeReadProperties(bean, map);
+
+        return map;
+    }
+
+    private static void mergeDelcaredProeprties(Object bean, Map<String, Object> map) {
+        for (Field field : bean.getClass().getDeclaredFields()) {
+            try {
+                field.setAccessible(true);
+                map.put(field.getName(), field.get(bean));
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+    }
+
+    private static void mergeReadProperties(Object bean, Map<String, Object> map) {
         BeanInfo info = getBeanInfo(bean.getClass());
 
         for (PropertyDescriptor pDesc : info.getPropertyDescriptors()) {
@@ -563,8 +584,6 @@ public class EqlUtils {
             Optional<Object> value = invokeMethod(bean, method);
             if (value.isPresent()) map.put(name, value.get());
         }
-
-        return map;
     }
 
     private static Optional<Object> invokeMethod(Object bean, Method method) {

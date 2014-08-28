@@ -9,8 +9,8 @@ import org.junit.Test;
 import java.util.HashSet;
 import java.util.Set;
 
-import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class OracleSensitiveFieldsParserTest {
     String sql = "INSERT\n" +
@@ -1465,7 +1465,7 @@ public class OracleSensitiveFieldsParserTest {
     public void testPartition() {
         OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
                 .parseOracleSql(partitionSql, Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
-        Assert.assertNull(visitor);
+        assertNull(visitor);
     }
 
 }

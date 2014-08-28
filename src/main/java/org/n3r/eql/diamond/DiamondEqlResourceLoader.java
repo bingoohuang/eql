@@ -5,7 +5,7 @@ import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
-import org.n3r.diamond.client.DiamondListener;
+import org.n3r.diamond.client.DiamondListenerAdapter;
 import org.n3r.diamond.client.DiamondManager;
 import org.n3r.diamond.client.DiamondStone;
 import org.n3r.eql.base.EqlResourceLoader;
@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 
 import static org.n3r.eql.impl.EqlResourceLoaderHelper.updateBlockCache;
 import static org.n3r.eql.impl.EqlResourceLoaderHelper.updateFileCache;
@@ -63,12 +62,7 @@ public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
             public Optional<Map<String, EqlBlock>> call() throws Exception {
                 DiamondManager diamondManager = new DiamondManager("EQL", dataId);
                 String sqlContent = diamondManager.getDiamond();
-                diamondManager.addDiamondListener(new DiamondListener() {
-                    @Override
-                    public Executor getExecutor() {
-                        return null;
-                    }
-
+                diamondManager.addDiamondListener(new DiamondListenerAdapter() {
                     @Override
                     public void accept(DiamondStone diamondStone) {
                         String eql = diamondStone.getContent();
