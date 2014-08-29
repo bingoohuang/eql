@@ -12,7 +12,7 @@ import java.util.Properties;
 public class EqlPropertiesConfigFactory {
     public static EqlConfig parseEqlProperties(String key) {
         String configFile = "eql/eql-" + key + ".properties";
-        InputStream inputStream = EqlUtils.classResourceToInputStream(configFile, true);
+        InputStream inputStream = C.classResourceToInputStream(configFile, true);
         if (inputStream != null) return parseConfig(inputStream);
 
         throw new RuntimeException("no " + configFile + " found on the classpath");

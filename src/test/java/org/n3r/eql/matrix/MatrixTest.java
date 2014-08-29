@@ -7,7 +7,7 @@ import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
 import org.n3r.eql.EqlTran;
 import org.n3r.eql.Eqll;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Closes;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -63,11 +63,11 @@ public class MatrixTest {
             String name = new Mql().id("getPerson").params("a002").limit(1).execute();
             assertThat(name, is("order123"));
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             eqlTran.rollback();
             throw e;
         } finally {
-            EqlUtils.closeQuietly(eqlTran);
+            Closes.closeQuietly(eqlTran);
         }
     }
 }

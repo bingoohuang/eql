@@ -1,6 +1,6 @@
 package org.n3r.eql.config;
 
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.P;
 
 import java.io.File;
 import java.io.InputStream;
@@ -10,15 +10,15 @@ public class EqlPropertiesConfig implements EqlConfig {
     private final Properties properties;
 
     public EqlPropertiesConfig(String properties) {
-        this(EqlUtils.toProperties(properties));
+        this(P.toProperties(properties));
     }
 
     public EqlPropertiesConfig(File file) {
-        this(EqlUtils.toProperties(file));
+        this(P.toProperties(file));
     }
 
     public EqlPropertiesConfig(InputStream is) {
-        this(EqlUtils.toProperties(is));
+        this(P.toProperties(is));
     }
 
     public EqlPropertiesConfig(Properties properties) {

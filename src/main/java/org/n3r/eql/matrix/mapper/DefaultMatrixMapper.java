@@ -1,10 +1,10 @@
 package org.n3r.eql.matrix.mapper;
 
 import com.google.common.collect.Lists;
+import org.n3r.eql.matrix.RealPartition;
 import org.n3r.eql.matrix.impl.GotoRealPartition;
 import org.n3r.eql.matrix.impl.MatrixMapper;
-import org.n3r.eql.matrix.RealPartition;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import java.util.List;
 
@@ -54,7 +54,7 @@ public class DefaultMatrixMapper implements MatrixMapper {
             }
 
             String left = mapCase.substring(0, colonPos);
-            String right = EqlUtils.trimLeft(mapCase.substring(colonPos + 1));
+            String right = S.trimLeft(mapCase.substring(colonPos + 1));
 
             mapCases.add(new MapCase(left, right));
         }

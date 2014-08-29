@@ -3,7 +3,7 @@ package org.n3r.eql.trans;
 import org.n3r.eql.Eql;
 import org.n3r.eql.EqlTran;
 import org.n3r.eql.ex.EqlExecuteException;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Closes;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -70,7 +70,7 @@ public class EqlJdbcTran implements EqlTran {
      */
     @Override
     public void close() throws IOException {
-        EqlUtils.closeQuietly(connection);
+        Closes.closeQuietly(connection);
         eql.resetTran();
     }
 

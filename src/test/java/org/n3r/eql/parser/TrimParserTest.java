@@ -4,12 +4,10 @@ import com.google.common.collect.Maps;
 import org.junit.Test;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.base.ExpressionEvaluator;
-import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigDecorator;
-import org.n3r.eql.impl.DefaultEqlConfigDecorator;
 import org.n3r.eql.impl.OgnlEvaluator;
 import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.C;
 
 import java.util.List;
 import java.util.Map;
@@ -21,7 +19,7 @@ import static org.junit.Assert.assertThat;
 public class TrimParserTest {
     @Test
     public void test() {
-        String str = EqlUtils.classResourceToString("org/n3r/eql/TrimTest.eql");
+        String str = C.classResourceToString("org/n3r/eql/TrimTest.eql");
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(str);
 

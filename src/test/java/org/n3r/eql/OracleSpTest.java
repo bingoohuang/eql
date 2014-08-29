@@ -2,7 +2,7 @@ package org.n3r.eql;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Closes;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -35,7 +35,7 @@ public class OracleSpTest {
             cs.execute();
             //            System.out.println(cs.getString(2));
         } finally {
-            EqlUtils.closeQuietly(cs, connection);
+            Closes.closeQuietly(cs, connection);
         }
 
         String b = new Eqll()

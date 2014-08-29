@@ -4,7 +4,7 @@ import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.impl.EqlRsRetriever;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.param.EqlParamsBinder;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Closes;
 import org.slf4j.Logger;
 
 import java.io.Closeable;
@@ -58,13 +58,13 @@ public class ESelectStmt implements Closeable, EStmt {
     }
 
     public void closeRs() {
-        EqlUtils.closeQuietly(resultSet);
+        Closes.closeQuietly(resultSet);
         resultSet = null;
     }
 
     @Override
     public void closeStmt() {
-        EqlUtils.closeQuietly(preparedStatement);
+        Closes.closeQuietly(preparedStatement);
         preparedStatement = null;
     }
 

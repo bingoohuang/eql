@@ -1,6 +1,6 @@
 package org.n3r.eql.parser;
 
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,14 +20,14 @@ public class BlockOptionsParser {
             pos = matcher.end();
             if (option != null &&
                     (option.startsWith("\"") && !option.endsWith("\"") || !option.startsWith("\""))) {
-                int blankPos = EqlUtils.indexOfBlank(option);
+                int blankPos = S.indexOfBlank(option);
                 if (blankPos >= 0) {
                     pos = matcher.start(3) + blankPos;
                     option = option.substring(0, blankPos);
                 }
             }
 
-            options.put(key, EqlUtils.cleanQuote(option));
+            options.put(key, S.cleanQuote(option));
 
         }
         return options;

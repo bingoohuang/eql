@@ -1,7 +1,7 @@
 package org.n3r.eql.trans;
 
 import org.n3r.eql.joor.Reflect;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.T;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +33,7 @@ import java.util.*;
  * Pool.PingConnectionsNotUsedFor
  * Pool.QuietMode
  */
+@SuppressWarnings("unchecked")
 public class SimpleDataSource implements DataSource {
 
     private static final Logger log = LoggerFactory.getLogger(SimpleDataSource.class);
@@ -988,7 +989,7 @@ public class SimpleDataSource implements DataSource {
                 try {
                     return method.invoke(getValidConnection(), args);
                 } catch (Throwable t) {
-                    throw EqlUtils.unwrapThrowable(t);
+                    throw T.unwrapThrowable(t);
                 }
             }
         }

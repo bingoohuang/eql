@@ -1,9 +1,9 @@
 package org.n3r.eql;
 
 import org.n3r.eql.ex.EqlExecuteException;
-import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.param.EqlParamsBinder;
+import org.n3r.eql.util.Closes;
 import org.slf4j.Logger;
 
 import java.io.Closeable;
@@ -71,7 +71,7 @@ public class EUpdateStmt implements Closeable, EStmt {
 
     @Override
     public void closeStmt() {
-        EqlUtils.closeQuietly(preparedStatement);
+        Closes.closeQuietly(preparedStatement);
         preparedStatement = null;
     }
 

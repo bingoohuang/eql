@@ -2,12 +2,11 @@ package org.n3r.eql.dbfieldcryptor;
 
 import org.n3r.eql.DbDialect;
 import org.n3r.eql.config.EqlConfig;
-import org.n3r.eql.config.EqlConfigManager;
 import org.n3r.eql.dbfieldcryptor.parser.ParserCache;
 import org.n3r.eql.dbfieldcryptor.proxy.ConnectionHandler;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.trans.EqlConnection;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import java.sql.Connection;
 import java.util.Set;
@@ -30,7 +29,7 @@ public class EqlSecretFieldsConnectionProxy implements EqlConnection {
         threadLocal.set(eqlConfig);
 
         String secretFieldsConfigableImpl = eqlConfig.getStr(SECRET_FIELDS_CONFIGABLE_IMPL);
-        if (EqlUtils.isNotEmpty(secretFieldsConfigableImpl)) {
+        if (S.isNotEmpty(secretFieldsConfigableImpl)) {
             SecretFieldsConfigable secretFieldsConfigable = Reflect.on(secretFieldsConfigableImpl).create().get();
             Set<String> secretFieldsConfig = secretFieldsConfigable.getSecretFieldsConfig();
             if (secretFieldsConfig != null && !secretFieldsConfig.isEmpty())
@@ -38,7 +37,7 @@ public class EqlSecretFieldsConnectionProxy implements EqlConnection {
         }
 
         String sensitiveCryptorImpl = eqlConfig.getStr(SENSITIVE_CRYPTOR_IMPL);
-        if (EqlUtils.isNotEmpty(sensitiveCryptorImpl)) {
+        if (S.isNotEmpty(sensitiveCryptorImpl)) {
             sensitiveCryptor = Reflect.on(sensitiveCryptorImpl).create().get();
         }
 

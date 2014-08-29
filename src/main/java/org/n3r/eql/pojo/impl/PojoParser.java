@@ -9,8 +9,7 @@ import org.n3r.eql.pojo.annotations.EqlColumn;
 import org.n3r.eql.pojo.annotations.EqlId;
 import org.n3r.eql.pojo.annotations.EqlSkip;
 import org.n3r.eql.pojo.annotations.EqlTable;
-import org.n3r.eql.util.EqlUtils;
-import org.n3r.eql.util.Pair;
+import org.n3r.eql.util.Names;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -187,13 +186,13 @@ public class PojoParser {
     private static String parseTableName(Class<?> pojoClass) {
         EqlTable pojoClassAnnotation = pojoClass.getAnnotation(EqlTable.class);
         return (pojoClassAnnotation == null)
-                ? EqlUtils.convertCamelToUnderscore(pojoClass.getSimpleName())
+                ? Names.convertCamelToUnderscore(pojoClass.getSimpleName())
                 : pojoClassAnnotation.name();
     }
 
 
     private static String parseColumnName(Field field) {
         EqlColumn column = field.getAnnotation(EqlColumn.class);
-        return column != null ? column.name() : EqlUtils.convertCamelToUnderscore(field.getName());
+        return column != null ? column.name() : Names.convertCamelToUnderscore(field.getName());
     }
 }

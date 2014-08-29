@@ -3,11 +3,11 @@ package org.n3r.eql.parser;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.util.P;
 
 import java.io.StringWriter;
 import java.util.Map;
 
-import static org.n3r.eql.util.EqlUtils.mergeProperties;
 
 public class FreemarkerSql implements Sql {
     private final Template ftlTemplate;
@@ -25,7 +25,7 @@ public class FreemarkerSql implements Sql {
         StringWriter writer = new StringWriter();
         try {
             Map<String, Object> executionContext = eqlRun.getExecutionContext();
-            Map<String, Object> rootMap = mergeProperties(executionContext, eqlRun.getParamBean());
+            Map<String, Object> rootMap = P.mergeProperties(executionContext, eqlRun.getParamBean());
             ftlTemplate.process(rootMap, writer);
         } catch (Exception e) {
             throw new RuntimeException(e);

@@ -10,7 +10,7 @@ import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.matrix.sqlparser.MatrixSqlParserUtils;
 import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.C;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -31,7 +31,7 @@ public class Mql extends Eql {
 
     private static EqlConfig autoDetect(String connName) {
         String classPath = "eql/eql-matrix.properties";
-        if (EqlUtils.classResourceExists(classPath)) {
+        if (C.classResourceExists(classPath)) {
             return EqlConfigCache.getEqlConfig("matrix");
         }
 
@@ -48,7 +48,7 @@ public class Mql extends Eql {
 
         newExecutionContext();
         Object ret = null;
-        Connection conn = null;
+        Connection conn;
         try {
             if (directSqls.length > 0) eqlBlock = new EqlBlock();
 

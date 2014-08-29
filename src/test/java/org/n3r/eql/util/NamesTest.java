@@ -6,16 +6,16 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class EqlUtilsTest {
+public class NamesTest {
     @Test
     public void test1() {
-        String str = EqlUtils.convertUnderscoreNameToPropertyName("bean.payType");
+        String str = Names.underscoreNameToPropertyName("bean.payType");
         assertThat(str, is(equalTo("bean.paytype")));
 
-        str = EqlUtils.convertUnderscoreNameToPropertyName("bean_name");
+        str = Names.underscoreNameToPropertyName("bean_name");
         assertThat(str, is(equalTo("beanName")));
 
-        str = EqlUtils.convertUnderscoreNameToPropertyName("BEAN_NAME");
+        str = Names.underscoreNameToPropertyName("BEAN_NAME");
         assertThat(str, is(equalTo("beanName")));
     }
 }

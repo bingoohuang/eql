@@ -4,7 +4,8 @@ import com.google.common.base.Objects;
 import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Names;
+import org.n3r.eql.util.S;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -73,14 +74,14 @@ public class EqlParamsBinder {
     private void setParamExtra(EqlParamPlaceholder placeHolder, int index, Object value) throws SQLException {
         if (value instanceof Date) {
             Timestamp date = new Timestamp(((Date) value).getTime());
-            boundParams.append('[').append(EqlUtils.toDateTimeStr(date)).append(']');
+            boundParams.append('[').append(S.toDateTimeStr(date)).append(']');
             eqlRun.addRealParam(index + 1, date);
         } else {
             Object paramValue = value;
-            if (placeHolder != null  && value instanceof String) {
-                String strValue = (String)value;
+            if (placeHolder != null && value instanceof String) {
+                String strValue = (String) value;
                 if (placeHolder.isLob()) {
-                    paramValue = EqlUtils.toBytes(strValue);
+                    paramValue = S.toBytes(strValue);
                 } else if (placeHolder.getLike() == EqlParamPlaceholder.Like.Like) {
                     paramValue = tryAddLeftAndRightPercent(strValue);
                 } else if (placeHolder.getLike() == EqlParamPlaceholder.Like.RightLike) {
@@ -115,7 +116,7 @@ public class EqlParamsBinder {
 
     private boolean regiesterOut(int index) throws SQLException {
         EqlParamPlaceholder.InOut inOut = eqlRun.getPlaceHolders()[index].getInOut();
-        if (EqlUtils.isProcedure(eqlRun.getSqlType()) && inOut != EqlParamPlaceholder.InOut.IN) {
+        if (eqlRun.getSqlType().isProcedure() && inOut != EqlParamPlaceholder.InOut.IN) {
             // ((CallableStatement) ps).registerOutParameter(index + 1, Types.VARCHAR);
             eqlRun.registerOutParameter(index + 1, Types.VARCHAR);
         }
@@ -132,14 +133,14 @@ public class EqlParamsBinder {
 
         if (property != null) return property;
 
-        String propertyName = EqlUtils.convertUnderscoreNameToPropertyName(varName);
+        String propertyName = Names.underscoreNameToPropertyName(varName);
         return Objects.equal(propertyName, varName) ? property : evaluator.eval(propertyName, eqlRun);
     }
 
 
     private Object getParamByIndex(int index) {
         EqlParamPlaceholder[] placeHolders = eqlRun.getPlaceHolders();
-        if (index < placeHolders.length && EqlUtils.isProcedure(eqlRun.getSqlType())
+        if (index < placeHolders.length && eqlRun.getSqlType().isProcedure()
                 && placeHolders[index].getInOut() == EqlParamPlaceholder.InOut.OUT) return null;
 
         Object[] params = eqlRun.getParams();

@@ -2,7 +2,7 @@ package org.n3r.eql.dbfieldcryptor.proxy;
 
 import org.n3r.eql.dbfieldcryptor.SensitiveCryptor;
 import org.n3r.eql.dbfieldcryptor.parser.SensitiveFieldsParser;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.O;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,7 @@ class CallableStmtHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if (EqlUtils.in(method.getName(), "setString", "setObject")
+        if (O.in(method.getName(), "setString", "setObject")
                 && parser.inBindIndice((Integer) args[0])) {
             try {
                 args[1] = args[1] == null ? null : cryptor.encrypt(args[1].toString());
@@ -37,7 +37,7 @@ class CallableStmtHandler implements InvocationHandler {
             return method.invoke(stmt, args);
         }
 
-        if (EqlUtils.in(method.getName(), "getString", "getObject")
+        if (O.in(method.getName(), "getString", "getObject")
                 && parser.inBindIndice((Integer) args[0])) {
             try {
                 Object result = method.invoke(stmt, args);

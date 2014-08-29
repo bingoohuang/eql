@@ -4,7 +4,7 @@ import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.dbfieldcryptor.EqlSecretFieldsConnectionProxy;
 import org.n3r.eql.dbfieldcryptor.SensitiveCryptor;
 import org.n3r.eql.dbfieldcryptor.refer.aes.AesCryptor;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 public class ReferSensitiveCryptor implements SensitiveCryptor {
     private AesCryptor aesCryptor;
@@ -14,7 +14,7 @@ public class ReferSensitiveCryptor implements SensitiveCryptor {
         if (eqlConfig == null) return;
 
         String password = eqlConfig.getStr("securetDatabaseFields.password");
-        if (EqlUtils.isBlank(password)) return;
+        if (S.isBlank(password)) return;
 
         this.aesCryptor = new AesCryptor(password);
     }

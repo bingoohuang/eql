@@ -8,12 +8,11 @@ import org.apache.commons.io.Charsets;
 import org.n3r.eql.Eql;
 import org.n3r.eql.EqlPage;
 import org.n3r.eql.config.EqlConfig;
-import org.n3r.eql.config.EqlConfigCache;
 import org.n3r.eql.impl.DefaultDynamicLanguageDriver;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.parser.EqlBlockParser;
 import org.n3r.eql.pojo.impl.PojoParser;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.P;
 
 import java.util.Arrays;
 import java.util.List;
@@ -64,7 +63,7 @@ public class Pql extends Eql {
             params.put(PojoParser.PREFIX_FLAG + includeProperty, "TAG");
         }
 
-        Map<String, Object> mergeProperties = EqlUtils.mergeProperties(params, pojo);
+        Map<String, Object> mergeProperties = P.mergeProperties(params, pojo);
 
         return super.id(sqlid).params(mergeProperties).execute();
     }

@@ -4,8 +4,8 @@ import org.n3r.eql.base.AfterPropertiesSet;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.map.*;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Rs;
+import org.n3r.eql.util.S;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -29,7 +29,7 @@ public class EqlRsRetriever {
         if (!rs.next()) return null;
 
         if (rs.getMetaData().getColumnCount() == 1)
-            return convertSingleValue(EqlUtils.getResultSetValue(rs, 1));
+            return convertSingleValue(Rs.getResultSetValue(rs, 1));
 
         return rowBeanCreate(rs, 1);
     }
@@ -93,7 +93,7 @@ public class EqlRsRetriever {
         if (returnType == null && returnTypeName == null) return value;
 
         if ("string".equalsIgnoreCase(returnTypeName)) {
-            if (value instanceof byte[]) return EqlUtils.bytesToStr((byte[]) value);
+            if (value instanceof byte[]) return S.bytesToStr((byte[]) value);
 
             return String.valueOf(value);
         }

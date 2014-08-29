@@ -10,7 +10,7 @@ import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.map.EqlType;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +57,7 @@ public class EqlParamsParser {
     }
 
     private void parseParams() {
-        EqlType eqlType = EqlUtils.parseSqlType(templateSql);
+        EqlType eqlType = EqlType.parseSqlType(templateSql);
         result.setSqlType(eqlType);
 
         Matcher matcher = PARAM_PATTERN.matcher(templateSql);
@@ -181,7 +181,7 @@ public class EqlParamsParser {
         // 计算当前#?#是第几个
         int valuePos = rawSql.toUpperCase().indexOf("VALUES");
 
-        String valuesPart = EqlUtils.substrInQuotes(rawSql, '(', valuePos + "VALUES".length());
+        String valuesPart = S.substrInQuotes(rawSql, '(', valuePos + "VALUES".length());
         int leftBracketPos = rawSql.indexOf('(', valuePos + "VALUES".length());
         String parseLeft = rawSql.substring(leftBracketPos + 1, endPos);
 
@@ -216,7 +216,7 @@ public class EqlParamsParser {
             paramPlaceholder.setOption(placeHolderOption);
 
             if (placeHolder.length() == 0) paramPlaceholder.setPlaceholderType(PlaceholderType.AUTO_SEQ);
-            else if (EqlUtils.isInteger(placeHolder)) {
+            else if (S.isInteger(placeHolder)) {
                 paramPlaceholder.setPlaceholderType(PlaceholderType.MANU_SEQ);
                 paramPlaceholder.setSeq(Integer.parseInt(placeHolder, 10));
             } else paramPlaceholder.setPlaceholderType(PlaceholderType.VAR_NAME);

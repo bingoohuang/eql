@@ -7,15 +7,14 @@ import org.n3r.eql.matrix.impl.MatrixFunction;
 import org.n3r.eql.matrix.impl.MatrixMapper;
 import org.n3r.eql.matrix.impl.MatrixRule;
 import org.n3r.eql.matrix.impl.MatrixTableField;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.C;
+import org.n3r.eql.util.S;
 
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.n3r.eql.util.EqlUtils.isBlank;
-import static org.n3r.eql.util.EqlUtils.trimToEmpty;
-
+@SuppressWarnings("unchecked")
 public class RuleParser {
     public RulesSet parse(String ruleSpec) {
         Iterable<String> lines = Splitter.on('\n').trimResults().split(ruleSpec);
@@ -52,7 +51,7 @@ public class RuleParser {
     private void parseRule(RulesSet rulesSet, String line) {
         MatrixRule matrixRule = new MatrixRule();
 
-        String remain = trimToEmpty(line);
+        String remain = S.trimToEmpty(line);
         remain = parseRuleNo(rulesSet, matrixRule, remain);
         remain = parseFunction(rulesSet, matrixRule, remain);
         parseMapper(rulesSet, matrixRule, remain);
@@ -74,8 +73,8 @@ public class RuleParser {
 
         MatrixMapper mapper = createMatrixMapper(mapClass);
 
-        String mapperParamsStr = trimToEmpty(matcher.group(2));
-        if (isBlank(mapperParamsStr)) throw new RuntimeException("mapper is invalid ");
+        String mapperParamsStr = S.trimToEmpty(matcher.group(2));
+        if (S.isBlank(mapperParamsStr)) throw new RuntimeException("mapper is invalid ");
 
         List<String> mapperParams = Splitter.on(',').omitEmptyStrings().trimResults().splitToList(mapperParamsStr);
         mapper.config(mapperParams);
@@ -95,8 +94,8 @@ public class RuleParser {
         Class<? extends MatrixFunction> funcClass = rulesSet.getFunctionAlias(funcAlias);
         if (funcClass == null) throw new RuntimeException("function is unknown");
 
-        String funcParams = trimToEmpty(matcher.group(2));
-        if (isBlank(funcParams)) throw new RuntimeException("function should have parameters");
+        String funcParams = S.trimToEmpty(matcher.group(2));
+        if (S.isBlank(funcParams)) throw new RuntimeException("function should have parameters");
 
         MatrixFunction func = createMatrixFunction(funcClass);
 
@@ -115,7 +114,7 @@ public class RuleParser {
 
         matrixRule.function = func;
 
-        return trimToEmpty(remain.substring(matcher.end()));
+        return S.trimToEmpty(remain.substring(matcher.end()));
     }
 
     private int parseFunctionRelativeTableFields(MatrixFunction func, List<String> params, List<MatrixTableField> fields) {
@@ -154,7 +153,7 @@ public class RuleParser {
         matrixRule.ruleNo = ruleNo;
 
         // parse function
-        return trimToEmpty(remain.substring(matcher.end()));
+        return S.trimToEmpty(remain.substring(matcher.end()));
     }
 
     private MatrixMapper createMatrixMapper(Class<? extends MatrixMapper> mapClass) {
@@ -177,12 +176,12 @@ public class RuleParser {
 
     private void parseAlias(RulesSet rulesSet, String line) {
         String map = line.substring("alias".length());
-        String alias = trimToEmpty(map);
+        String alias = S.trimToEmpty(map);
         if (StringUtils.isEmpty(alias) || !alias.startsWith("(") || !alias.endsWith(")")) {
             throw new RuntimeException("alias required format: alias(shortName, FQCN)");
         }
 
-        alias = trimToEmpty(alias.substring(1, alias.length() - 1));
+        alias = S.trimToEmpty(alias.substring(1, alias.length() - 1));
         if (StringUtils.isEmpty(alias)) {
             throw new RuntimeException("alias required format: alias(shortName, FQCN)");
         }
@@ -192,8 +191,8 @@ public class RuleParser {
             throw new RuntimeException("alias required format: alias(shortName, FQCN)");
         }
 
-        String aliasName = trimToEmpty(alias.substring(0, commaPos));
-        String fullName = trimToEmpty(alias.substring(commaPos + 1));
+        String aliasName = S.trimToEmpty(alias.substring(0, commaPos));
+        String fullName = S.trimToEmpty(alias.substring(commaPos + 1));
 
         if (!aliasPattern.matcher(aliasName).matches()) {
             throw new RuntimeException("alias short name is invalid");
@@ -207,12 +206,11 @@ public class RuleParser {
         rulesSet.addAlias(aliasName, fullClass);
     }
 
-    @SuppressWarnings("checked")
     private Class<? extends MatrixFunction> getFullClass(String fullName) {
         if (StringUtils.isEmpty(fullName)) return null;
 
         try {
-            return (Class<? extends MatrixFunction>) Class.forName(fullName, false, EqlUtils.getClassLoader());
+            return (Class<? extends MatrixFunction>) Class.forName(fullName, false, C.getClassLoader());
         } catch (ClassNotFoundException e) {
             return null;
         }

@@ -1,7 +1,7 @@
 package org.n3r.eql.dbfieldcryptor.refer.aes;
 
 import com.google.common.base.Throwables;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -39,7 +39,7 @@ public class AesCryptor extends BaseCryptor {
 
     private void initCipher() {
         try {
-            final byte[] rawkey = EqlUtils.alignRight(getKey(), 16, 'L').getBytes("UTF-8");
+            final byte[] rawkey = S.alignRight(getKey(), 16, 'L').getBytes("UTF-8");
             SecretKeySpec key1 = new SecretKeySpec(rawkey, "AES");
             encryptCipher = Cipher.getInstance("AES");
             encryptCipher.init(Cipher.ENCRYPT_MODE, key1);

@@ -19,8 +19,7 @@ import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.map.EqlType;
 import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.util.EqlUtils;
-import org.n3r.eql.util.HostAddress;
+import org.n3r.eql.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -300,7 +299,7 @@ public class Eql {
     protected void checkPreconditions(String... directSqls) {
         if (eqlBlock != null || directSqls.length > 0) return;
 
-        if (EqlUtils.isBlank(defaultSqlId)) throw new EqlExecuteException("No sqlid defined!");
+        if (S.isBlank(defaultSqlId)) throw new EqlExecuteException("No sqlid defined!");
 
         initSqlId(defaultSqlId, STACKTRACE_DEEP_FIVE);
     }
@@ -325,7 +324,7 @@ public class Eql {
         } catch (SQLException ex) {
             throw new EqlExecuteException(ex);
         } finally {
-            EqlUtils.closeQuietly(stmt);
+            Closes.closeQuietly(stmt);
         }
     }
 
@@ -383,7 +382,7 @@ public class Eql {
             stmt.params(params);
             stmt.setEqlTran(externalTran != null ? externalTran : internalTran);
         } catch (Exception ex) {
-            EqlUtils.closeQuietly(ps);
+            Closes.closeQuietly(ps);
             throw new EqlExecuteException(ex);
         }
     }
@@ -402,13 +401,13 @@ public class Eql {
                 return rsRetriever.convert(rs, currRun);
             }
 
-            if (EqlUtils.isProcedure(currRun.getSqlType()))
+            if (currRun.getSqlType().isProcedure())
                 return new EqlProc(currRun, rsRetriever).dealProcedure(ps);
 
             return ps.executeUpdate();
 
         } finally {
-            EqlUtils.closeQuietly(rs, ps);
+            Closes.closeQuietly(rs, ps);
         }
     }
 
@@ -418,7 +417,7 @@ public class Eql {
 
     public PreparedStatement prepareSql(EqlRun eqlRun) throws SQLException {
         logger.debug("prepare sql {}: {} ", getSqlId(), eqlRun.getPrintSql());
-        return EqlUtils.isProcedure(eqlRun.getSqlType())
+        return eqlRun.getSqlType().isProcedure()
                 ? eqlRun.getConnection().prepareCall(eqlRun.getRunSql())
                 : eqlRun.getConnection().prepareStatement(eqlRun.getRunSql());
     }
@@ -440,7 +439,7 @@ public class Eql {
 
     protected void initSqlId(String sqlId, int level) {
         this.sqlClassPath = Strings.isNullOrEmpty(sqlClassPath)
-                ? EqlUtils.getSqlClassPath(level) : sqlClassPath;
+                ? C.getSqlClassPath(level) : sqlClassPath;
 
         eqlBlock = eqlConfig.getSqlResourceLoader()
                 .loadEqlBlock(this.sqlClassPath, sqlId);
@@ -523,7 +522,7 @@ public class Eql {
     }
 
     private void tranClose() {
-        if (internalTran != null) EqlUtils.closeQuietly(internalTran);
+        if (internalTran != null) Closes.closeQuietly(internalTran);
 
         internalTran = null;
     }

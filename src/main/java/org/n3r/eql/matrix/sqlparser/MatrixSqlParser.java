@@ -9,7 +9,7 @@ import com.alibaba.druid.sql.parser.SQLStatementParser;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.matrix.RuleParser;
 import org.n3r.eql.matrix.RulesSet;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import java.util.List;
 
@@ -48,8 +48,8 @@ public class MatrixSqlParser {
 
         String groupDataId = rules.substring("diamond:".length());
         int commaPos = groupDataId.indexOf(',');
-        String group = EqlUtils.trimToEmpty(groupDataId.substring(0, commaPos));
-        String dataId = EqlUtils.trimToEmpty(groupDataId.substring(commaPos + 1));
+        String group = S.trimToEmpty(groupDataId.substring(0, commaPos));
+        String dataId = S.trimToEmpty(groupDataId.substring(commaPos + 1));
 
         return org.n3r.diamond.client.DiamondMiner.getStone(group, dataId);
     }

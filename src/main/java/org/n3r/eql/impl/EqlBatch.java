@@ -5,8 +5,7 @@ import com.google.common.collect.Maps;
 import org.n3r.eql.Eql;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.param.EqlParamsBinder;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Closes;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -79,7 +78,7 @@ public class EqlBatch {
 
     public void cleanupBatch() {
         for (PreparedStatement ps : batchedPs)
-            EqlUtils.closeQuietly(ps);
+            Closes.closeQuietly(ps);
 
         batchedPs.clear();
     }

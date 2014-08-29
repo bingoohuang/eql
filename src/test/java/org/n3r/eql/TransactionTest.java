@@ -3,7 +3,7 @@ package org.n3r.eql;
 import com.google.common.base.Throwables;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Closes;
 
 import java.sql.Timestamp;
 
@@ -53,12 +53,11 @@ public class TransactionTest {
                     .execute();
 
             tran.rollback();
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             tran.rollback();
             Throwables.propagate(ex);
         } finally {
-            EqlUtils.closeQuietly(tran);
+            Closes.closeQuietly(tran);
         }
     }
 
@@ -72,12 +71,11 @@ public class TransactionTest {
                     .execute();
 
             tran.commit();
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             tran.rollback();
             Throwables.propagate(ex);
         } finally {
-            EqlUtils.closeQuietly(tran);
+            Closes.closeQuietly(tran);
         }
     }
 }

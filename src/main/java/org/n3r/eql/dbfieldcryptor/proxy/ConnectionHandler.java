@@ -4,7 +4,7 @@ import org.n3r.eql.DbDialect;
 import org.n3r.eql.dbfieldcryptor.SensitiveCryptor;
 import org.n3r.eql.dbfieldcryptor.parser.ParserCache;
 import org.n3r.eql.dbfieldcryptor.parser.SensitiveFieldsParser;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.O;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -30,7 +30,7 @@ public class ConnectionHandler implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         SensitiveFieldsParser parser = null;
         String methodName = method.getName();
-        if (EqlUtils.in(methodName, "prepareStatement", "prepareCall")) {
+        if (O.in(methodName, "prepareStatement", "prepareCall")) {
             String sql = (String) args[0];
             parser = parserCache.getParser(dbDialect, sql);
             if (parser != null) args[0] = parser.getSql();

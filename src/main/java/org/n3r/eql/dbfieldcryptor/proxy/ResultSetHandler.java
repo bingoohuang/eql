@@ -1,16 +1,16 @@
 package org.n3r.eql.dbfieldcryptor.proxy;
 
+import org.n3r.eql.dbfieldcryptor.SensitiveCryptor;
+import org.n3r.eql.dbfieldcryptor.parser.SensitiveFieldsParser;
+import org.n3r.eql.util.O;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import org.n3r.eql.dbfieldcryptor.SensitiveCryptor;
-import org.n3r.eql.dbfieldcryptor.parser.SensitiveFieldsParser;
-import org.n3r.eql.util.EqlUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ResultSetHandler implements InvocationHandler {
     private Logger logger = LoggerFactory.getLogger(ResultSetHandler.class);
@@ -30,7 +30,7 @@ public class ResultSetHandler implements InvocationHandler {
         Object result = method.invoke(resultSet, args);
         if (result == null) return null;
 
-        if (EqlUtils.in(method.getName(), "getString", "getObject")
+        if (O.in(method.getName(), "getString", "getObject")
                 && parser.inResultIndiceOrLabel(args[0])) {
             try {
                 result = cryptor.decrypt(result.toString());

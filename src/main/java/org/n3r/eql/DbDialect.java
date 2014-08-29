@@ -3,6 +3,7 @@ package org.n3r.eql;
 import org.n3r.eql.ex.EqlException;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -43,10 +44,10 @@ public class DbDialect {
 
 
     private String tryParseDatabaseId() {
-        if (EqlUtils.containsIgnoreCase(driverName, "oracle")) return "oracle";
-        if (EqlUtils.containsIgnoreCase(driverName, "mysql")) return "mysql";
-        if (EqlUtils.containsIgnoreCase(driverName, "h2")) return "h2";
-        if (EqlUtils.containsIgnoreCase(driverName, "db2")) return "db2";
+        if (S.containsIgnoreCase(driverName, "oracle")) return "oracle";
+        if (S.containsIgnoreCase(driverName, "mysql")) return "mysql";
+        if (S.containsIgnoreCase(driverName, "h2")) return "h2";
+        if (S.containsIgnoreCase(driverName, "db2")) return "db2";
 
         return driverName;
     }

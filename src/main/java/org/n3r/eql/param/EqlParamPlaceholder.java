@@ -1,7 +1,7 @@
 package org.n3r.eql.param;
 
 import com.google.common.base.Splitter;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 public class EqlParamPlaceholder {
     private boolean lob;
@@ -57,12 +57,12 @@ public class EqlParamPlaceholder {
         this.option = placeHolderOption;
         Iterable<String> optionParts = Splitter.on(',').omitEmptyStrings().trimResults().split(this.option);
         for (String optionPart : optionParts) {
-            if (EqlUtils.equalsIgnoreCase("OUT", optionPart)) setInOut(InOut.OUT);
-            else if (EqlUtils.equalsIgnoreCase("INOUT", optionPart)) setInOut(InOut.INOUT);
-            else if (EqlUtils.equalsIgnoreCase("LOB", optionPart)) setLob(true);
-            else if (EqlUtils.equalsIgnoreCase("Like", optionPart)) setLike(Like.Like);
-            else if (EqlUtils.equalsIgnoreCase("LeftLike", optionPart)) setLike(Like.LeftLike);
-            else if (EqlUtils.equalsIgnoreCase("RightLike", optionPart)) setLike(Like.RightLike);
+            if (S.equalsIgnoreCase("OUT", optionPart)) setInOut(InOut.OUT);
+            else if (S.equalsIgnoreCase("INOUT", optionPart)) setInOut(InOut.INOUT);
+            else if (S.equalsIgnoreCase("LOB", optionPart)) setLob(true);
+            else if (S.equalsIgnoreCase("Like", optionPart)) setLike(Like.Like);
+            else if (S.equalsIgnoreCase("LeftLike", optionPart)) setLike(Like.LeftLike);
+            else if (S.equalsIgnoreCase("RightLike", optionPart)) setLike(Like.RightLike);
         }
     }
 

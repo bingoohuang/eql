@@ -5,7 +5,7 @@ import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlDynamic;
 import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Names;
 
 import java.util.List;
 
@@ -64,7 +64,7 @@ public class DynamicReplacer {
         Object property = evaluator.evalDynamic(varName, eqlRun);
         if (property != null) return property;
 
-        String propertyName = EqlUtils.convertUnderscoreNameToPropertyName(varName);
+        String propertyName = Names.underscoreNameToPropertyName(varName);
         if (!Objects.equal(propertyName, varName))
             property = evaluator.evalDynamic(propertyName, eqlRun);
 

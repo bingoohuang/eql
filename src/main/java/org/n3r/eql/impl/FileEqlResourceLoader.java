@@ -7,7 +7,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,7 @@ public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
         valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
             @Override
             public Optional<Map<String, EqlBlock>> call() throws Exception {
-                String sqlContent = EqlUtils.classResourceToString(sqlClassPath);
+                String sqlContent = C.classResourceToString(sqlClassPath);
                 if (sqlContent == null) {
                     log.warn("classpath sql {} not found", sqlClassPath);
                     return Optional.absent();

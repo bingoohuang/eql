@@ -3,6 +3,7 @@ package org.n3r.eql;
 import com.google.common.collect.Maps;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.n3r.eql.util.C;
 import org.n3r.eql.util.EqlUtils;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class MyCatTest {
     @Test
     public void testMaxIn() {
         Map<String, Object> map = Maps.newHashMap();
-        List<String> list = EqlUtils.classResourceToLines("order_no1.txt");
+        List<String> list = C.classResourceToLines("order_no1.txt");
         map.put("list", list);
 
         long rows = new Eql("mycat").selectFirst("testMaxIn").params(map).execute();

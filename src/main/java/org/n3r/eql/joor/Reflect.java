@@ -35,13 +35,10 @@
  */
 package org.n3r.eql.joor;
 
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
+import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.O;
+
+import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -49,11 +46,11 @@ import java.util.Map;
 /**
  * A wrapper for an {@link Object} or {@link Class} upon which reflective calls
  * can be made.
- * <p>
+ * <p/>
  * An example of using <code>Reflect</code> is <code><pre>
  * // Static import all reflection methods to decrease verbosity
  * import static org.joor.Reflect.*;
- *
+ * <p/>
  * // Wrap an Object / Class / class name with the on() method:
  * on("java.lang.String")
  * // Invoke constructors using the create() method:
@@ -64,6 +61,8 @@ import java.util.Map;
  *
  * @author Lukas Eder
  */
+
+@SuppressWarnings("unchecked")
 public class Reflect {
 
     // ---------------------------------------------------------------------
@@ -72,7 +71,7 @@ public class Reflect {
 
     /**
      * Wrap a class name.
-     * <p>
+     * <p/>
      * This is the same as calling <code>on(Class.forName(name))</code>
      *
      * @param name A fully qualified class name
@@ -86,7 +85,7 @@ public class Reflect {
 
     /**
      * Wrap a class.
-     * <p>
+     * <p/>
      * Use this when you want to access static fields and methods on a
      * {@link Class} object, or as a basis for constructing objects of that
      * class using {@link #create(Object...)}
@@ -100,7 +99,7 @@ public class Reflect {
 
     /**
      * Wrap an object.
-     * <p>
+     * <p/>
      * Use this when you want to access instance fields and methods on any
      * {@link Object}
      *
@@ -136,7 +135,7 @@ public class Reflect {
     /**
      * The wrapped object
      */
-    private final Object  object;
+    private final Object object;
 
     /**
      * A flag indicating whether the wrapped object is a {@link Class} (for
@@ -175,13 +174,13 @@ public class Reflect {
 
     /**
      * Set a field value.
-     * <p>
+     * <p/>
      * This is roughly equivalent to {@link java.lang.reflect.Field#set(Object, Object)}. If the
      * wrapped object is a {@link Class}, then this will set a value to a static
      * member field. If the wrapped object is any other {@link Object}, then
      * this will set a value to an instance member field.
      *
-     * @param name The field name
+     * @param name  The field name
      * @param value The new field value
      * @return The same wrapped object, to be used for further reflection.
      * @throws ReflectException If any reflection exception occurred.
@@ -193,15 +192,13 @@ public class Reflect {
             Field field = type().getField(name);
             field.set(object, unwrap(value));
             return this;
-        }
-        catch (Exception e1) {
+        } catch (Exception e1) {
 
             // Try again, setting a non-public field
             try {
                 accessible(type().getDeclaredField(name)).set(object, unwrap(value));
                 return this;
-            }
-            catch (Exception e2) {
+            } catch (Exception e2) {
                 throw new ReflectException(e2);
             }
         }
@@ -209,12 +206,12 @@ public class Reflect {
 
     /**
      * Get a field value.
-     * <p>
+     * <p/>
      * This is roughly equivalent to {@link java.lang.reflect.Field#get(Object)}. If the wrapped
      * object is a {@link Class}, then this will get a value from a static
      * member field. If the wrapped object is any other {@link Object}, then
      * this will get a value from an instance member field.
-     * <p>
+     * <p/>
      * If you want to "navigate" to a wrapped version of the field, use
      * {@link #field(String)} instead.
      *
@@ -229,7 +226,7 @@ public class Reflect {
 
     /**
      * Get a wrapped field.
-     * <p>
+     * <p/>
      * This is roughly equivalent to {@link java.lang.reflect.Field#get(Object)}. If the wrapped
      * object is a {@link Class}, then this will wrap a static member field. If
      * the wrapped object is any other {@link Object}, then this wrap an
@@ -242,17 +239,15 @@ public class Reflect {
     public Reflect field(String name) throws ReflectException {
         try {
 
-             // Try getting a public field
+            // Try getting a public field
             Field field = type().getField(name);
             return on(field.get(object));
-        }
-        catch (Exception e1) {
+        } catch (Exception e1) {
 
             // Try again, getting a non-public field
             try {
                 return on(accessible(type().getDeclaredField(name)).get(object));
-            }
-            catch (Exception e2) {
+            } catch (Exception e2) {
                 throw new ReflectException(e2);
             }
         }
@@ -261,11 +256,11 @@ public class Reflect {
     /**
      * Get a Map containing field names and wrapped values for the fields'
      * values.
-     * <p>
+     * <p/>
      * If the wrapped object is a {@link Class}, then this will return static
      * fields. If the wrapped object is any other {@link Object}, then this will
      * return instance fields.
-     * <p>
+     * <p/>
      * These two calls are equivalent <code><pre>
      * on(object).field("myField");
      * on(object).fields().get("myField");
@@ -288,14 +283,14 @@ public class Reflect {
 
     /**
      * Call a method by its name.
-     * <p>
+     * <p/>
      * This is a convenience method for calling
      * <code>call(name, new Object[0])</code>
      *
      * @param name The method name
      * @return The wrapped method result or the same wrapped object if the
-     *         method returns <code>void</code>, to be used for further
-     *         reflection.
+     * method returns <code>void</code>, to be used for further
+     * reflection.
      * @throws ReflectException If any reflection exception occurred.
      * @see #call(String, Object...)
      */
@@ -305,12 +300,12 @@ public class Reflect {
 
     /**
      * Call a method by its name.
-     * <p>
+     * <p/>
      * This is roughly equivalent to {@link java.lang.reflect.Method#invoke(Object, Object...)}.
      * If the wrapped object is a {@link Class}, then this will invoke a static
      * method. If the wrapped object is any other {@link Object}, then this will
      * invoke an instance method.
-     * <p>
+     * <p/>
      * Just like {@link java.lang.reflect.Method#invoke(Object, Object...)}, this will try to wrap
      * primitive types or unwrap primitive type wrappers if applicable. If
      * several methods are applicable, by that rule, the first one encountered
@@ -324,7 +319,7 @@ public class Reflect {
      * public void method(Number param1, Object param2);
      * public void method(int param1, Object param2);
      * </pre></code>
-     * <p>
+     * <p/>
      * The best matching method is searched for with the following strategy:
      * <ol>
      * <li>public method with exact signature match in class hierarchy</li>
@@ -336,8 +331,8 @@ public class Reflect {
      * @param name The method name
      * @param args The method arguments
      * @return The wrapped method result or the same wrapped object if the
-     *         method returns <code>void</code>, to be used for further
-     *         reflection.
+     * method returns <code>void</code>, to be used for further
+     * reflection.
      * @throws ReflectException If any reflection exception occurred.
      */
     public Reflect call(String name, Object... args) throws ReflectException {
@@ -364,7 +359,7 @@ public class Reflect {
 
     /**
      * Searches a method with the exact same signature as desired.
-     * <p>
+     * <p/>
      * If a public method is found in the class hierarchy, this method is returned.
      * Otherwise a private method with the exact same signature is returned.
      * If no exact match could be found, we let the {@code NoSuchMethodException} pass through.
@@ -386,7 +381,7 @@ public class Reflect {
     /**
      * Searches a method with a similar signature as desired using
      * {@link #isSimilarSignature(java.lang.reflect.Method, String, Class[])}.
-     * <p>
+     * <p/>
      * First public methods are searched in the class hierarchy, then private
      * methods on the declaring class. If a method could be found, it is
      * returned, otherwise a {@code NoSuchMethodException} is thrown.
@@ -422,7 +417,7 @@ public class Reflect {
 
     /**
      * Call a constructor.
-     * <p>
+     * <p/>
      * This is a convenience method for calling
      * <code>create(new Object[0])</code>
      *
@@ -436,12 +431,12 @@ public class Reflect {
 
     /**
      * Call a constructor.
-     * <p>
+     * <p/>
      * This is roughly equivalent to {@link java.lang.reflect.Constructor#newInstance(Object...)}.
      * If the wrapped object is a {@link Class}, then this will create a new
      * object of that class. If the wrapped object is any other {@link Object},
      * then this will create a new object of the same type.
-     * <p>
+     * <p/>
      * Just like {@link java.lang.reflect.Constructor#newInstance(Object...)}, this will try to
      * wrap primitive types or unwrap primitive type wrappers if applicable. If
      * several constructors are applicable, by that rule, the first one
@@ -479,9 +474,15 @@ public class Reflect {
                 }
             }
 
+            Class<?> type = type();
+            Object o = O.createInstanceByObjenesis(type);
+            if (o != null) return on(o);
+
+
             throw new ReflectException(e);
         }
     }
+
 
     /**
      * Create a proxy for the wrapped object allowing to typesafely invoke
@@ -512,11 +513,9 @@ public class Reflect {
 
                         if (length == 0 && name.startsWith("get")) {
                             return map.get(property(name.substring(3)));
-                        }
-                        else if (length == 0 && name.startsWith("is")) {
+                        } else if (length == 0 && name.startsWith("is")) {
                             return map.get(property(name.substring(2)));
-                        }
-                        else if (length == 1 && name.startsWith("set")) {
+                        } else if (length == 1 && name.startsWith("set")) {
                             map.put(property(name.substring(3)), args[0]);
                             return null;
                         }
@@ -527,7 +526,7 @@ public class Reflect {
             }
         };
 
-        return (P) Proxy.newProxyInstance(proxyType.getClassLoader(), new Class[] { proxyType }, handler);
+        return (P) Proxy.newProxyInstance(proxyType.getClassLoader(), new Class[]{proxyType}, handler);
     }
 
     /**
@@ -538,11 +537,9 @@ public class Reflect {
 
         if (length == 0) {
             return "";
-        }
-        else if (length == 1) {
+        } else if (length == 1) {
             return string.toLowerCase();
-        }
-        else {
+        } else {
             return string.substring(0, 1).toLowerCase() + string.substring(1);
         }
     }
@@ -564,8 +561,7 @@ public class Reflect {
             }
 
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -608,8 +604,7 @@ public class Reflect {
     private static Reflect on(Constructor<?> constructor, Object... args) throws ReflectException {
         try {
             return on(accessible(constructor).newInstance(args));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new ReflectException(e);
         }
     }
@@ -624,12 +619,10 @@ public class Reflect {
             if (method.getReturnType() == void.class) {
                 method.invoke(object, args);
                 return on(object);
-            }
-            else {
+            } else {
                 return on(method.invoke(object, args));
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new ReflectException(e);
         }
     }
@@ -673,8 +666,7 @@ public class Reflect {
     private static Class<?> forName(String name) throws ReflectException {
         try {
             return Class.forName(name);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new ReflectException(e);
         }
     }
@@ -687,8 +679,7 @@ public class Reflect {
     public Class<?> type() {
         if (isClass) {
             return (Class<?>) object;
-        }
-        else {
+        } else {
             return object.getClass();
         }
     }
@@ -700,33 +691,24 @@ public class Reflect {
     public static Class<?> wrapper(Class<?> type) {
         if (type == null) {
             return null;
-        }
-        else if (type.isPrimitive()) {
+        } else if (type.isPrimitive()) {
             if (boolean.class == type) {
                 return Boolean.class;
-            }
-            else if (int.class == type) {
+            } else if (int.class == type) {
                 return Integer.class;
-            }
-            else if (long.class == type) {
+            } else if (long.class == type) {
                 return Long.class;
-            }
-            else if (short.class == type) {
+            } else if (short.class == type) {
                 return Short.class;
-            }
-            else if (byte.class == type) {
+            } else if (byte.class == type) {
                 return Byte.class;
-            }
-            else if (double.class == type) {
+            } else if (double.class == type) {
                 return Double.class;
-            }
-            else if (float.class == type) {
+            } else if (float.class == type) {
                 return Float.class;
-            }
-            else if (char.class == type) {
+            } else if (char.class == type) {
                 return Character.class;
-            }
-            else if (void.class == type) {
+            } else if (void.class == type) {
                 return Void.class;
             }
         }

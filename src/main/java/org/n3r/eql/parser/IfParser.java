@@ -2,7 +2,7 @@ package org.n3r.eql.parser;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -63,8 +63,8 @@ public class IfParser implements PartParser {
                     throw new RuntimeException("syntax error, else if position is illegal");
 
                 newCondition();
-                lastCondExpr = EqlUtils.trimToEmpty(matcher.group(1));
-                if (EqlUtils.isBlank(lastCondExpr))
+                lastCondExpr = S.trimToEmpty(matcher.group(1));
+                if (S.isBlank(lastCondExpr))
                     throw new RuntimeException("syntax error, no condition in else if");
 
                 continue;

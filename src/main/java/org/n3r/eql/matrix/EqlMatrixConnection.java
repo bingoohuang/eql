@@ -8,7 +8,7 @@ import com.google.common.cache.LoadingCache;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.trans.EqlConnection;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,7 +139,7 @@ public class EqlMatrixConnection implements EqlConnection {
     public Connection getConnection() {
         try {
             String databaseName = databaseNameTl.get();
-            if (EqlUtils.isBlank(databaseName)) databaseName = DEFAULT;
+            if (S.isBlank(databaseName)) databaseName = DEFAULT;
             logger.debug("use database [{}]", databaseName);
             return dataSourceCache.getUnchecked(databaseName).getConnection();
         } catch (SQLException e) {

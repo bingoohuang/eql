@@ -7,7 +7,7 @@ import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.PlaceholderType;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.P;
 import org.n3r.eql.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -267,14 +267,14 @@ public class EqlRun implements Cloneable {
 
     public Map<String, Object> getMergedParamProperties() {
         if (mergedParamProperties != null) return mergedParamProperties;
-        mergedParamProperties = EqlUtils.mergeProperties(executionContext, getParamBean());
+        mergedParamProperties = P.mergeProperties(executionContext, getParamBean());
 
         return mergedParamProperties;
     }
 
     public Map<String, Object> getMergedDynamicsProperties() {
         if (mergedDynamicsProperties != null) return mergedDynamicsProperties;
-        mergedDynamicsProperties = EqlUtils.mergeProperties(executionContext, getDynamicsBean());
+        mergedDynamicsProperties = P.mergeProperties(executionContext, getDynamicsBean());
 
         return mergedDynamicsProperties;
     }

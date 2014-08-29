@@ -3,7 +3,7 @@ package org.n3r.eql.parser;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.n3r.eql.base.DynamicLanguageDriver;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +40,7 @@ public class EqlBlockParser {
 
     private void addSql(EqlBlock block, List<String> oneSqlLines) {
         if (oneSqlLines.size() == 0) return;
-        if (isAllComments(oneSqlLines))return;
+        if (isAllComments(oneSqlLines)) return;
 
         Sql sql = sqlParseDelay ? new DelaySql(dynamicLanguageDriver, block, new ArrayList<String>(oneSqlLines))
                 : dynamicLanguageDriver.parse(block, oneSqlLines);
@@ -63,6 +63,6 @@ public class EqlBlockParser {
         Matcher matcher = ParserUtils.inlineComment.matcher(join);
         String pureSql = matcher.replaceAll("");
 
-        return EqlUtils.isBlank(pureSql);
+        return S.isBlank(pureSql);
     }
 }

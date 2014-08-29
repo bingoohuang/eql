@@ -9,7 +9,7 @@ import org.n3r.eql.trans.EqlConnection;
 import org.n3r.eql.trans.EqlJndiConnection;
 import org.n3r.eql.trans.EqlSimpleConnection;
 import org.n3r.eql.trans.EqlTranFactory;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import java.util.concurrent.ExecutionException;
 
@@ -35,10 +35,9 @@ public class EqlConfigManager {
     public static EqlConnection createEqlConnection(EqlConfig eqlConfig, String implKey) {
         String eqlConfigClass = eqlConfig.getStr(implKey);
 
-        if (EqlUtils.isBlank(eqlConfigClass)) {
+        if (S.isBlank(eqlConfigClass)) {
             String jndiName = eqlConfig.getStr(EqlConfigKeys.JNDI_NAME);
-            return EqlUtils.isBlank(jndiName) ?
-                    new EqlSimpleConnection() : new EqlJndiConnection();
+            return S.isBlank(jndiName) ? new EqlSimpleConnection() : new EqlJndiConnection();
         }
 
         return Reflect.on(eqlConfigClass).create().get();
@@ -49,7 +48,7 @@ public class EqlConfigManager {
             return eqlConfigableCache.get(eqlConfig);
         } catch (ExecutionException e) {
             throw new EqlConfigException("EqlConfig " + eqlConfig
-                            + " is not properly configed.", e.getCause());
+                    + " is not properly configed.", e.getCause());
         }
     }
 }

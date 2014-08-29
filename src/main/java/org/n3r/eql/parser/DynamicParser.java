@@ -2,10 +2,10 @@ package org.n3r.eql.parser;
 
 import com.google.common.collect.Lists;
 import org.n3r.eql.ex.EqlConfigException;
+import org.n3r.eql.map.EqlDynamic;
 import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.PlaceholderType;
-import org.n3r.eql.map.EqlDynamic;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +54,7 @@ public class DynamicParser {
             paramPlaceholder.setPlaceholder(placeHolder);
 
             if (placeHolder.length() == 0) paramPlaceholder.setPlaceholderType(PlaceholderType.AUTO_SEQ);
-            else if (EqlUtils.isInteger(placeHolder)) {
+            else if (S.isInteger(placeHolder)) {
                 paramPlaceholder.setPlaceholderType(PlaceholderType.MANU_SEQ);
                 paramPlaceholder.setSeq(Integer.valueOf(placeHolder));
             } else paramPlaceholder.setPlaceholderType(PlaceholderType.VAR_NAME);
