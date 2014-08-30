@@ -5,23 +5,20 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Primitives;
 import org.n3r.eql.ex.EqlExecuteException;
-import org.objenesis.Objenesis;
-import org.objenesis.ObjenesisStd;
-import org.objenesis.instantiator.ObjectInstantiator;
+import org.n3r.eql.joor.Reflect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
 public class O {
-    public static Object createInstanceByObjenesis(Class<?> type) {
-        Objenesis objenesis = new ObjenesisStd();
-        ObjectInstantiator instantiator = objenesis.getInstantiatorOf(type);
-        return instantiator.newInstance();
-    }
-
+    static Logger log = LoggerFactory.getLogger(O.class);
 
     public static <T> boolean in(T target, T... compares) {
         for (T compare : compares)
@@ -29,7 +26,6 @@ public class O {
 
         return false;
     }
-
 
     public static Object createSingleBean(Object[] params) {
         if (params == null || params.length == 0) return new Object();
@@ -50,14 +46,20 @@ public class O {
         return param;
     }
 
-    public static boolean isNotNull(Object obj) {
-        return obj != null;
-    }
+    public static boolean setProperty(Object object, PropertyDescriptor pd, Object value) {
+        Method setter = pd.getWriteMethod();
+        if (setter == null) return false;
 
-    public static boolean isNotEmpty(Object obj) {
-        return isNotNull(obj) ? !obj.toString().equals("") : false;
-    }
+        try {
+            if (!setter.isAccessible()) setter.setAccessible(true);
+            setter.invoke(object, value);
+            return true;
+        } catch (Exception e) {
+            log.warn("set value by error {}", e.getMessage());
+        }
 
+        return false;
+    }
 
     public static Optional<Object> invokeMethod(Object bean, Method method) {
         try {
@@ -75,4 +77,71 @@ public class O {
         }
     }
 
+    public static void setValue(Object mappedObject, String columnName, Object value) {
+        int dotPos = columnName.indexOf('.');
+        if (dotPos < 0) {
+            setProperty(mappedObject, columnName, value);
+            return;
+        }
+
+        String property = columnName.substring(0, dotPos);
+        Object propertyValue = createProperty(property, mappedObject);
+        if (propertyValue == null) return;
+
+        setValue(propertyValue, columnName.substring(dotPos + 1), value);
+    }
+
+    public static Object createProperty(String propertyName, Object hostBean) {
+        // There has to be a method get* matching this segment
+        Class<?> returnType = getPropertyType(propertyName, hostBean);
+
+        Object o = Reflect.on(returnType).create().get();
+        setProperty(hostBean, propertyName, o);
+        return o;
+    }
+
+    public static Class<?> getPropertyType(String propertyName, Object hostBean) {
+        Class<?> returnType = null;
+        try {
+            String methodName = "get" + Character.toTitleCase(propertyName.charAt(0)) + propertyName.substring(1);
+            Method m = hostBean.getClass().getMethod(methodName);
+            returnType = m.getReturnType();
+        } catch (NoSuchMethodException e) {
+
+        }
+
+        if (returnType == null) {
+            try {
+                Field field = hostBean.getClass().getDeclaredField(propertyName);
+                returnType = field.getType();
+            } catch (Exception e) {
+            }
+
+        }
+        return returnType;
+    }
+
+    private static boolean setProperty(Object hostBean, String propertyName, Object propertyValue) {
+        String methodName = "set" + Character.toTitleCase(propertyName.charAt(0)) + propertyName.substring(1);
+        try {
+            Method m = hostBean.getClass().getMethod(methodName);
+            if (!m.isAccessible()) m.setAccessible(true);
+            m.invoke(hostBean, propertyValue);
+            return true;
+        } catch (Exception e) {
+            //
+        }
+
+        try {
+            Field field = hostBean.getClass().getDeclaredField(propertyName);
+            if (field != null) {
+                if (!field.isAccessible()) field.setAccessible(true);
+                field.set(hostBean, propertyValue);
+                return true;
+            }
+        } catch (Exception e) {
+        }
+
+        return false;
+    }
 }

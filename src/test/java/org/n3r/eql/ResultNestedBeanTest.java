@@ -1,0 +1,94 @@
+package org.n3r.eql;
+
+import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
+public class ResultNestedBeanTest {
+    @Test
+    public void test() {
+        Object result = new Eql("mysql").returnType(OuterBean.class).limit(1).execute();
+        assertThat(result.toString(), is("OuterBean{name='bingoohuang', bean=InnerBean{addr='gongjianfang'}}"));
+    }
+
+    @Test
+    public void test1() {
+        Object result = new Eql("mysql").id("test").returnType(OuterBean1.class).limit(1).execute();
+        assertThat(result.toString(), is("OuterBean1{name='bingoohuang', bean=InnerBean1{addr='gongjianfang'}}"));
+    }
+
+    static class OuterBean1 {
+        private String name;
+        private InnerBean1 bean;
+
+        @Override
+        public String toString() {
+            return "OuterBean1{" +
+                    "name='" + name + '\'' +
+                    ", bean=" + bean +
+                    '}';
+        }
+    }
+
+    static class InnerBean1 {
+        private String addr;
+
+        @Override
+        public String toString() {
+            return "InnerBean1{" +
+                    "addr='" + addr + '\'' +
+                    '}';
+        }
+    }
+
+    static class OuterBean {
+        private String name;
+        private InnerBean bean;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public InnerBean getBean() {
+            return bean;
+        }
+
+        public void setBean(InnerBean bean) {
+            this.bean = bean;
+        }
+
+        @Override
+        public String toString() {
+            return "OuterBean{" +
+                    "name='" + name + '\'' +
+                    ", bean=" + bean +
+                    '}';
+        }
+    }
+
+    static class InnerBean {
+        private String addr;
+
+        public String getAddr() {
+            return addr;
+        }
+
+        public void setAddr(String addr) {
+            this.addr = addr;
+        }
+
+        @Override
+        public String toString() {
+            return "InnerBean{" +
+                    "addr='" + addr + '\'' +
+                    '}';
+        }
+    }
+
+
+}

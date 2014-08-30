@@ -2,16 +2,16 @@ package org.n3r.eql.app;
 
 import org.junit.Test;
 import org.n3r.eql.joor.Reflect;
-import org.n3r.eql.util.O;
+import org.n3r.eql.util.Ob;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class ObjenesisTest {
+public class ObTest {
     @Test
     public void test() {
-        Object o = O.createInstanceByObjenesis(Obj.class);
+        Object o = Ob.createInstance(Obj.class);
         assertThat(o, is(notNullValue()));
 
         o = Reflect.on(Obj.class).create().get();
