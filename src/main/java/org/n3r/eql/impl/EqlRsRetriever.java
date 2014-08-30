@@ -12,6 +12,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class EqlRsRetriever {
     private EqlBlock eqlBlock;
@@ -65,7 +66,7 @@ public class EqlRsRetriever {
         if (returnType != null && EqlRowMapper.class.isAssignableFrom(returnType))
             return Reflect.on(returnType).create().get();
 
-        if (returnType != null) return new EqlBeanRowMapper(returnType);
+        if (returnType != null && !Map.class.isAssignableFrom(returnType)) return new EqlBeanRowMapper(returnType);
 
         return metaData.getColumnCount() > 1 ? new EqlMapMapper() : new EqlSingleValueMapper();
     }
@@ -76,7 +77,7 @@ public class EqlRsRetriever {
         if (returnType != null && EqlCallableReturnMapper.class.isAssignableFrom(returnType))
             return Reflect.on(returnType).create().get();
 
-        if (returnType != null) return new EqlCallableResultBeanMapper(returnType);
+        if (returnType != null && !Map.class.isAssignableFrom(returnType)) return new EqlCallableResultBeanMapper(returnType);
 
         return new EqlCallableReturnMapMapper();
     }

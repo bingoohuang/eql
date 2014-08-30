@@ -2,6 +2,8 @@ package org.n3r.eql;
 
 import org.junit.Test;
 
+import java.util.Map;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -17,6 +19,26 @@ public class ResultNestedBeanTest {
         Object result = new Eql("mysql").id("test").returnType(OuterBean1.class).limit(1).execute();
         assertThat(result.toString(), is("OuterBean1{name='bingoohuang', bean=InnerBean1{addr='gongjianfang'}}"));
     }
+
+    @Test
+    public void test3() {
+        Object result = new Eql("mysql").id("test").returnType(OuterBean2.class).limit(1).execute();
+        assertThat(result.toString(), is("OuterBean2{name='bingoohuang', bean={addr=gongjianfang}}"));
+    }
+
+    static class OuterBean2 {
+        private String name;
+        private Map bean;
+
+        @Override
+        public String toString() {
+            return "OuterBean2{" +
+                    "name='" + name + '\'' +
+                    ", bean=" + bean +
+                    '}';
+        }
+    }
+
 
     static class OuterBean1 {
         private String name;

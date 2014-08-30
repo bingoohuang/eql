@@ -3,6 +3,7 @@ package org.n3r.eql.util;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.joor.Reflect;
@@ -16,7 +17,9 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 
+@SuppressWarnings("unchecked")
 public class O {
     static Logger log = LoggerFactory.getLogger(O.class);
 
@@ -78,6 +81,11 @@ public class O {
     }
 
     public static void setValue(Object mappedObject, String columnName, Object value) {
+        if (mappedObject instanceof Map) {
+            ((Map) mappedObject).put(columnName, value);
+            return;
+        }
+
         int dotPos = columnName.indexOf('.');
         if (dotPos < 0) {
             setProperty(mappedObject, columnName, value);
@@ -95,7 +103,12 @@ public class O {
         // There has to be a method get* matching this segment
         Class<?> returnType = getPropertyType(propertyName, hostBean);
 
-        Object o = Reflect.on(returnType).create().get();
+        Object o = null;
+
+        if (Map.class.isAssignableFrom(returnType)) o = Maps.newHashMap();
+
+        if (o == null) o = Reflect.on(returnType).create().get();
+
         setProperty(hostBean, propertyName, o);
         return o;
     }
@@ -122,6 +135,15 @@ public class O {
     }
 
     private static boolean setProperty(Object hostBean, String propertyName, Object propertyValue) {
+        if (hostBean instanceof Map) {
+            ((Map) hostBean).put(propertyName, propertyValue);
+            return true;
+        }
+
+        return setBeanProperty(hostBean, propertyName, propertyValue);
+    }
+
+    private static boolean setBeanProperty(Object hostBean, String propertyName, Object propertyValue) {
         String methodName = "set" + Character.toTitleCase(propertyName.charAt(0)) + propertyName.substring(1);
         try {
             Method m = hostBean.getClass().getMethod(methodName);
