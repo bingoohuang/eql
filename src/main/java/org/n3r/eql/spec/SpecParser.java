@@ -36,7 +36,10 @@ public class SpecParser {
             ch = chars[i];
             switch (specState) {
                 case SpecClose:
-                    if (ch == '@') specState = SpecState.SpecOpen;
+                    if (ch == '@') {
+                        specState = SpecState.SpecOpen;
+                        paramQuoteState = ParamQuoteState.None;
+                    }
                     else if (!isWhitespace(ch)) error(specs, i, ch);
 
                     break;
@@ -107,7 +110,8 @@ public class SpecParser {
                         default:
                             if (paramQuoteState == ParamQuoteState.Right) {
                                 if (!isWhitespace(ch)) error(specs, i, ch);
-                            } else param.append(ch);
+                            }
+                            else param.append(ch);
                     }
                     break;
                 default:
