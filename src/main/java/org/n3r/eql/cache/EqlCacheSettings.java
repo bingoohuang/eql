@@ -76,6 +76,8 @@ public class EqlCacheSettings {
         if (DEFAULT_DIAMOND_GUAVA_CACHE_MODEL.equals(model))
             return createDefaultDiamondGuavaCacheModel(uniqueSqlId.getSqlClassPath(), cacheModelKey);
 
+        logger.warn("unable to find cache provider by cache model {}", model);
+
         return null;
     }
 
