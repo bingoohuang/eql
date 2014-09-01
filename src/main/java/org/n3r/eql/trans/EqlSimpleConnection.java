@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.Map;
 
 public class EqlSimpleConnection implements EqlConnection {
-    private SimpleDataSource dataSource = null;
+    private SimpleDataSource dataSource;
 
     @Override
     public Connection getConnection() {
@@ -18,6 +18,11 @@ public class EqlSimpleConnection implements EqlConnection {
         } catch (SQLException e) {
             throw new EqlConfigException("create connection fail", e);
         }
+    }
+
+    @Override
+    public void destroy() {
+        dataSource.forceCloseAll();
     }
 
     @Override

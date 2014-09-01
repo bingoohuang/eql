@@ -1,2 +1,2 @@
--- [demo  returnType=int]
-SELECT 1
+-- [demo  returnType=string]
+SELECT now()

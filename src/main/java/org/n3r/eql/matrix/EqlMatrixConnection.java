@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 public class EqlMatrixConnection implements EqlConnection {
     public static final String DEFAULT = "default";
@@ -145,6 +146,23 @@ public class EqlMatrixConnection implements EqlConnection {
         } catch (SQLException e) {
             throw new EqlExecuteException(e);
         }
+    }
+
+    @Override
+    public void destroy() {
+        ConcurrentMap<String, DruidDataSource> map = dataSourceCache.asMap();
+
+        for (String databaseName : map.keySet()) {
+            DruidDataSource druidDataSource = map.get(databaseName);
+            try {
+                druidDataSource.close();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+
+        dataSourceCache.invalidateAll();
+        dataSourceCache = null;
     }
 
 }

@@ -24,6 +24,11 @@ public class EqlJndiConnection implements EqlConnection {
     }
 
     @Override
+    public void destroy() {
+        dataSource = null;
+    }
+
+    @Override
     public void initialize(EqlConfig eqlConfig) {
         String jndiName = eqlConfig.getStr("jndiName");
         String initial = eqlConfig.getStr("java.naming.factory.initial");

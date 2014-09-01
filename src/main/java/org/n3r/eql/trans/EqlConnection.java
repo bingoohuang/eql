@@ -8,4 +8,6 @@ public interface EqlConnection{
     void initialize(EqlConfig eqlConfig);
 
     Connection getConnection();
+
+    void destroy();
 }

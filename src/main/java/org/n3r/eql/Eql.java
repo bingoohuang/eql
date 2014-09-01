@@ -19,7 +19,10 @@ import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.map.EqlType;
 import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.util.*;
+import org.n3r.eql.util.C;
+import org.n3r.eql.util.Closes;
+import org.n3r.eql.util.HostAddress;
+import org.n3r.eql.util.S;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,8 +89,8 @@ public class Eql {
     }
 
     private void prepareDefaultSqlId(int stackDeep) {
-        StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
-        StackTraceElement e = stacktrace[stackDeep];
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        StackTraceElement e = stackTrace[stackDeep];
         defaultSqlId = e.getMethodName();
     }
 
@@ -540,7 +543,7 @@ public class Eql {
         return this;
     }
 
-    public static EqlTran newTran(EqlConfig eqlConfig, Eql eql) {
+    public static EqlTran newTran(EqlConfigDecorator eqlConfig, Eql eql) {
         return EqlConfigManager.getConfig(eqlConfig).createTran(eql);
     }
 

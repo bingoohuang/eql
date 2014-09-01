@@ -6,6 +6,7 @@ import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.config.EqlConfigKeys;
+import org.n3r.eql.config.EqlTranFactoryCacheLifeCycle;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.util.S;
 
@@ -14,6 +15,8 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
     private EqlResourceLoader eqlResourceLoader;
     private ExpressionEvaluator expressionEvaluator;
 
+    private EqlTranFactoryCacheLifeCycle lifeCycle;
+
     @Override
     public EqlResourceLoader getSqlResourceLoader() {
         return eqlResourceLoader;
@@ -21,6 +24,7 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
 
     public DefaultEqlConfigDecorator(EqlConfig eqlConfig) {
         this.eqlConfig = eqlConfig;
+        if (eqlConfig instanceof EqlTranFactoryCacheLifeCycle) lifeCycle = (EqlTranFactoryCacheLifeCycle) eqlConfig;
 
         parseResourceLoader(eqlConfig);
         parseExpressionEvaluator(eqlConfig);
@@ -76,5 +80,15 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
     @Override
     public int hashCode() {
         return eqlConfig.hashCode();
+    }
+
+    @Override
+    public void onLoad() {
+        if (lifeCycle != null) lifeCycle.onLoad();
+    }
+
+    @Override
+    public void onRemoval() {
+        if (lifeCycle != null) lifeCycle.onRemoval();
     }
 }

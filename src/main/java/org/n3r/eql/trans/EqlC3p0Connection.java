@@ -8,10 +8,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 public class EqlC3p0Connection implements EqlConnection {
-    private ComboPooledDataSource cpds = new ComboPooledDataSource();
+    ComboPooledDataSource cpds;
 
     @Override
     public void initialize(EqlConfig eqlConfig) {
+        cpds = new ComboPooledDataSource();
     }
 
     @Override
@@ -22,5 +23,11 @@ public class EqlC3p0Connection implements EqlConnection {
             throw new EqlExecuteException(e);
         }
     }
+
+    @Override
+    public void destroy() {
+        cpds.close();
+    }
+
 
 }

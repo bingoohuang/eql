@@ -1,8 +1,6 @@
 package org.n3r.eql.config;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.google.common.cache.*;
 import org.n3r.eql.ex.EqlConfigException;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.trans.EqlConnection;
@@ -14,15 +12,28 @@ import org.n3r.eql.util.S;
 import java.util.concurrent.ExecutionException;
 
 public class EqlConfigManager {
-    private static LoadingCache<EqlConfig, EqlTranFactory> eqlConfigableCache =
-            CacheBuilder.newBuilder().build(
-                    new CacheLoader<EqlConfig, EqlTranFactory>() {
-                        @Override
-                        public EqlTranFactory load(EqlConfig eqlConfig) throws Exception {
-                            return createEqlTranFactory(eqlConfig);
-                        }
+    private static LoadingCache<EqlConfigDecorator, EqlTranFactory> eqlTranFactoryCache = CacheBuilder.newBuilder()
+            .removalListener(new RemovalListener<EqlConfigDecorator, EqlTranFactory>() {
+                @Override
+                public void onRemoval(RemovalNotification<EqlConfigDecorator, EqlTranFactory> notification) {
+                    notification.getKey().onRemoval();
+
+                    try {
+                        notification.getValue().destory();
+                    } catch (Exception e) {
+                        // ignore exception
                     }
-            );
+                }
+            })
+            .build(new CacheLoader<EqlConfigDecorator, EqlTranFactory>() {
+                @Override
+                public EqlTranFactory load(EqlConfigDecorator eqlConfig) throws Exception {
+                    if (eqlConfig instanceof EqlTranFactoryCacheLifeCycle)
+                        ((EqlTranFactoryCacheLifeCycle) eqlConfig).onLoad();
+
+                    return createEqlTranFactory(eqlConfig);
+                }
+            });
 
     private static EqlTranFactory createEqlTranFactory(EqlConfig eqlConfig) {
         EqlConnection eqlConnection = createEqlConnection(eqlConfig, EqlConfigKeys.CONNECTION_IMPL);
@@ -43,12 +54,16 @@ public class EqlConfigManager {
         return Reflect.on(eqlConfigClass).create().get();
     }
 
-    public static EqlTranFactory getConfig(EqlConfig eqlConfig) {
+    public static EqlTranFactory getConfig(EqlConfigDecorator eqlConfig) {
         try {
-            return eqlConfigableCache.get(eqlConfig);
+            return eqlTranFactoryCache.get(eqlConfig);
         } catch (ExecutionException e) {
             throw new EqlConfigException("EqlConfig " + eqlConfig
-                    + " is not properly configed.", e.getCause());
+                    + " is not properly configured.", e.getCause());
         }
+    }
+
+    public static void invlidateCache(EqlConfigDecorator eqlConfig) {
+        eqlTranFactoryCache.invalidate(eqlConfig);
     }
 }

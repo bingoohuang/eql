@@ -66,6 +66,16 @@ where id=#id#
             public String getStr(String key) {
                 return null;
             }
+
+            @Override
+            public void onLoad() {
+
+            }
+
+            @Override
+            public void onRemoval() {
+
+            }
         };
         List<EqlRun> eqlRuns = updateAuthor.createEqlRunsByEqls(eqlConfig, context, params, dynamics);
         String runSql = eqlRuns.get(0).getRunSql();

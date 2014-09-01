@@ -9,7 +9,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 public class EqlDruidConnection implements EqlConnection {
-    public static final String DEFAULT = "default";
     DruidDataSource dataSource;
 
     @Override
@@ -53,6 +52,7 @@ public class EqlDruidConnection implements EqlConnection {
 
         if (StringUtils.isNotBlank(validationQuery))
             dataSource.setValidationQuery(validationQuery);
+
     }
 
     private int parseIntParameter(String param) {
@@ -66,5 +66,10 @@ public class EqlDruidConnection implements EqlConnection {
         } catch (SQLException e) {
             throw new EqlExecuteException(e);
         }
+    }
+
+    @Override
+    public void destroy() {
+        dataSource.close();
     }
 }

@@ -54,4 +54,9 @@ public class EqlSecretFieldsConnectionProxy implements EqlConnection {
         return new ConnectionHandler(connection, sensitiveCryptor,
                 parserCache, dbDialect).createConnectionProxy();
     }
+
+    @Override
+    public void destroy() {
+        eqlConnection.destroy();
+    }
 }

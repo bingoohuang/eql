@@ -1,11 +1,8 @@
 package org.n3r.eql.diamond;
 
-import org.n3r.diamond.client.Miner;
 import org.n3r.eql.Eql;
 import org.n3r.eql.config.EqlConfig;
-import org.n3r.eql.config.EqlPropertiesConfig;
-
-import java.util.Properties;
+import org.n3r.eql.config.EqlDiamondConfig;
 
 public class Dql extends Eql {
     public Dql() {
@@ -21,8 +18,7 @@ public class Dql extends Eql {
     }
 
     public static EqlConfig createEqlConfig(String connectionName) {
-        Properties eqlConfig = new Miner().getProperties("EqlConfig", connectionName);
-        return new EqlPropertiesConfig(eqlConfig);
+        return new EqlDiamondConfig(connectionName);
     }
 }
 
