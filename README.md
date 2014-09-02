@@ -726,10 +726,10 @@ password=orcl
 
 ```java
 // read diamand content of group=EqlConfig, dataId=DEFAULT as connection config
-new Eql().id("xxx").execute();
+new Dql().id("xxx").execute();
 
 // read diamond content of group=EqlConfig, dataId=DSMALL as connection config
-new Eql("DSMALL").id("yyy").execute();
+new Dql("DSMALL").id("yyy").execute();
 ```
 
 ## Read eql from diamond
