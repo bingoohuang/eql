@@ -29,29 +29,40 @@ public class EqlRsRetriever {
     private Object firstRow(ResultSet rs) throws SQLException {
         if (!rs.next()) return null;
 
-        if (rs.getMetaData().getColumnCount() == 1)
-            return convertSingleValue(Rs.getResultSetValue(rs, 1));
+        boolean singleColumn = rs.getMetaData().getColumnCount() == 1;
+        if (singleColumn) return convertSingleValue(Rs.getResultSetValue(rs, 1));
 
-        return rowBeanCreate(rs, 1);
+        EqlRowMapper rowMapper = getRowMapper(rs.getMetaData());
+        return rowBeanCreate(rowMapper, singleColumn, rs, 1);
     }
 
-    public Object selectRow(ResultSet rs, int rownum) throws SQLException {
-        return rownum <= maxRows && rs.next() ? rowBeanCreate(rs, rownum) : null;
+    public Object selectRow(ResultSet rs, int rowIndex) throws SQLException {
+        if (rowIndex > maxRows || !rs.next()) return null;
+
+        EqlRowMapper rowMapper = getRowMapper(rs.getMetaData());
+        boolean singleColumn = rs.getMetaData().getColumnCount() == 1;
+
+        return rowBeanCreate(rowMapper, singleColumn, rs, rowIndex);
     }
 
     private Object selectList(ResultSet rs) throws SQLException {
         List<Object> result = new ArrayList<Object>();
 
-        for (int rownum = 1; rs.next() && rownum <= maxRows; ++rownum) {
-            Object rowObject = rowBeanCreate(rs, rownum);
+        boolean singleColumn = rs.getMetaData().getColumnCount() == 1;
+        EqlRowMapper rowMapper = getRowMapper(rs.getMetaData());
+
+        for (int rowIndex = 1; rs.next() && rowIndex <= maxRows; ++rowIndex) {
+            Object rowObject = rowBeanCreate(rowMapper, singleColumn, rs, rowIndex);
             if (rowObject != null) result.add(rowObject);
         }
 
         return result;
     }
 
-    private Object rowBeanCreate(ResultSet rs, int rowNum) throws SQLException {
-        Object rowBean = getRowMapper(rs.getMetaData()).mapRow(rs, rowNum);
+    private Object rowBeanCreate(EqlRowMapper rowMapper, boolean singleColumn, ResultSet rs, int rowNum) throws SQLException {
+        Object rowBean = rowMapper.mapRow(rs, rowNum);
+        if (singleColumn) rowBean = convertSingleValue(rowBean);
+
         if (rowBean instanceof AfterPropertiesSet)
             ((AfterPropertiesSet) rowBean).afterPropertiesSet();
 
@@ -77,7 +88,8 @@ public class EqlRsRetriever {
         if (returnType != null && EqlCallableReturnMapper.class.isAssignableFrom(returnType))
             return Reflect.on(returnType).create().get();
 
-        if (returnType != null && !Map.class.isAssignableFrom(returnType)) return new EqlCallableResultBeanMapper(returnType);
+        if (returnType != null && !Map.class.isAssignableFrom(returnType))
+            return new EqlCallableResultBeanMapper(returnType);
 
         return new EqlCallableReturnMapMapper();
     }
@@ -89,22 +101,21 @@ public class EqlRsRetriever {
 
         String returnTypeName = this.returnTypeName;
         if (returnTypeName == null)
-            returnTypeName = eqlBlock == null ? null : eqlBlock.getOptions().get("returnType");
+            returnTypeName = eqlBlock == null ? null : eqlBlock.getReturnTypeName();
 
         if (returnType == null && returnTypeName == null) return value;
 
-        if ("string".equalsIgnoreCase(returnTypeName)) {
+        if ("string".equalsIgnoreCase(returnTypeName) || returnType == String.class) {
             if (value instanceof byte[]) return S.bytesToStr((byte[]) value);
-
             return String.valueOf(value);
         }
 
-        if ("int".equalsIgnoreCase(returnTypeName)) {
+        if ("int".equalsIgnoreCase(returnTypeName) || returnType == Integer.class || returnType == int.class) {
             if (value instanceof Number) return ((Number) value).intValue();
             return Integer.parseInt(value.toString());
         }
 
-        if ("long".equalsIgnoreCase(returnTypeName)) {
+        if ("long".equalsIgnoreCase(returnTypeName) || returnType == Long.class || returnType == long.class) {
             if (value instanceof Number) return ((Number) value).longValue();
             return Long.parseLong(value.toString());
         }

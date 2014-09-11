@@ -32,6 +32,7 @@ public class EqlBlock {
     private Collection<String> sqlLines;
     private EqlUniqueSqlId uniqueSqlId;
     private EqlCacheProvider cacheProvider;
+    private String returnTypeName;
 
     public EqlBlock(String sqlClassPath, String sqlId, String options, int startLineNo) {
         this.uniqueSqlId = new EqlUniqueSqlId(sqlClassPath, sqlId);
@@ -47,7 +48,8 @@ public class EqlBlock {
 
     private void initSomeOptions() {
         onerr = options.get("onerr");
-        returnType = C.tryLoadClass(options.get("returnType"));
+        returnTypeName = options.get("returnType");
+        returnType = C.tryLoadClass(returnTypeName);
 
         split = options.get("split");
         if (Strings.isNullOrEmpty(split)) split = ";";
@@ -212,5 +214,9 @@ public class EqlBlock {
             cacheKey = new EqlCacheKey(totalRowSqlId, currRun.getParams(), currRun.getDynamics(), page);
             cacheProvider.setCache(cacheKey, page.getTotalRows());
         }
+    }
+
+    public String getReturnTypeName() {
+        return returnTypeName;
     }
 }
