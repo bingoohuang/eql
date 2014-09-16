@@ -6,15 +6,17 @@ import org.n3r.eql.map.EqlRun;
 public class IsEmptyPart implements EqlPart {
     protected final String expr;
     protected final MultiPart multiPart;
+    protected final MultiPart elsePart;
 
-    public IsEmptyPart(String expr, MultiPart multiPart) {
+    public IsEmptyPart(String expr, MultiPart multiPart, MultiPart elsePart) {
         this.expr = expr;
         this.multiPart = multiPart;
+        this.elsePart = elsePart;
     }
 
     @Override
     public String evalSql(EqlRun eqlRun) {
-        return isEmpty(eqlRun) ? multiPart.evalSql(eqlRun) : "";
+        return (isEmpty(eqlRun) ? multiPart : elsePart).evalSql(eqlRun);
     }
 
     protected boolean isEmpty(EqlRun eqlRun) {

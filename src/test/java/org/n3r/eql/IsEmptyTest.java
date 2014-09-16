@@ -32,8 +32,16 @@ public class IsEmptyTest {
         strs = new Eql().select("isEmpty").params(map).execute();
         assertThat(strs.size(), is(10));
 
+        eql = new Eql().select("isEmptyElse");
+        eql.params(map).execute();
+        assertThat(eql.getEqlRuns().get(0).getRunSql(), equalTo("SELECT B\nFROM ESQL_TEST\nWHERE A = ?"));
+
         strs = new Eql().select("isNotEmpty").execute();
         assertThat(strs.size(), is(10));
+
+        eql = new Eql().select("isNotEmptyElse");
+        eql.execute();
+        assertThat(eql.getEqlRuns().get(0).getRunSql(), equalTo("SELECT B\nFROM ESQL_TEST\nWHERE A in\n(3,4)"));
 
         strs = new Eql().select("isNotEmpty").params(map).execute();
         assertThat(strs.size(), is(1));

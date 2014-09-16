@@ -7,6 +7,26 @@ FROM ESQL_TEST
 WHERE A in (1,2)
 -- end
 
+-- [isEmptyElse]
+SELECT B
+FROM ESQL_TEST
+-- isEmpty a
+WHERE A in (1,2)
+-- else
+WHERE A = #a#
+-- end
+
+-- [isNotEmptyElse]
+SELECT B
+FROM ESQL_TEST
+WHERE A in
+-- isNotEmpty a
+(1,2)
+-- else
+(3,4)
+-- end
+
+
 -- [isNotEmpty]
 SELECT B
 FROM ESQL_TEST

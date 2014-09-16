@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 public class IsEmptyParser implements PartParser {
     protected final String expr;
     protected MultiPart multiPart = new MultiPart();
+    protected MultiPart elsePart = new MultiPart();
 
     public IsEmptyParser(String expr) {
         this.expr = expr;
@@ -13,13 +14,14 @@ public class IsEmptyParser implements PartParser {
 
     @Override
     public EqlPart createPart() {
-        return new IsEmptyPart(expr, multiPart);
+        return new IsEmptyPart(expr, multiPart, elsePart);
     }
 
     @Override
     public int parse(List<String> mergedLines, int index) {
         int i = index;
         EqlPart lastPart = null;
+        MultiPart current = multiPart;
         for (int ii = mergedLines.size(); i < ii; ++i) {
             String line = mergedLines.get(i);
 
@@ -32,7 +34,7 @@ public class IsEmptyParser implements PartParser {
                     clearLine = matcher.group(1).trim();
                 } else {
                     lastPart = new LiteralPart(line);
-                    multiPart.addPart(lastPart);
+                    current.addPart(lastPart);
                     continue;
                 }
             }
@@ -41,11 +43,16 @@ public class IsEmptyParser implements PartParser {
                 return i + 1;
             }
 
+            if ("else".equalsIgnoreCase(clearLine)) {
+                current = elsePart;
+                continue;
+            }
+
             PartParser partParser = PartParserFactory.tryParse(clearLine);
             if (partParser != null) {
                 i = partParser.parse(mergedLines, i + 1) - 1;
 
-                multiPart.addPart(partParser.createPart());
+                current.addPart(partParser.createPart());
                 lastPart = null;
             } else if (lastPart instanceof LiteralPart) {
                 ((LiteralPart) lastPart).appendComment(line);
