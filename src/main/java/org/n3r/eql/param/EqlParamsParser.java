@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 
 public class EqlParamsParser {
     private static Pattern PARAM_PATTERN = Pattern.compile("#(.*?)#");
+    public final static String LINE_SEPARATOR = Character.toString((char) 1);
 
     static LoadingCache<EqlUniqueSqlTemplate, EqlParamsParserResult> cache = CacheBuilder.newBuilder().build(
             new CacheLoader<EqlUniqueSqlTemplate, EqlParamsParserResult>() {
@@ -40,6 +41,7 @@ public class EqlParamsParser {
 
         eqlRun.setSqlType(result.getSqlType());
         eqlRun.setRunSql(result.getRunSql());
+        eqlRun.setEvalSql(result.getEvalSql());
         eqlRun.setPlaceholderNum(result.getPlaceholderNum());
         eqlRun.setPlaceHolderType(result.getPlaceHolderType());
         eqlRun.setPlaceHolderOutType(result.getPlaceHolderOutType());
@@ -64,11 +66,15 @@ public class EqlParamsParser {
         List<String> placeHolders = new ArrayList<String>();
         List<String> placeHolderOptions = new ArrayList<String>();
         StringBuilder sql = new StringBuilder();
+        StringBuilder evalSql = new StringBuilder();
+        int questionSeq = -1;
         int startPos = 0;
         boolean hasEscape = false;
         while (matcher.find(startPos)) {
             if (hasPrevEscape(matcher.start())) {
-                sql.append(templateSql.substring(startPos, matcher.start() + 1));
+                String prev = templateSql.substring(startPos, matcher.start() + 1);
+                sql.append(prev);
+                evalSql.append(prev);
                 startPos = matcher.start() + 1;
                 hasEscape = true;
                 continue;
@@ -88,13 +94,22 @@ public class EqlParamsParser {
             placeHolders.add(placeHolder);
             placeHolderOptions.add(paramOptions);
 
-            sql.append(templateSql.substring(startPos, matcher.start())).append('?');
+            String prev = templateSql.substring(startPos, matcher.start());
+            sql.append(prev).append('?');
+            evalSql.append(prev).append(LINE_SEPARATOR).append(++questionSeq).append(LINE_SEPARATOR);
             startPos = matcher.end();
         }
 
-        sql.append(templateSql.substring(startPos));
+        String tail = templateSql.substring(startPos);
+        sql.append(tail);
+        evalSql.append(tail);
+
         String onelineSql = sql.toString();
+        String onelineEvalSql = evalSql.toString();
+
         result.setRunSql(hasEscape ? unescape(onelineSql) : onelineSql);
+        result.setEvalSql(hasEscape ? unescape(onelineEvalSql) : onelineEvalSql);
+
         result.setPlaceholderNum(placeHolders.size());
 
         parsePlaceholders(placeHolders, placeHolderOptions);

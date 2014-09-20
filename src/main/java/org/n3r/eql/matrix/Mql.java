@@ -57,7 +57,7 @@ public class Mql extends Eql {
 
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
-                new EqlParamsBinder().preparBindParams(currRun);
+                new EqlParamsBinder().prepareBindParams(currRun);
                 MatrixSqlParserUtils.parse(eqlConfig, eqlRun);
                 tranStart();
                 conn = getConn();

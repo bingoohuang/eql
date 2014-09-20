@@ -152,7 +152,7 @@ public class Eql {
             eqlRuns = eqlBlock.createEqlRuns(eqlConfig, executionContext, params, dynamics, directSqls);
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
-                new EqlParamsBinder().preparBindParams(currRun);
+                new EqlParamsBinder().prepareBindParams(currRun);
                 checkBatchCmdsSupporting(currRun);
 
                 currRun.setConnection(conn);
@@ -312,7 +312,7 @@ public class Eql {
             return currRun.getSqlType().isDdl() ? execDdl() : pageExecute();
         } catch (Exception ex) {
             if (!currRun.getEqlBlock().isOnerrResume()) throw Throwables.propagate(ex);
-            else logger.warn("execute sql {} error", currRun.getPrintSql(), ex);
+            else logger.warn("execute sql {} error {}", currRun.getPrintSql(), ex.getMessage());
         }
 
         return 0;
@@ -343,7 +343,7 @@ public class Eql {
         EqlRun temp = currRun;
         currRun = dbDialect.createPageSql(currRun, page);
 
-        new EqlParamsBinder().preparBindParams(currRun);
+        new EqlParamsBinder().prepareBindParams(currRun);
 
         Object o = execDml();
         currRun = temp;

@@ -10,6 +10,7 @@ public class EqlParamsParserResult {
     private PlaceholderType placeHolderType;
     private PlaceholderType placeHolderOutType;
     private EqlParamPlaceholder[] placeHolders;
+    private String evalSql;
 
     public void setSqlType(EqlType sqlType) {
         this.sqlType = sqlType;
@@ -57,5 +58,13 @@ public class EqlParamsParserResult {
 
     public EqlParamPlaceholder[] getPlaceHolders() {
         return placeHolders;
+    }
+
+    public void setEvalSql(String evalSql) {
+        this.evalSql = evalSql.replaceAll("\\r?\\n", " ");
+    }
+
+    public String getEvalSql() {
+        return evalSql;
     }
 }

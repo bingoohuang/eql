@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.param.EqlParamPlaceholder;
+import org.n3r.eql.param.EqlParamsParser;
 import org.n3r.eql.param.PlaceholderType;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.P;
@@ -21,8 +22,9 @@ import java.util.Map;
 
 public class EqlRun implements Cloneable {
     public List<Pair<Integer, Object>> realParams = Lists.newArrayList();
-    private String boundParams;
+    private List<Object> boundParams;
     private Connection connection;
+    private String evalSql;
 
     public void addRealParam(int index, Object value) {
         realParams.add(Pair.of(index, value));
@@ -34,7 +36,7 @@ public class EqlRun implements Cloneable {
         outParameters.add(Pair.of(index, type));
     }
 
-    public void setBoundParams(String boundParams) {
+    public void setBoundParams(List<Object> boundParams) {
         this.boundParams = boundParams;
     }
 
@@ -52,7 +54,43 @@ public class EqlRun implements Cloneable {
             throw new EqlExecuteException(e);
         }
 
-        if (boundParams != null && boundParams.length() > 0) logger.debug("param: {}", boundParams);
+        if (boundParams != null && boundParams.size() > 0 && logger.isDebugEnabled()) {
+            logger.debug("param: {}", boundParams.toString());
+            logger.debug("eval sql: {}", parseEvalSql());
+        }
+    }
+
+    private String parseEvalSql() {
+        StringBuilder eval = new StringBuilder();
+        int startPos = 0;
+        int index = -1;
+        int size = boundParams.size();
+        int evalSqlLength = evalSql.length();
+        while (startPos < evalSqlLength) {
+            String placeholder = EqlParamsParser.LINE_SEPARATOR + (++index) + EqlParamsParser.LINE_SEPARATOR;
+            int pos = evalSql.indexOf(placeholder, startPos);
+            if (pos < 0) break;
+
+            eval.append(evalSql.substring(startPos, pos));
+            if (index < size) {
+                Object boundParam = boundParams.get(index);
+                if (boundParam == null) {
+                    eval.append("null");
+                } else if (boundParam instanceof Number) {
+                    eval.append(boundParam.toString());
+                } else {
+                    eval.append("'" + boundParam + "'");
+                }
+            } else {
+                eval.append('?');
+            }
+            
+            startPos = pos + placeholder.length();
+        }
+
+        eval.append(evalSql.substring(startPos));
+
+        return eval.toString();
     }
 
     public void setConnection(Connection connection) {
@@ -277,5 +315,13 @@ public class EqlRun implements Cloneable {
         mergedDynamicsProperties = P.mergeProperties(executionContext, getDynamicsBean());
 
         return mergedDynamicsProperties;
+    }
+
+    public void setEvalSql(String evalSql) {
+        this.evalSql = evalSql;
+    }
+
+    public String getEvalSql() {
+        return evalSql;
     }
 }

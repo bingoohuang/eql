@@ -10,19 +10,21 @@ import org.n3r.eql.util.S;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class EqlParamsBinder {
     private EqlRun eqlRun;
-    private StringBuilder boundParams;
+    private List<Object> boundParams;
 
     private static enum ParamExtra {
         Extra, Normal
     }
 
-    public void preparBindParams(EqlRun eqlRun) {
+    public void prepareBindParams(EqlRun eqlRun) {
         this.eqlRun = eqlRun;
-        boundParams = new StringBuilder();
+        boundParams = new ArrayList<Object>();
 
         switch (eqlRun.getPlaceHolderType()) {
             case AUTO_SEQ:
@@ -43,8 +45,7 @@ public class EqlParamsBinder {
 
         bindExtraParams();
 
-        eqlRun.setBoundParams(boundParams.toString());
-        // if (boundParams.length() > 0) logger.debug("param: {}", boundParams);
+        eqlRun.setBoundParams(boundParams);
     }
 
     private void bindExtraParams() {
@@ -74,7 +75,7 @@ public class EqlParamsBinder {
     private void setParamExtra(EqlParamPlaceholder placeHolder, int index, Object value) throws SQLException {
         if (value instanceof Date) {
             Timestamp date = new Timestamp(((Date) value).getTime());
-            boundParams.append('[').append(S.toDateTimeStr(date)).append(']');
+            boundParams.add(S.toDateTimeStr(date));
             eqlRun.addRealParam(index + 1, date);
         } else {
             Object paramValue = value;
@@ -91,7 +92,7 @@ public class EqlParamsBinder {
                 }
             }
 
-            boundParams.append('[').append(paramValue).append(']');
+            boundParams.add(paramValue);
             eqlRun.addRealParam(index + 1, paramValue);
         }
     }
@@ -109,12 +110,12 @@ public class EqlParamsBinder {
     }
 
     private void setParamEx(EqlParamPlaceholder placeHolder, int index, Object value) throws SQLException {
-        if (regiesterOut(index)) return;
+        if (registerOut(index)) return;
 
         setParamExtra(placeHolder, index, value);
     }
 
-    private boolean regiesterOut(int index) throws SQLException {
+    private boolean registerOut(int index) throws SQLException {
         EqlParamPlaceholder.InOut inOut = eqlRun.getPlaceHolders()[index].getInOut();
         if (eqlRun.getSqlType().isProcedure() && inOut != EqlParamPlaceholder.InOut.IN) {
             // ((CallableStatement) ps).registerOutParameter(index + 1, Types.VARCHAR);
