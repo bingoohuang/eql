@@ -1,22 +1,25 @@
 package org.n3r.eql;
 
 import com.google.common.collect.Maps;
+import org.junit.Before;
 import org.junit.Test;
+import org.n3r.eql.map.EqlRun;
 
 import java.sql.Timestamp;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 
 public class DynamicTest {
-    @Test
-    public void test1() {
+    @Before
+    public void before() {
         new Eql().id("dropTestTable").execute();
         new Eql().id("createTestTable").params(new Timestamp(1383122146000l)).execute();
+    }
 
+    @Test
+    public void test1() {
         Map<String, Object> map = Maps.newHashMap();
         map.put("a", 1);
         map.put("e", 100);
@@ -57,10 +60,22 @@ public class DynamicTest {
     }
 
     @Test
-    public void test2() {
-        new Eql().id("dropTestTable").execute();
-        new Eql().id("createTestTable").params(new Timestamp(1383122146000l)).execute();
+    public void testUnless() {
+        Map<String, Object> map = Maps.newHashMap();
+        map.put("a", 1);
+        Eql eql = new Eql().params(map);
+        eql.execute();
+        EqlRun eqlRun = eql.getEqlRuns().get(0);
+        assertThat(eqlRun.getPrintSql(), is(equalTo("SELECT A,B,C,D,E FROM ESQL_TEST")));
 
+        eql = new Eql().params("1");
+        eql.execute();
+        eqlRun = eql.getEqlRuns().get(0);
+        assertThat(eqlRun.getPrintSql(), is(equalTo("SELECT A,B,C,D,E FROM ESQL_TEST WHERE A = ?")));
+    }
+
+    @Test
+    public void test2() {
         Map<String, Object> map = Maps.newHashMap();
         map.put("a", 1);
 

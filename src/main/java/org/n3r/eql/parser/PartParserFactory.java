@@ -18,6 +18,7 @@ public class PartParserFactory {
         PartParser partParser = null;
         if (keyword.equals("if")) partParser = new IfParser(option);
         else if (keyword.equals("iff")) partParser = new IffParser(option);
+        else if (keyword.equals("unless")) partParser = new UnlessParser(option);
         else if (keyword.equals("isempty")) partParser = new IsEmptyParser(option);
         else if (keyword.equals("isnotempty")) partParser = new IsNotEmptyParser(option);
         else if (keyword.equals("isnull")) partParser = new IsNullParser(option);

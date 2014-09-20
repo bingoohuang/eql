@@ -57,3 +57,10 @@ WHERE
 -- [getBeanList]
 SELECT A,B,C,D,E
 FROM ESQL_TEST
+
+-- [testUnless]
+SELECT A,B,C,D,E
+FROM ESQL_TEST
+-- unless a == 1
+WHERE A = ##
+-- end
