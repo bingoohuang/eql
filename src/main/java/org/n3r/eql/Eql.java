@@ -19,10 +19,7 @@ import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.map.EqlType;
 import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.util.C;
-import org.n3r.eql.util.Closes;
-import org.n3r.eql.util.HostAddress;
-import org.n3r.eql.util.S;
+import org.n3r.eql.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -320,7 +317,7 @@ public class Eql {
 
     private boolean execDdl() {
         Statement stmt = null;
-        logger.debug("ddl sql {}: {}", getSqlId(), currRun.getPrintSql());
+        logger.debug("ddl sql for {}: {}", getSqlId(), currRun.getPrintSql());
         try {
             stmt = currRun.getConnection().createStatement();
             return stmt.execute(currRun.getRunSql());
@@ -364,7 +361,8 @@ public class Eql {
 
     private Object execDml() throws SQLException {
         Object execRet = batch != null ? execDmlInBatch() : execDmlNoBatch();
-        logger.debug("result {}: {}", getSqlId(), execRet);
+
+        Logs.logResult(execRet, getSqlId());
 
         return execRet;
     }
@@ -419,7 +417,7 @@ public class Eql {
     }
 
     public PreparedStatement prepareSql(EqlRun eqlRun) throws SQLException {
-        logger.debug("prepare sql {}: {} ", getSqlId(), eqlRun.getPrintSql());
+        logger.debug("prepare sql for {}: {} ", getSqlId(), eqlRun.getPrintSql());
         return eqlRun.getSqlType().isProcedure()
                 ? eqlRun.getConnection().prepareCall(eqlRun.getRunSql())
                 : eqlRun.getConnection().prepareStatement(eqlRun.getRunSql());

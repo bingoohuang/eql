@@ -55,8 +55,9 @@ public class EqlRun implements Cloneable {
         }
 
         if (boundParams != null && boundParams.size() > 0 && logger.isDebugEnabled()) {
-            logger.debug("param: {}", boundParams.toString());
-            logger.debug("eval sql: {}", parseEvalSql());
+            String sqlId = getSqlId();
+            logger.debug("params for {}: {}", sqlId, boundParams.toString());
+            logger.debug("eval sql for {}: {}", sqlId, parseEvalSql());
         }
     }
 
