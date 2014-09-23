@@ -28,13 +28,13 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     private final Logger log = LoggerFactory.getLogger(OracleSensitiveFieldsParser.class);
 
     private final Map<String, Object> aliasTablesMap = Maps.newHashMap();
-    private final Set<Integer> securetBindIndice = Sets.newHashSet();
-    private final Set<Integer> securetResultIndice = Sets.newHashSet();
-    private final Set<String> securetResultLabels = Sets.newHashSet();
+    private final Set<Integer> secureBindIndices = Sets.newHashSet();
+    private final Set<Integer> secureResultIndices = Sets.newHashSet();
+    private final Set<String> secureResultLabels = Sets.newHashSet();
 
     private final List<BindVariant> subQueryBindAndVariantOfFrom = Lists.newArrayList();
 
-    private final Set<String> securetFields;
+    private final Set<String> secureFields;
 
     private int variantIndex = 0;
     private final String sql;
@@ -49,9 +49,9 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
 
         @Override
         public boolean visit(SQLBinaryOpExpr x) {
-            if (hasSecuretField(x.getLeft())) {
+            if (hasSecureField(x.getLeft())) {
                 checkOnlyOneAsk(x.getRight());
-            } else if (hasSecuretField(x.getRight())) {
+            } else if (hasSecureField(x.getRight())) {
                 checkOnlyOneAsk(x.getLeft());
             }
 
@@ -59,39 +59,39 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
         }
 
 
-        private boolean hasSecuretField(SQLExpr field) {
-            return field instanceof SQLIdentifierExpr && isSecuretField((SQLIdentifierExpr) field)
-                    || field instanceof SQLPropertyExpr && isSecuretField((SQLPropertyExpr) field);
+        private boolean hasSecureField(SQLExpr field) {
+            return field instanceof SQLIdentifierExpr && isSecureField((SQLIdentifierExpr) field)
+                    || field instanceof SQLPropertyExpr && isSecureField((SQLPropertyExpr) field);
         }
     };
 
     // TIPS PART FORMAT: /*** bind(1,2,3) result(1) ***/
     private static Pattern encryptHint = Pattern.compile("\\s*/\\*{3}\\s*(.*?)\\s*\\*{3}/");
 
-    private static OracleSensitiveFieldsParser tryParseHint(String sql, Set<String> securetFields) {
+    private static OracleSensitiveFieldsParser tryParseHint(String sql, Set<String> secureFields) {
         OracleSensitiveFieldsParser fieldsParser = null;
 
         Matcher matcher = encryptHint.matcher(sql);
         if (matcher.find() && matcher.start() == 0) {
             String convertedSql = sql.substring(matcher.end());
             String hint = matcher.group(1);
-            fieldsParser = new OracleSensitiveFieldsParser(securetFields, convertedSql);
+            fieldsParser = new OracleSensitiveFieldsParser(secureFields, convertedSql);
             fieldsParser.parseHint(hint);
         }
 
         return fieldsParser;
     }
 
-    public static OracleSensitiveFieldsParser parseOracleSql(String sql, Set<String> securetFields) {
-        OracleSensitiveFieldsParser fieldsParser = tryParseHint(sql, securetFields);
+    public static OracleSensitiveFieldsParser parseOracleSql(String sql, Set<String> secureFields) {
+        OracleSensitiveFieldsParser fieldsParser = tryParseHint(sql, secureFields);
         if (fieldsParser == null) {
             SQLStatement sqlStatement = parseSql(sql);
-            fieldsParser = new OracleSensitiveFieldsParser(securetFields, sql);
+            fieldsParser = new OracleSensitiveFieldsParser(secureFields, sql);
             fieldsParser = parseStatement(fieldsParser, sqlStatement);
         }
 
         if (fieldsParser == null) return null;
-        if (fieldsParser.haveNotSecureFields()) return null;
+        if (fieldsParser.haveNonSecureFields()) return null;
         return fieldsParser;
     }
 
@@ -142,8 +142,8 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     private static Splitter indexSplitter = Splitter.on(',').omitEmptyStrings().trimResults();
 
 
-    private OracleSensitiveFieldsParser(Set<String> securetFields, String sql) {
-        this.securetFields = securetFields;
+    private OracleSensitiveFieldsParser(Set<String> secureFields, String sql) {
+        this.secureFields = secureFields;
         this.sql = sql;
     }
 
@@ -152,14 +152,14 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
         if (matcher.find()) {
             Iterable<String> bindIndices = indexSplitter.split(matcher.group(1));
             for (String bindIndex : bindIndices)
-                securetBindIndice.add(Integer.parseInt(bindIndex));
+                secureBindIndices.add(Integer.parseInt(bindIndex));
         }
 
         matcher = resultPattern.matcher(hint);
         if (matcher.find()) {
             Iterable<String> resultIndices = indexSplitter.split(matcher.group(1));
             for (String resultIndex : resultIndices)
-                securetResultIndice.add(Integer.parseInt(resultIndex));
+                secureResultIndices.add(Integer.parseInt(resultIndex));
         }
     }
 
@@ -178,14 +178,14 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     private void parseQuery(SQLSelectQueryBlock queryBlock) {
         parseTable(queryBlock.getFrom());
         parseSelectItems(queryBlock.getSelectList());
-        adjustSubQeuryBindIndiceOfFrom();
+        adjustSubQueryBindIndicesOfFrom();
         if (queryBlock.getWhere() != null) queryBlock.getWhere().accept(adapter);
     }
 
-    private void adjustSubQeuryBindIndiceOfFrom() {
+    private void adjustSubQueryBindIndicesOfFrom() {
         for (BindVariant bindVariant : this.subQueryBindAndVariantOfFrom) {
-            for (Integer index : bindVariant.getBindIndice())
-                this.securetBindIndice.add(this.variantIndex + index);
+            for (Integer index : bindVariant.getBindIndices())
+                this.secureBindIndices.add(this.variantIndex + index);
             this.variantIndex += bindVariant.getVariantIndex();
         }
     }
@@ -201,7 +201,7 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     private void parseCall(SQLCallStatement callStatement) {
         addTableAlias("", callStatement.getProcedureName().toString());
         boolean isOraFunc = callStatement.getOutParameter() != null;
-        if (isOraFunc && isSecuretField(1)) securetBindIndice.add(1);
+        if (isOraFunc && isSecureField(1)) secureBindIndices.add(1);
 
         List<SQLExpr> parameters = callStatement.getParameters();
         for (int i = 0, ii = parameters.size(); i < ii; ++i) {
@@ -209,11 +209,11 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
             parameter.accept(adapter);
             int paramIndex = i + 1 + (isOraFunc ? 1 : 0);
 
-            if (!isSecuretField(paramIndex)) continue;
+            if (!isSecureField(paramIndex)) continue;
             if (parameter instanceof SQLVariantRefExpr) {
-                securetBindIndice.add(variantIndex + (isOraFunc ? 1 : 0));
+                secureBindIndices.add(variantIndex + (isOraFunc ? 1 : 0));
             } else {
-                log.warn("securet field is not passed as a single value in sql [" + sql + "]");
+                log.warn("secure field is not passed as a single value in sql [" + sql + "]");
             }
         }
     }
@@ -234,8 +234,8 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
 
         OracleMergeStatement.MergeInsertClause insertClause = mergeStatement.getInsertClause();
         if (insertClause != null) {
-            List<Integer> securetFieldsIndice = walkInsertColumns(insertClause.getColumns());
-            walkInsertValues(securetFieldsIndice, insertClause.getValues());
+            List<Integer> secureFieldsIndices = walkInsertColumns(insertClause.getColumns());
+            walkInsertValues(secureFieldsIndices, insertClause.getValues());
         }
     }
 
@@ -260,11 +260,11 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     private void walkUpdateSelect(SQLUpdateSetItem item) {
         SQLListExpr sqlListExpr = (SQLListExpr) item.getColumn();
         List<SQLExpr> items = sqlListExpr.getItems();
-        Set<Integer> securiteFieldIndice = Sets.newHashSet();
+        Set<Integer> secureFieldIndices = Sets.newHashSet();
         for (int i = 0, ii = items.size(); i < ii; ++i) {
             SQLExpr expr = items.get(i);
-            if (expr instanceof SQLPropertyExpr && isSecuretField((SQLPropertyExpr) expr)) {
-                securiteFieldIndice.add(i);
+            if (expr instanceof SQLPropertyExpr && isSecureField((SQLPropertyExpr) expr)) {
+                secureFieldIndices.add(i);
             }
         }
 
@@ -273,18 +273,18 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
         SQLSelectQueryBlock queryBlock = (SQLSelectQueryBlock) value.getSubQuery().getQuery();
 
         parseTable(queryBlock.getFrom());
-        parseSelectItemsInUpdate(securiteFieldIndice, queryBlock.getSelectList());
+        parseSelectItemsInUpdate(secureFieldIndices, queryBlock.getSelectList());
 
         if (queryBlock.getWhere() != null) queryBlock.getWhere().accept(adapter);
 
     }
 
-    private void parseSelectItemsInUpdate(Set<Integer> securetFieldIndice, List<SQLSelectItem> selectList) {
+    private void parseSelectItemsInUpdate(Set<Integer> secureFieldIndices, List<SQLSelectItem> selectList) {
         for (int i = 0, ii = selectList.size(); i < ii; ++i) {
             SQLSelectItem item = selectList.get(i);
             item.accept(adapter);
-            if (securetFieldIndice.contains(i) && item.getExpr() instanceof SQLVariantRefExpr) {
-                securetBindIndice.add(variantIndex);
+            if (secureFieldIndices.contains(i) && item.getExpr() instanceof SQLVariantRefExpr) {
+                secureBindIndices.add(variantIndex);
             }
         }
     }
@@ -294,20 +294,20 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
             SQLUpdateSetItem item = items.get(i);
             item.accept(adapter);
 
-            boolean isSecuretField = false;
+            boolean isSecureField = false;
             if (item.getColumn() instanceof SQLPropertyExpr) {
                 SQLPropertyExpr expr = (SQLPropertyExpr) item.getColumn();
-                isSecuretField = isSecuretField(expr);
+                isSecureField = isSecureField(expr);
             } else if (item.getColumn() instanceof SQLIdentifierExpr) {
-                isSecuretField = isSecuretField((SQLIdentifierExpr) item.getColumn());
+                isSecureField = isSecureField((SQLIdentifierExpr) item.getColumn());
             }
 
-            if (!isSecuretField) continue;
+            if (!isSecureField) continue;
 
             if (item.getValue() instanceof SQLVariantRefExpr) {
-                securetBindIndice.add(variantIndex);
+                secureBindIndices.add(variantIndex);
             } else {
-                log.warn("securet field is not updated as a single value in sql [" + sql + "]");
+                log.warn("secure field is not updated as a single value in sql [" + sql + "]");
             }
         }
     }
@@ -324,51 +324,51 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
             }
         });
 
-        if (rightVariantIndex.get() == 1) securetBindIndice.add(variantIndex + 1);
+        if (rightVariantIndex.get() == 1) secureBindIndices.add(variantIndex + 1);
     }
 
 
-    private boolean isSecuretField(SQLAllColumnExpr field) {
+    private boolean isSecureField(SQLAllColumnExpr field) {
         Object oneTableName = getOneTableName();
-        return oneTableName != null && containsInSecuretFields(oneTableName, "*");
+        return oneTableName != null && containsInSecureFields(oneTableName, "*");
     }
 
-    private boolean isSecuretField(SQLIdentifierExpr field) {
+    private boolean isSecureField(SQLIdentifierExpr field) {
         Object oneTableName = getOneTableName();
-        return oneTableName != null && containsInSecuretFields(oneTableName, field.getName());
+        return oneTableName != null && containsInSecureFields(oneTableName, field.getName());
     }
 
-    private boolean isSecuretField(SQLPropertyExpr expr) {
+    private boolean isSecureField(SQLPropertyExpr expr) {
         Object tableName = aliasTablesMap.get(expr.getOwner().toString());
         String fieldName = expr.getName();
 
 
-        return containsInSecuretFields(tableName, fieldName);
+        return containsInSecureFields(tableName, fieldName);
     }
 
-    private boolean containsInSecuretFields(Object tableName, String fieldName) {
+    private boolean containsInSecureFields(Object tableName, String fieldName) {
         if (tableName instanceof String)
-            return containsInSecuretFields((String) tableName, fieldName);
+            return containsInSecureFields((String) tableName, fieldName);
         else if (tableName instanceof OracleSensitiveFieldsParser)
-            return containsInSecuretFields((OracleSensitiveFieldsParser) tableName, fieldName);
+            return containsInSecureFields((OracleSensitiveFieldsParser) tableName, fieldName);
 
         return false;
     }
 
-    private boolean containsInSecuretFields(OracleSensitiveFieldsParser parser, String fieldName) {
+    private boolean containsInSecureFields(OracleSensitiveFieldsParser parser, String fieldName) {
         return "*".equals(fieldName)
-                ? !parser.getSecuretResultIndice().isEmpty()
-                : parser.inResultLables(fieldName);
+                ? !parser.getSecureResultIndices().isEmpty()
+                : parser.inResultLabels(fieldName);
     }
 
-    private boolean containsInSecuretFields(String tableName, String fieldName) {
+    private boolean containsInSecureFields(String tableName, String fieldName) {
         String secretField = tableName + "." + fieldName;
-        return securetFields.contains(secretField.toUpperCase());
+        return secureFields.contains(secretField.toUpperCase());
     }
 
-    private boolean isSecuretField(int procedureParameterIndex) {
+    private boolean isSecureField(int procedureParameterIndex) {
         Object oneTableName = getOneTableName();
-        return oneTableName != null && containsInSecuretFields(oneTableName, "" + procedureParameterIndex);
+        return oneTableName != null && containsInSecureFields(oneTableName, "" + procedureParameterIndex);
     }
 
     private Object getOneTableName() {
@@ -424,13 +424,14 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
         aliasTablesMap.put(alias, subParser);
     }
 
-    private String cleanQuotes(String str) {
+    private String cleanQuotesAndToUpper(String str) {
+        String cleanString = str;
         if (str.charAt(0) == '"' && str.charAt(str.length() - 1) == '"'
                 || str.charAt(0) == '\'' && str.charAt(str.length() - 1) == '\'')
-            return str.substring(1, str.length() - 1);
+            cleanString = str.substring(1, str.length() - 1);
 
 
-        return str;
+        return cleanString.toUpperCase();
     }
 
     private void parseSelectItems(List<SQLSelectItem> sqlSelectItems) {
@@ -441,27 +442,27 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
             if (item.getExpr() instanceof SQLIdentifierExpr) {
                 SQLIdentifierExpr expr = (SQLIdentifierExpr) item.getExpr();
 
-                if (isSecuretField(expr)) {
-                    securetResultIndice.add(itemIndex + 1);
-                    securetResultLabels.add(cleanQuotes(alias == null ? expr.getName() : alias));
+                if (isSecureField(expr)) {
+                    secureResultIndices.add(itemIndex + 1);
+                    secureResultLabels.add(cleanQuotesAndToUpper(alias == null ? expr.getName() : alias));
                 }
 
             } else if (item.getExpr() instanceof SQLPropertyExpr) {
                 SQLPropertyExpr expr = (SQLPropertyExpr) item.getExpr();
-                if (isSecuretField(expr)) {
+                if (isSecureField(expr)) {
                     if ("*".equals(expr.getName())) {
                         Object tableName = aliasTablesMap.get(expr.getOwner().toString());
-                        copyResultIndiceAndLables(itemIndex, tableName);
+                        copyResultIndicesAndLabels(itemIndex, tableName);
 
                     } else {
-                        securetResultIndice.add(itemIndex + 1);
-                        securetResultLabels.add(cleanQuotes(alias == null ? expr.getName() : alias));
+                        secureResultIndices.add(itemIndex + 1);
+                        secureResultLabels.add(cleanQuotesAndToUpper(alias == null ? expr.getName() : alias));
                     }
                 }
             } else if (item.getExpr() instanceof SQLAllColumnExpr) {
-                if (isSecuretField((SQLAllColumnExpr) item.getExpr())) {
+                if (isSecureField((SQLAllColumnExpr) item.getExpr())) {
                     Object tableName = getOneTableName();
-                    copyResultIndiceAndLables(itemIndex, tableName);
+                    copyResultIndicesAndLabels(itemIndex, tableName);
                 }
 
             } else if (item.getExpr() instanceof SQLQueryExpr) {
@@ -469,39 +470,39 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
                 SQLSelectQuery subQuery = expr.getSubQuery().getQuery();
                 OracleSensitiveFieldsParser subParser = createSubQueryParser(subQuery, QueryBelongs.SELECT);
 
-                if (subParser.inResultIndice(1)) {
-                    securetResultIndice.add(itemIndex + 1);
-                    Set<String> labels = subParser.getSecuretResultLabels();
-                    securetResultLabels.add(cleanQuotes(alias == null ? labels.iterator().next() : alias));
+                if (subParser.inResultIndices(1)) {
+                    secureResultIndices.add(itemIndex + 1);
+                    Set<String> labels = subParser.getSecureResultLabels();
+                    secureResultLabels.add(cleanQuotesAndToUpper(alias == null ? labels.iterator().next() : alias));
                 }
             }
         }
     }
 
-    private void copyResultIndiceAndLables(int itemIndex, Object tableName) {
+    private void copyResultIndicesAndLabels(int itemIndex, Object tableName) {
         if (tableName instanceof OracleSensitiveFieldsParser) {
             OracleSensitiveFieldsParser parser = (OracleSensitiveFieldsParser) tableName;
-            for (Integer resultIndex : parser.getSecuretResultIndice()) {
-                securetResultIndice.add(resultIndex + itemIndex);
+            for (Integer resultIndex : parser.getSecureResultIndices()) {
+                secureResultIndices.add(resultIndex + itemIndex);
             }
-            securetResultLabels.addAll(parser.getSecuretResultLabels());
+            secureResultLabels.addAll(parser.getSecureResultLabels());
         }
     }
 
     private OracleSensitiveFieldsParser createSubQueryParser(SQLSelectQuery subQuery, QueryBelongs mode) {
-        OracleSensitiveFieldsParser subParser = new OracleSensitiveFieldsParser(securetFields, sql);
+        OracleSensitiveFieldsParser subParser = new OracleSensitiveFieldsParser(secureFields, sql);
         subParser.parseSelectQuery(subQuery);
 
         switch (mode) {
             case FROM:
                 BindVariant bindAndVariant = new BindVariant(subParser.getVariantIndex(),
-                        subParser.getSecuretBindIndice());
+                        subParser.getSecureBindIndices());
                 subQueryBindAndVariantOfFrom.add(bindAndVariant);
                 break;
 
             case SELECT:
-                for (Integer index : subParser.getSecuretBindIndice())
-                    this.securetBindIndice.add(variantIndex + index);
+                for (Integer index : subParser.getSecureBindIndices())
+                    this.secureBindIndices.add(variantIndex + index);
                 variantIndex += subParser.getVariantIndex();
                 break;
         }
@@ -524,26 +525,26 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
             addTableAlias(tableSource, (SQLIdentifierExpr) tableSource.getExpr());
 
         List<SQLExpr> columns = x.getColumns();
-        List<Integer> securetFieldsIndice = walkInsertColumns(columns);
+        List<Integer> secureFieldsIndices = walkInsertColumns(columns);
 
         SQLInsertStatement.ValuesClause valuesClause = x.getValues();
         // may be insert ... select ...
         if (valuesClause != null) {
             List<SQLExpr> values = valuesClause.getValues();
-            walkInsertValues(securetFieldsIndice, values);
+            walkInsertValues(secureFieldsIndices, values);
         } else if (x.getQuery() != null) {
             SQLSelect query = x.getQuery();
-            parseQuery4Insert(securetFieldsIndice, (SQLSelectQueryBlock) query.getQuery());
+            parseQuery4Insert(secureFieldsIndices, (SQLSelectQueryBlock) query.getQuery());
         }
     }
 
-    private void parseQuery4Insert(List<Integer> securetFieldsIndice, SQLSelectQueryBlock queryBlock) {
+    private void parseQuery4Insert(List<Integer> secureFieldsIndices, SQLSelectQueryBlock queryBlock) {
         List<SQLSelectItem> selectList = queryBlock.getSelectList();
         for (int itemIndex = 0, ii = selectList.size(); itemIndex < ii; ++itemIndex) {
             SQLSelectItem item = selectList.get(itemIndex);
             item.accept(adapter);
-            if (securetFieldsIndice.contains(itemIndex) && item.getExpr() instanceof SQLVariantRefExpr) {
-                securetBindIndice.add(variantIndex);
+            if (secureFieldsIndices.contains(itemIndex) && item.getExpr() instanceof SQLVariantRefExpr) {
+                secureBindIndices.add(variantIndex);
             }
         }
 
@@ -554,71 +555,77 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
         if (queryBlock.getWhere() != null) queryBlock.getWhere().accept(adapter);
     }
 
-    private void walkInsertValues(List<Integer> securetFieldsIndice, List<SQLExpr> values) {
+    private void walkInsertValues(List<Integer> secureFieldsIndices, List<SQLExpr> values) {
         for (int i = 0, ii = values.size(); i < ii; ++i) {
             SQLExpr expr = values.get(i);
             expr.accept(adapter);
-            if (securetFieldsIndice.contains(i)) {
-                if (expr instanceof SQLVariantRefExpr) securetBindIndice.add(variantIndex);
-                else log.warn("securet field is not inserted as a single value in sql [" + sql + "]");
+            if (secureFieldsIndices.contains(i)) {
+                if (expr instanceof SQLVariantRefExpr) secureBindIndices.add(variantIndex);
+                else log.warn("secure field is not inserted as a single value in sql [" + sql + "]");
             }
         }
     }
 
     private List<Integer> walkInsertColumns(List<SQLExpr> columns) {
-        List<Integer> securetFieldsIndice = Lists.newArrayList();
+        List<Integer> secureFieldsIndices = Lists.newArrayList();
         for (int i = 0, ii = columns.size(); i < ii; ++i) {
             SQLExpr column = columns.get(i);
             if (column instanceof SQLIdentifierExpr) {
                 SQLIdentifierExpr expr = (SQLIdentifierExpr) column;
-                if (isSecuretField(expr)) securetFieldsIndice.add(i);
+                if (isSecureField(expr)) secureFieldsIndices.add(i);
             }
         }
 
-        return securetFieldsIndice;
+        return secureFieldsIndices;
     }
 
     @Override
-    public Set<Integer> getSecuretBindIndice() {
-        return securetBindIndice;
+    public Set<Integer> getSecureBindIndices() {
+        return secureBindIndices;
     }
 
     @Override
-    public Set<Integer> getSecuretResultIndice() {
-        return securetResultIndice;
+    public Set<Integer> getSecureResultIndices() {
+        return secureResultIndices;
     }
 
     @Override
-    public Set<String> getSecuretResultLabels() {
-        return securetResultLabels;
+    public Set<String> getSecureResultLabels() {
+        return secureResultLabels;
     }
 
     @Override
-    public boolean inBindIndice(int index) {
-        return getSecuretBindIndice().contains(index);
+    public boolean inBindIndices(int index) {
+        return getSecureBindIndices().contains(index);
     }
 
     @Override
-    public boolean inResultIndice(int index) {
-        return getSecuretResultIndice().contains(index);
+    public boolean inResultIndices(int index) {
+        return getSecureResultIndices().contains(index);
     }
 
     @Override
-    public boolean inResultLables(String label) {
-        return getSecuretResultLabels().contains(label);
+    public boolean inResultLabels(String label) {
+        return getSecureResultLabels().contains(label);
     }
 
     @Override
-    public boolean inResultIndiceOrLabel(Object indexOrLabel) {
-        return getSecuretResultIndice().contains(indexOrLabel)
-                || getSecuretResultLabels().contains(indexOrLabel);
+    public boolean inResultIndicesOrLabel(Object indexOrLabel) {
+        if (indexOrLabel instanceof Number) {
+            return getSecureResultIndices().contains(indexOrLabel);
+        } else if (indexOrLabel instanceof String) {
+            String upper = ((String) indexOrLabel).toUpperCase();
+            return getSecureResultLabels().contains(upper);
+        }
+
+        return false;
     }
 
     @Override
-    public boolean haveNotSecureFields() {
-        return securetResultLabels.isEmpty()
-                && securetResultIndice.isEmpty()
-                && securetBindIndice.isEmpty();
+    public boolean haveNonSecureFields() {
+        return secureResultLabels.isEmpty()
+                && secureResultIndices.isEmpty()
+                && secureBindIndices.isEmpty();
     }
 
     @Override
@@ -637,19 +644,19 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
 
     static class BindVariant {
         private Integer variantIndex;
-        private Set<Integer> bindIndice;
+        private Set<Integer> bindIndices;
 
-        public BindVariant(Integer variantIndex, Set<Integer> bindIndice) {
+        public BindVariant(Integer variantIndex, Set<Integer> bindIndices) {
             this.variantIndex = variantIndex;
-            this.bindIndice = bindIndice;
+            this.bindIndices = bindIndices;
         }
 
         public Integer getVariantIndex() {
             return variantIndex;
         }
 
-        public Set<Integer> getBindIndice() {
-            return bindIndice;
+        public Set<Integer> getBindIndices() {
+            return bindIndices;
         }
     }
 

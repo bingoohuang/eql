@@ -16,13 +16,13 @@ public class ReferSecretFieldsConfig implements SecretFieldsConfigable {
         EqlConfig eqlConfig = EqlSecretFieldsConnectionProxy.threadLocal.get();
         if (eqlConfig == null) return;
 
-        String securetDatabaseFields = eqlConfig.getStr("securetDatabaseFields.define");
-        if (S.isBlank(securetDatabaseFields)) return;
+        String secureDatabaseFields = eqlConfig.getStr("securetDatabaseFields.define");
+        if (S.isBlank(secureDatabaseFields)) return;
 
         Splitter splitter = Splitter.onPattern("\\s+").trimResults().omitEmptyStrings();
-        Iterable<String> securetFields = splitter.split(securetDatabaseFields.toUpperCase());
+        Iterable<String> secureFields = splitter.split(secureDatabaseFields.toUpperCase());
 
-        secretFieldsConfig = Sets.newHashSet(securetFields);
+        secretFieldsConfig = Sets.newHashSet(secureFields);
     }
 
     @Override

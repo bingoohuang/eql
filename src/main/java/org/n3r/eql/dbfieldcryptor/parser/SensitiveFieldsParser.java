@@ -3,21 +3,21 @@ package org.n3r.eql.dbfieldcryptor.parser;
 import java.util.Set;
 
 public interface SensitiveFieldsParser {
-    Set<Integer> getSecuretBindIndice();
+    Set<Integer> getSecureBindIndices();
 
-    Set<Integer> getSecuretResultIndice();
+    Set<Integer> getSecureResultIndices();
 
-    Set<String> getSecuretResultLabels();
+    Set<String> getSecureResultLabels();
 
-    boolean inBindIndice(int index);
+    boolean inBindIndices(int index);
 
-    boolean inResultIndice(int index);
+    boolean inResultIndices(int index);
 
-    boolean inResultLables(String label);
+    boolean inResultLabels(String label);
 
-    boolean inResultIndiceOrLabel(Object indexOrLabel);
+    boolean inResultIndicesOrLabel(Object indexOrLabel);
 
-    boolean haveNotSecureFields();
+    boolean haveNonSecureFields();
 
     String getSql();
 }

@@ -28,7 +28,7 @@ class CallableStmtHandler implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if (O.in(method.getName(), "setString", "setObject")
-                && parser.inBindIndice((Integer) args[0])) {
+                && parser.inBindIndices((Integer) args[0])) {
             try {
                 args[1] = args[1] == null ? null : cryptor.encrypt(args[1].toString());
             } catch (Exception e) {
@@ -38,7 +38,7 @@ class CallableStmtHandler implements InvocationHandler {
         }
 
         if (O.in(method.getName(), "getString", "getObject")
-                && parser.inBindIndice((Integer) args[0])) {
+                && parser.inBindIndices((Integer) args[0])) {
             try {
                 Object result = method.invoke(stmt, args);
                 return result != null ? cryptor.decrypt("" + result) : result;

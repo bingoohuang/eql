@@ -15,11 +15,11 @@ import static org.n3r.eql.dbfieldcryptor.parser.OracleSensitiveFieldsParser.pars
 public class ParserCache {
     Logger logger = LoggerFactory.getLogger(ParserCache.class);
 
-    final Set<String> securetFieldsConfig;
+    final Set<String> secureFieldsConfig;
     final LoadingCache<DbIdSql, Optional<SensitiveFieldsParser>> cache;
 
-    public ParserCache(Set<String> securetFieldsConfig) {
-        this.securetFieldsConfig = securetFieldsConfig;
+    public ParserCache(Set<String> secureFieldsConfig) {
+        this.secureFieldsConfig = secureFieldsConfig;
 
         cache = CacheBuilder.newBuilder().build(
                 new CacheLoader<DbIdSql, Optional<SensitiveFieldsParser>>() {
@@ -39,17 +39,17 @@ public class ParserCache {
             parser = getSensitiveFieldsParser(databaseId, sql);
 
             if (parser == null) return null;
-            if (parser.haveNotSecureFields()) return null;
+            if (parser.haveNonSecureFields()) return null;
             return parser;
 
         } catch (Exception ex) {
-            logger.warn("parse sql [{}] failed", sql, ex);
+            logger.warn("parse sql [{}] failed {}", sql, ex.getMessage());
         }
         return null;
     }
 
     private SensitiveFieldsParser getSensitiveFieldsParser(String dbId, String sql) {
-        if ("oracle".equals(dbId)) return parseOracleSql(sql, securetFieldsConfig);
+        if ("oracle".equals(dbId)) return parseOracleSql(sql, secureFieldsConfig);
 
         return null;
     }

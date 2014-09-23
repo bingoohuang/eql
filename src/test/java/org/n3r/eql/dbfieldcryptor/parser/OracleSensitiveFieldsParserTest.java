@@ -109,7 +109,7 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser parser = OracleSensitiveFieldsParser.parseOracleSql(sql,
                 securetFields);
 
-        Assert.assertEquals(Sets.newHashSet(1, 35), parser.getSecuretBindIndice());
+        Assert.assertEquals(Sets.newHashSet(1, 35), parser.getSecureBindIndices());
     }
 
     String insertAllSql = "INSERT ALL           INTO TF_B_ORDER_GOODSINS_ATVAL              (ORDER_ID,PARTITION_ID,GOODS_INST_ID,GOODS_ID,ATTR_CODE,ATTR_NAME,ATTR_VAL_CODE,ATTR_VAL_NAME,ATTR_VAL_DESC,EOP_ATTR_CODE,EOP_ATTR_VAL_CODE)          VALUES              (?,MOD(?,100),?,?,?,?,?,?,?,?,?)                    INTO TF_B_ORDER_GOODSINS_ATVAL              (ORDER_ID,PARTITION_ID,GOODS_INST_ID,GOODS_ID,ATTR_CODE,ATTR_NAME,ATTR_VAL_CODE,ATTR_VAL_NAME,ATTR_VAL_DESC,EOP_ATTR_CODE,EOP_ATTR_VAL_CODE)          VALUES              (?,MOD(?,100),?,?,?,?,?,?,?,?,?)                    INTO TF_B_ORDER_GOODSINS_ATVAL              (ORDER_ID,PARTITION_ID,GOODS_INST_ID,GOODS_ID,ATTR_CODE,ATTR_NAME,ATTR_VAL_CODE,ATTR_VAL_NAME,ATTR_VAL_DESC,EOP_ATTR_CODE,EOP_ATTR_VAL_CODE)          VALUES              (?,MOD(?,100),?,?,?,?,?,?,?,?,?)                    INTO TF_B_ORDER_GOODSINS_ATVAL              (ORDER_ID,PARTITION_ID,GOODS_INST_ID,GOODS_ID,ATTR_CODE,ATTR_NAME,ATTR_VAL_CODE,ATTR_VAL_NAME,ATTR_VAL_DESC,EOP_ATTR_CODE,EOP_ATTR_VAL_CODE)          VALUES              (?,MOD(?,100),?,?,?,?,?,?,?,?,?)                    INTO TF_B_ORDER_GOODSINS_ATVAL              (ORDER_ID,PARTITION_ID,GOODS_INST_ID,GOODS_ID,ATTR_CODE,ATTR_NAME,ATTR_VAL_CODE,ATTR_VAL_NAME,ATTR_VAL_DESC,EOP_ATTR_CODE,EOP_ATTR_VAL_CODE)          VALUES              (?,MOD(?,100),?,?,?,?,?,?,?,?,?)                    INTO TF_B_ORDER_GOODSINS_ATVAL              (ORDER_ID,PARTITION_ID,GOODS_INST_ID,GOODS_ID,ATTR_CODE,ATTR_NAME,ATTR_VAL_CODE,ATTR_VAL_NAME,ATTR_VAL_DESC,EOP_ATTR_CODE,EOP_ATTR_VAL_CODE)          VALUES              (?,MOD(?,100),?,?,?,?,?,?,?,?,?)                    INTO TF_B_ORDER_GOODSINS_ATVAL              (ORDER_ID,PARTITION_ID,GOODS_INST_ID,GOODS_ID,ATTR_CODE,ATTR_NAME,ATTR_VAL_CODE,ATTR_VAL_NAME,ATTR_VAL_DESC,EOP_ATTR_CODE,EOP_ATTR_VAL_CODE)          VALUES              (?,MOD(?,100),?,?,?,?,?,?,?,?,?)                    INTO TF_B_ORDER_GOODSINS_ATVAL              (ORDER_ID,PARTITION_ID,GOODS_INST_ID,GOODS_ID,ATTR_CODE,ATTR_NAME,ATTR_VAL_CODE,ATTR_VAL_NAME,ATTR_VAL_DESC,EOP_ATTR_CODE,EOP_ATTR_VAL_CODE)          VALUES              (?,MOD(?,100),?,?,?,?,?,?,?,?,?)                    INTO TF_B_ORDER_GOODSINS_ATVAL              (ORDER_ID,PARTITION_ID,GOODS_INST_ID,GOODS_ID,ATTR_CODE,ATTR_NAME,ATTR_VAL_CODE,ATTR_VAL_NAME,ATTR_VAL_DESC,EOP_ATTR_CODE,EOP_ATTR_VAL_CODE)          VALUES              (?,MOD(?,100),?,?,?,?,?,?,?,?,?)                    INTO TF_B_ORDER_GOODSINS_ATVAL              (ORDER_ID,PARTITION_ID,GOODS_INST_ID,GOODS_ID,ATTR_CODE,ATTR_NAME,ATTR_VAL_CODE,ATTR_VAL_NAME,ATTR_VAL_DESC,EOP_ATTR_CODE,EOP_ATTR_VAL_CODE)          VALUES              (?,MOD(?,100),?,?,?,?,?,?,?,?,?)                    INTO TF_B_ORDER_GOODSINS_ATVAL              (ORDER_ID,PARTITION_ID,GOODS_INST_ID,GOODS_ID,ATTR_CODE,ATTR_NAME,ATTR_VAL_CODE,ATTR_VAL_NAME,ATTR_VAL_DESC,EOP_ATTR_CODE,EOP_ATTR_VAL_CODE)          VALUES              (?,MOD(?,100),?,?,?,?,?,?,?,?,?)                    INTO TF_B_ORDER_GOODSINS_ATVAL              (ORDER_ID,PARTITION_ID,GOODS_INST_ID,GOODS_ID,ATTR_CODE,ATTR_NAME,ATTR_VAL_CODE,ATTR_VAL_NAME,ATTR_VAL_DESC,EOP_ATTR_CODE,EOP_ATTR_VAL_CODE)          VALUES              (?,MOD(?,100),?,?,?,?,?,?,?,?,?)          SELECT 1 FROM DUAL ";
@@ -118,7 +118,7 @@ public class OracleSensitiveFieldsParserTest {
     public void testInsertAll() {
         OracleSensitiveFieldsParser parser = OracleSensitiveFieldsParser.parseOracleSql(insertAllSql,
                 securetFields);
-        Assert.assertEquals(Sets.newHashSet(34, 1, 100, 23, 67, 111, 78, 56, 89, 12, 122, 45), parser.getSecuretBindIndice());
+        Assert.assertEquals(Sets.newHashSet(34, 1, 100, 23, 67, 111, 78, 56, 89, 12, 122, 45), parser.getSecureBindIndices());
     }
 
     String selectSql = "SELECT O.ORDER_NO ORDERNO,\n" +
@@ -279,7 +279,7 @@ public class OracleSensitiveFieldsParserTest {
     public void testSelect() {
         OracleSensitiveFieldsParser parser = OracleSensitiveFieldsParser.parseOracleSql(selectSql,
                 securetFields);
-        Assert.assertEquals(Sets.newHashSet(2, 35, 41), parser.getSecuretResultIndice());
+        Assert.assertEquals(Sets.newHashSet(2, 35, 41), parser.getSecureResultIndices());
     }
 
     String unionSql = "SELECT A.ATTR_CODE,\n" +
@@ -309,7 +309,7 @@ public class OracleSensitiveFieldsParserTest {
     public void testUnion() {
         OracleSensitiveFieldsParser parser = OracleSensitiveFieldsParser.parseOracleSql(unionSql,
                 Sets.newHashSet("TD_G_ATTR.ATTR_CODE", "TD_B_COMMPARA.PARAM_NAME"));
-        Assert.assertEquals(Sets.newHashSet(1, 2), parser.getSecuretResultIndice());
+        Assert.assertEquals(Sets.newHashSet(1, 2), parser.getSecureResultIndices());
     }
 
     String fnSql = "{ ? = call f_sys_getgoodseqid(?)}";
@@ -318,7 +318,7 @@ public class OracleSensitiveFieldsParserTest {
     public void testFunctionSql() {
         OracleSensitiveFieldsParser parser = OracleSensitiveFieldsParser.parseOracleSql(fnSql,
                 Sets.newHashSet("F_SYS_GETGOODSEQID.1"));
-        Assert.assertEquals(Sets.newHashSet(1), parser.getSecuretBindIndice());
+        Assert.assertEquals(Sets.newHashSet(1), parser.getSecureBindIndices());
     }
 
     String pageSql = "SELECT ROW_.*,\n" +
@@ -377,7 +377,7 @@ public class OracleSensitiveFieldsParserTest {
     public void testPageSql() {
         OracleSensitiveFieldsParser parser = OracleSensitiveFieldsParser.parseOracleSql(pageSql,
                 Sets.newHashSet("TD_P_BROADBAND.CITY_CODE"));
-        Assert.assertEquals(Sets.newHashSet(3), parser.getSecuretResultIndice());
+        Assert.assertEquals(Sets.newHashSet(3), parser.getSecureResultIndices());
     }
 
 
@@ -463,7 +463,7 @@ public class OracleSensitiveFieldsParserTest {
     public void testUpdateSetQuery() {
         OracleSensitiveFieldsParser parser = OracleSensitiveFieldsParser.parseOracleSql(updateSetQuery,
                 Sets.newHashSet("TF_R_PHNBR_IDLE.NICE_RULE", "TF_R_PHCODE_IDLE.SERIAL_NUMBER"));
-        Assert.assertEquals(Sets.newHashSet(1, 5), parser.getSecuretBindIndice());
+        Assert.assertEquals(Sets.newHashSet(1, 5), parser.getSecureBindIndices());
     }
 
     @Test
@@ -473,18 +473,18 @@ public class OracleSensitiveFieldsParserTest {
         final Set<String> securetFieldsConfig = Sets.newHashSet("TABLE1.A", "TABLE1.B");
         OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser.parseOracleSql(sql, securetFieldsConfig);
 
-        Set<Integer> securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(3, 4));
-        Set<Integer> securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        Set<Integer> securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(2, 3));
 
         sql = "select d, f, a, b, c from table1 where c = ? || ',' || ? and a = ? and b = ?";
 
         visitorAdapter = OracleSensitiveFieldsParser.parseOracleSql(sql, securetFieldsConfig);
 
-        securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(3, 4));
-        securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(3, 4));
     }
 
@@ -497,9 +497,9 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
                 .parseOracleSql(sql, securetFieldsConfig);
 
-        Set<Integer> securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(1, 2));
-        Set<Integer> securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        Set<Integer> securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(1));
     }
 
@@ -511,9 +511,9 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
                 .parseOracleSql(sql, fields);
 
-        Set<Integer> securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(1, 2));
-        Set<Integer> securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        Set<Integer> securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(2));
 
     }
@@ -535,9 +535,9 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
                 .parseOracleSql(sql, securetFieldsConfig);
 
-        Set<Integer> securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(1, 4));
-        Set<Integer> securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        Set<Integer> securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet());
     }
 
@@ -602,9 +602,9 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
                 .parseOracleSql(sql, securetFieldsConfig);
 
-        Set<Integer> securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(27, 29));
-        Set<Integer> securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        Set<Integer> securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet());
     }
 
@@ -693,9 +693,9 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
                 .parseOracleSql(sql, securetFieldsConfig);
 
-        Set<Integer> securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
-        Set<Integer> securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        Set<Integer> securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(Sets.newHashSet(10), securetBindIndice);
     }
 
@@ -757,9 +757,9 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
                 .parseOracleSql(sql, securetFieldsConfig);
 
-        Set<Integer> securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(14));
-        Set<Integer> securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        Set<Integer> securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet());
     }
 
@@ -825,9 +825,9 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
                 .parseOracleSql(orderSql, securetFieldsConfig);
 
-        Set<Integer> securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(14));
-        Set<Integer> securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        Set<Integer> securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet());
     }
 
@@ -855,17 +855,17 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
                 .parseOracleSql(sql, securetFieldsConfig);
 
-        Set<Integer> securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
-        Set<Integer> securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        Set<Integer> securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(1, 2));
 
         sql = "insert into table1(a, b, c) values(? || 'x' || ?, ?, ?)";
         visitorAdapter = OracleSensitiveFieldsParser.parseOracleSql(sql, securetFieldsConfig);
 
-        securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
-        securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(3));
     }
 
@@ -876,17 +876,17 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
                 .parseOracleSql(sql, securetFieldsConfig);
 
-        Set<Integer> securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
-        Set<Integer> securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        Set<Integer> securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(1, 2));
 
         sql = "update table1  set a = ? || 'X' || ?, b = ?, c = ?";
         visitorAdapter = OracleSensitiveFieldsParser.parseOracleSql(sql, securetFieldsConfig);
 
-        securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
-        securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(3));
     }
 
@@ -912,9 +912,9 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
                 .parseOracleSql(sql, securetFieldsConfig);
 
-        Set<Integer> securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
-        Set<Integer> securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        Set<Integer> securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(1, 2, 4, 6));
     }
 
@@ -925,17 +925,17 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
                 .parseOracleSql(sql, securetFieldsConfig);
 
-        Set<Integer> securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
-        Set<Integer> securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        Set<Integer> securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(2));
 
         sql = "{call abc.myproc(? || 'x' || ?,?,?)}";
         visitorAdapter = OracleSensitiveFieldsParser.parseOracleSql(sql, securetFieldsConfig);
 
-        securetResultIndice = visitorAdapter.getSecuretResultIndice();
+        securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
-        securetBindIndice = visitorAdapter.getSecuretBindIndice();
+        securetBindIndice = visitorAdapter.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(3));
     }
 
@@ -946,8 +946,8 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
                 .parseOracleSql(hintSql, Sets.newHashSet(""));
 
-        assertEquals(Sets.newHashSet(1, 2), visitor.getSecuretBindIndice());
-        assertEquals(Sets.newHashSet(1), visitor.getSecuretResultIndice());
+        assertEquals(Sets.newHashSet(1, 2), visitor.getSecureBindIndices());
+        assertEquals(Sets.newHashSet(1), visitor.getSecureResultIndices());
         assertEquals(" select 1 from dual", visitor.getSql());
     }
 
@@ -974,8 +974,8 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
                 .parseOracleSql(funcSql, Sets.newHashSet("TF_B_BESPEAK_REG.PCARD_CODE"));
 
-        assertEquals(Sets.newHashSet(1), visitor.getSecuretBindIndice());
-        assertEquals(Sets.newHashSet(3), visitor.getSecuretResultIndice());
+        assertEquals(Sets.newHashSet(1), visitor.getSecureBindIndices());
+        assertEquals(Sets.newHashSet(3), visitor.getSecureResultIndices());
         assertEquals(funcSql, visitor.getSql());
     }
 
@@ -1062,8 +1062,8 @@ public class OracleSensitiveFieldsParserTest {
                 .parseOracleSql(subQuery, Sets.newHashSet("TF_B_ORDER_POST.POST_ADDR", "TD_B_COMMPARA.PARA_CODE2",
                         "TF_B_ORDER.ORDER_ID", "TF_B_ORDER_POST.CITY_CODE", "TD_B_COMMPARA.PARAM_CODE"));
 
-        assertEquals(Sets.newHashSet(1, 2, 4, 7, 9), visitor.getSecuretBindIndice());
-        assertEquals(Sets.newHashSet(1, 21, 23, 28), visitor.getSecuretResultIndice());
+        assertEquals(Sets.newHashSet(1, 2, 4, 7, 9), visitor.getSecureBindIndices());
+        assertEquals(Sets.newHashSet(1, 21, 23, 28), visitor.getSecureResultIndices());
         assertEquals(subQuery, visitor.getSql());
     }
 
@@ -1078,8 +1078,8 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
                 .parseOracleSql(myPageSql, Sets.newHashSet("TABLE.B"));
 
-        assertEquals(Sets.newHashSet(1), visitor.getSecuretBindIndice());
-        assertEquals(Sets.newHashSet(2), visitor.getSecuretResultIndice());
+        assertEquals(Sets.newHashSet(1), visitor.getSecureBindIndices());
+        assertEquals(Sets.newHashSet(2), visitor.getSecureResultIndices());
         assertEquals(myPageSql, visitor.getSql());
     }
 
@@ -1090,8 +1090,8 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
                 .parseOracleSql(starSql, Sets.newHashSet("TAB.B"));
 
-        assertEquals(Sets.newHashSet(), visitor.getSecuretBindIndice());
-        assertEquals(Sets.newHashSet(3), visitor.getSecuretResultIndice());
+        assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
+        assertEquals(Sets.newHashSet(3), visitor.getSecureResultIndices());
         assertEquals(starSql, visitor.getSql());
     }
 
@@ -1147,8 +1147,8 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
                 .parseOracleSql(mergeSql, Sets.newHashSet("TF_B_TAOBAO_NETIN.PSPT_NO"));
 
-        assertEquals(Sets.newHashSet(13), visitor.getSecuretBindIndice());
-        assertEquals(Sets.newHashSet(), visitor.getSecuretResultIndice());
+        assertEquals(Sets.newHashSet(13), visitor.getSecureBindIndices());
+        assertEquals(Sets.newHashSet(), visitor.getSecureResultIndices());
         assertEquals(mergeSql, visitor.getSql());
     }
 
@@ -1183,8 +1183,8 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
                 .parseOracleSql(zjSql, Sets.newHashSet("TF_B_BESPEAK_INFO.PSPT_NO"));
 
-        assertEquals(Sets.newHashSet(), visitor.getSecuretBindIndice());
-        assertEquals(Sets.newHashSet(3), visitor.getSecuretResultIndice());
+        assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
+        assertEquals(Sets.newHashSet(3), visitor.getSecureResultIndices());
         assertEquals(zjSql, visitor.getSql());
     }
 
@@ -1228,8 +1228,8 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
                 .parseOracleSql(whcSql, Sets.newHashSet("TF_B_ORDER_POST.POST_ADDR"));
 
-        assertEquals(Sets.newHashSet(), visitor.getSecuretBindIndice());
-        assertEquals(Sets.newHashSet(13), visitor.getSecuretResultIndice());
+        assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
+        assertEquals(Sets.newHashSet(13), visitor.getSecureResultIndices());
         assertEquals(whcSql, visitor.getSql());
     }
 
@@ -1332,8 +1332,8 @@ public class OracleSensitiveFieldsParserTest {
         OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
                 .parseOracleSql(psptNoSql, Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO"));
 
-        assertEquals(Sets.newHashSet(9), visitor.getSecuretBindIndice());
-        assertEquals(Sets.newHashSet(), visitor.getSecuretResultIndice());
+        assertEquals(Sets.newHashSet(9), visitor.getSecureBindIndices());
+        assertEquals(Sets.newHashSet(), visitor.getSecureResultIndices());
         assertEquals(psptNoSql, visitor.getSql());
     }
 
@@ -1416,8 +1416,8 @@ public class OracleSensitiveFieldsParserTest {
                 .parseOracleSql(aliasSql, Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
 
 
-        assertEquals(Sets.newHashSet(), visitor.getSecuretBindIndice());
-        assertEquals(Sets.newHashSet(3, 5), visitor.getSecuretResultIndice());
+        assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
+        assertEquals(Sets.newHashSet(3, 5), visitor.getSecureResultIndices());
         assertEquals(aliasSql, visitor.getSql());
     }
 
@@ -1452,12 +1452,11 @@ public class OracleSensitiveFieldsParserTest {
                 .parseOracleSql(aliasSql2, Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
 
 
-        assertEquals(Sets.newHashSet(), visitor.getSecuretBindIndice());
-        assertEquals(Sets.newHashSet(3, 6), visitor.getSecuretResultIndice());
-        assertEquals(Sets.newHashSet("pstCode", "linkAddress"), visitor.getSecuretResultLabels());
+        assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
+        assertEquals(Sets.newHashSet(3, 6), visitor.getSecureResultIndices());
+        assertEquals(Sets.newHashSet("PSTCODE", "LINKADDRESS"), visitor.getSecureResultLabels());
         assertEquals(aliasSql2, visitor.getSql());
     }
-
 
     String partitionSql = "/*** N/A for encryption ***/\r\nDELETE TF_G_ARTICLE_AMOUNT_MIN PARTITION(P1610) ";
 

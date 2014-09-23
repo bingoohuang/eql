@@ -28,7 +28,7 @@ class PreparedStmtHandler implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if (O.in(method.getName(), "setString", "setObject")
-                && parser.inBindIndice((Integer) args[0])) {
+                && parser.inBindIndices((Integer) args[0])) {
             try {
                 args[1] = args[1] == null ? null : cryptor.encrypt(args[1].toString());
             } catch (Exception e) {
@@ -39,7 +39,7 @@ class PreparedStmtHandler implements InvocationHandler {
         Object result = method.invoke(pstmt, args);
 
         if (O.in(method.getName(), "executeQuery", "getResultSet")
-                && parser.getSecuretResultIndice().size() > 0) {
+                && parser.getSecureResultIndices().size() > 0) {
             result = new ResultSetHandler((ResultSet) result, parser, cryptor).createResultSetProxy();
         }
 
