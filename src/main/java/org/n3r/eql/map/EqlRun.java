@@ -8,8 +8,10 @@ import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.EqlParamsParser;
 import org.n3r.eql.param.PlaceholderType;
 import org.n3r.eql.parser.EqlBlock;
+import org.n3r.eql.util.Hex;
 import org.n3r.eql.util.P;
 import org.n3r.eql.util.Pair;
+import org.n3r.eql.util.S;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +19,8 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -56,8 +60,8 @@ public class EqlRun implements Cloneable {
 
         if (boundParams != null && boundParams.size() > 0 && logger.isDebugEnabled()) {
             String sqlId = getSqlId();
-            logger.debug("params for {}: {}", sqlId, boundParams.toString());
-            logger.debug("eval sql for {}: {}", sqlId, parseEvalSql());
+            logger.debug("params for [{}]: {}", sqlId, boundParams.toString());
+            logger.debug("eval sql for [{}]: {}", sqlId, parseEvalSql());
         }
     }
 
@@ -67,6 +71,8 @@ public class EqlRun implements Cloneable {
         int index = -1;
         int size = boundParams.size();
         int evalSqlLength = evalSql.length();
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-DD HH:mm:ss");
         while (startPos < evalSqlLength) {
             String placeholder = EqlParamsParser.LINE_SEPARATOR + (++index) + EqlParamsParser.LINE_SEPARATOR;
             int pos = evalSql.indexOf(placeholder, startPos);
@@ -76,16 +82,23 @@ public class EqlRun implements Cloneable {
             if (index < size) {
                 Object boundParam = boundParams.get(index);
                 if (boundParam == null) {
-                    eval.append("null");
+                    eval.append("NULL");
                 } else if (boundParam instanceof Number) {
                     eval.append(boundParam.toString());
+                } else if (boundParam instanceof java.util.Date) {
+                    String formattedDate = simpleDateFormat.format((Date) boundParam);
+                    eval.append('\'').append(formattedDate).append('\'');
+                } else if (boundParam instanceof byte[]) {
+                    String hexParam = Hex.encode((byte[]) boundParam);
+                    eval.append('\'').append(hexParam).append('\'');
                 } else {
-                    eval.append("'" + boundParam + "'");
+                    String escapedParam = S.escapeSingleQuotes(boundParam.toString());
+                    eval.append('\'').append(escapedParam).append('\'');
                 }
             } else {
                 eval.append('?');
             }
-            
+
             startPos = pos + placeholder.length();
         }
 
@@ -93,6 +106,7 @@ public class EqlRun implements Cloneable {
 
         return eval.toString();
     }
+
 
     public void setConnection(Connection connection) {
         this.connection = connection;

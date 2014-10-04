@@ -12,7 +12,7 @@ public class Logs {
         if (!logger.isDebugEnabled()) return;
 
         if (!(execRet instanceof List)) {
-            logger.debug("result for {}: {}", sqlId, execRet);
+            logger.debug("result for [{}]: {}", sqlId, execRet);
             return;
         }
 
@@ -21,9 +21,9 @@ public class Logs {
         int logMaxRows = 50;
         if (size > logMaxRows) {
             List first30Rows = list.subList(0, logMaxRows);
-            logger.debug("first {}/{} rows of result for {}: {}", logMaxRows, size, sqlId, first30Rows);
+            logger.debug("first {}/{} rows of result for [{}]: {}", logMaxRows, size, sqlId, first30Rows);
         } else {
-            logger.debug("total {} rows of result for {}: {}", size, sqlId, list);
+            logger.debug("total {} rows of result for [{}]: {}", size, sqlId, list);
         }
     }
 

@@ -9,6 +9,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class S {
+    public static String escapeSingleQuotes(String stringValue) {
+        return stringValue.replaceAll("'", "''");
+    }
+
     public static String cleanQuote(String option) {
         if (option == null) return "";
 

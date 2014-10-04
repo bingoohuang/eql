@@ -417,7 +417,7 @@ public class Eql {
     }
 
     public PreparedStatement prepareSql(EqlRun eqlRun) throws SQLException {
-        logger.debug("prepare sql for {}: {} ", getSqlId(), eqlRun.getPrintSql());
+        logger.debug("prepare sql for [{}]: {} ", getSqlId(), eqlRun.getPrintSql());
         return eqlRun.getSqlType().isProcedure()
                 ? eqlRun.getConnection().prepareCall(eqlRun.getRunSql())
                 : eqlRun.getConnection().prepareStatement(eqlRun.getRunSql());

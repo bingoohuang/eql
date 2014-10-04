@@ -12,7 +12,7 @@ public class MysqlInsertVisitor extends MysqlMatrixVisitor {
 
 
     public boolean visit(MySqlInsertStatement x) {
-        String tableName = x.getTableName().getSimleName();
+        String tableName = x.getTableName().getSimpleName();
 
         if (!ruleSet.relativeTo(tableName)) return false;
 
