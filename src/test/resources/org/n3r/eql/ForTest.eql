@@ -25,3 +25,33 @@ WHERE 1 = 1
   -- end
 /* end */
 
+
+-- [dkr]
+SELECT *
+  FROM
+-- for item=goodsAttr index=index collection=goodsAttrs separator=JOIN
+(
+  SELECT V.ATTR_VALUE_ID AS ID$index$
+        ,V.ATTR_VALUE_NAME AS NAME$index$
+    FROM PRODUCT_ATTR_VALUE V
+   WHERE V.PRODUCT_ID = #productId#
+     AND V.ATTR_ID = #goodsAttr.ATTR_ID#
+) V$index$
+-- end
+
+-- [queryGoodsAttrsBaseInfo]
+SELECT A.ATTR_ID
+      ,A.ATTR_NAME
+      ,'1' ATTR_VISIBLE
+      ,0 DEFAULT_VALUE_ID
+      ,A.ORDER_NO
+      ,A.ATTR_IMAGE
+      ,A.DISPLAY_TYPE
+      ,A.EXT_PARAM_ID
+      ,A.EXT_PARAM_TYPE
+      ,A.DISPLAY_SUFFIX
+  FROM PRODUCT_ATTR A
+ WHERE A.PRODUCT_ID = #productId#
+   AND A.ATTR_TYPE = '1'
+ ORDER BY A.ORDER_NO ASC
+         ,A.ATTR_ID ASC

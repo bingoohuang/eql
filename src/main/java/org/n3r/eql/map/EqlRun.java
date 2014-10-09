@@ -138,9 +138,6 @@ public class EqlRun implements Cloneable {
     private Object[] dynamics;
     private Object paramBean;
 
-    Map<String, Object> mergedParamProperties;
-    Map<String, Object> mergedDynamicsProperties;
-
     @Override
     public EqlRun clone() {
         try {
@@ -319,17 +316,11 @@ public class EqlRun implements Cloneable {
     }
 
     public Map<String, Object> getMergedParamProperties() {
-        if (mergedParamProperties != null) return mergedParamProperties;
-        mergedParamProperties = P.mergeProperties(executionContext, getParamBean());
-
-        return mergedParamProperties;
+        return P.mergeProperties(executionContext, getParamBean());
     }
 
     public Map<String, Object> getMergedDynamicsProperties() {
-        if (mergedDynamicsProperties != null) return mergedDynamicsProperties;
-        mergedDynamicsProperties = P.mergeProperties(executionContext, getDynamicsBean());
-
-        return mergedDynamicsProperties;
+        return P.mergeProperties(executionContext, getDynamicsBean());
     }
 
     public void setEvalSql(String evalSql) {
