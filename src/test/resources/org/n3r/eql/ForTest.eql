@@ -25,6 +25,16 @@ WHERE 1 = 1
   -- end
 /* end */
 
+-- [dkt_setup onerr=resume]
+DROP TABLE TEST_ATTR_VALUE;
+
+CREATE TABLE TEST_ATTR_VALUE
+(ATTR_VALUE_ID BIGINT UNSIGNED,
+ATTR_ID BIGINT UNSIGNED,
+ATTR_VALUE_NAME VARCHAR(20));
+
+INSERT INTO TEST_ATTR_VALUE VALUES(1001, 2000, '1001');
+INSERT INTO TEST_ATTR_VALUE VALUES(1002, 2001, '1002');
 
 -- [dkr]
 SELECT *
@@ -33,25 +43,17 @@ SELECT *
 (
   SELECT V.ATTR_VALUE_ID AS ID$index$
         ,V.ATTR_VALUE_NAME AS NAME$index$
-    FROM PRODUCT_ATTR_VALUE V
-   WHERE V.PRODUCT_ID = #productId#
-     AND V.ATTR_ID = #goodsAttr.ATTR_ID#
+    FROM TEST_ATTR_VALUE V
+   WHERE V.ATTR_ID = $goodsAttr.ATTR_ID$
 ) V$index$
 -- end
 
--- [queryGoodsAttrsBaseInfo]
-SELECT A.ATTR_ID
-      ,A.ATTR_NAME
-      ,'1' ATTR_VISIBLE
-      ,0 DEFAULT_VALUE_ID
-      ,A.ORDER_NO
-      ,A.ATTR_IMAGE
-      ,A.DISPLAY_TYPE
-      ,A.EXT_PARAM_ID
-      ,A.EXT_PARAM_TYPE
-      ,A.DISPLAY_SUFFIX
-  FROM PRODUCT_ATTR A
- WHERE A.PRODUCT_ID = #productId#
-   AND A.ATTR_TYPE = '1'
- ORDER BY A.ORDER_NO ASC
-         ,A.ATTR_ID ASC
+-- [haoye]
+SELECT
+-- for item=goodsAttr index=index collection=goodsAttrs.{?#this.attrType=="1"} separator=,
+          MAX(case V.ATTR_ID WHEN #goodsAttr.ATTR_ID$# THEN V.ATTR_ID ELSE NULL END) ATTR_ID$index$
+          ,MAX(case V.ATTR_ID WHEN #goodsAttr.ATTR_ID$# THEN V.ATTR_VALUE_ID ELSE NULL END) ATTR_VALUE_ID$index$
+-- end
+      FROM TEST_ATTR_VALUE V
+     GROUP BY V.ATTR_ID
+

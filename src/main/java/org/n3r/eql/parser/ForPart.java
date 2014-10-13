@@ -2,6 +2,7 @@ package org.n3r.eql.parser;
 
 import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.util.S;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,7 +38,7 @@ public class ForPart implements EqlPart {
 
     @Override
     public String evalSql(EqlRun eqlRun) {
-        StringBuilder str = new StringBuilder(open).append(' ');;
+        StringBuilder str = new StringBuilder(open).append(' ');
 
         Collection<?> items = evalCollection(eqlRun);
         if (items == null || items.size() == 0) return "";
@@ -51,15 +52,14 @@ public class ForPart implements EqlPart {
 
         int i = -1;
         for (Object itemObj : items) {
-            if (++i > 0) str.append(separator);
-
-            context.put(index, i);
+            context.put(index, ++i);
             context.put(item, itemObj);
 
             String sql = part.evalSql(eqlRun);
-
             sql = processParams(PARAM_PATTERN, '#', itemPattern, indexPattern, i, sql);
             sql = processParams(DYNAMIC_PATTERN, '$', itemPattern, indexPattern, i, sql);
+
+            if (i > 0 && S.isNotBlank(sql)) str.append(separator);
 
             str.append(sql);
         }
@@ -82,13 +82,13 @@ public class ForPart implements EqlPart {
             startIndex = matcher.end();
             String expr = matcher.group(1);
 
-            if (item.equals(expr)) str.append(ch + collection + "[" + idx + "]" + ch);
+            if (item.equals(expr)) str.append(S.wrap(collection + "[" + idx + "]", ch));
             else if (this.index.equals(expr)) str.append(idx);
             else {
                 String s = itemPattern.matcher(expr).replaceAll(collection + "[" + idx + "]");
                 s = indexPattern.matcher(s).replaceAll("" + idx);
 
-                str.append(ch + s + ch);
+                str.append(S.wrap(S.escapeCrossAndDollar(s), ch));
             }
         }
 
@@ -96,8 +96,6 @@ public class ForPart implements EqlPart {
 
         return str.toString();
     }
-
-
 
     private Collection<?> evalCollection(EqlRun eqlRun) {
         ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();

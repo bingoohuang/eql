@@ -2,6 +2,7 @@ package org.n3r.eql.util;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
+import org.n3r.eql.param.EqlParamsParser;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -23,25 +24,29 @@ public class S {
         return ret;
     }
 
+    public static boolean isNotEmpty(String s) {
+        return s != null && s.length() > 0;
+    }
 
     public static boolean isBlank(String string) {
         return string == null || string.length() == 0 || string.trim().length() == 0;
+    }
+
+    public static boolean isNotBlank(String string) {
+        return string != null && string.length() > 0 && string.trim().length() > 0;
     }
 
     public static String trimToEmpty(String str) {
         return str == null ? "" : str.trim();
     }
 
-
     public static String trimRight(String original) {
         return original == null ? "" : original.replaceAll("\\s+$", "");
     }
 
-
     public static String trimLeft(String original) {
         return original == null ? "" : original.replaceAll("^\\s+", "");
     }
-
 
     public static String substrInQuotes(String str, char left, int pos) {
         int leftTimes = 0;
@@ -67,7 +72,6 @@ public class S {
         if (left == '{') return right == '}';
         return false;
     }
-
 
     public static final Pattern INTEGER_PATTERN = Pattern.compile("[-+]?([0-9]+)$");
 
@@ -115,7 +119,6 @@ public class S {
         return Strings.repeat("" + ch, times);
     }
 
-
     public static boolean equalsIgnoreCase(String s1, String s2) {
         return s1 != null ? s1.equalsIgnoreCase(s2) : s2 == null;
     }
@@ -123,7 +126,6 @@ public class S {
     public static boolean containsIgnoreCase(String string, String value) {
         return string == null ? false : string.toUpperCase().contains(value.toUpperCase());
     }
-
 
     public static int indexOfBlank(CharSequence cs) {
         int sz = cs.length();
@@ -140,7 +142,6 @@ public class S {
     public static String upperCase(String str) {
         return str != null ? str.toUpperCase() : null;
     }
-
 
     public static String trim(String s) {
         return s != null ? s.trim() : null;
@@ -170,8 +171,15 @@ public class S {
         return new SimpleDateFormat(DEFAULT_DATETIME_FORMAT).format(date);
     }
 
+    public static String escapeCrossAndDollar(String src) {
+        return src.replace('#', EqlParamsParser.DC1).replace('$', EqlParamsParser.DC2);
+    }
 
-    public static boolean isNotEmpty(String s) {
-        return s != null && s.length() > 0;
+    public static String unEscapeCrossAndDollar(String src) {
+        return src.replace(EqlParamsParser.DC1, '#').replace(EqlParamsParser.DC2, '$');
+    }
+
+    public static String wrap(Object s, char wrapChar) {
+        return "" + wrapChar + s + wrapChar;
     }
 }

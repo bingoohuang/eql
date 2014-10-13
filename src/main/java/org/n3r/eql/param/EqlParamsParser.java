@@ -19,7 +19,9 @@ import java.util.regex.Pattern;
 
 public class EqlParamsParser {
     private static Pattern PARAM_PATTERN = Pattern.compile("#(.*?)#");
-    public final static String LINE_SEPARATOR = Character.toString((char) 1);
+    public final static char SUB = (char) 26; // 0001 1010 26 1A SUB (substitute) 替补
+    public final static char DC1 = (char) 17; // 0001 0001 17 11 DC1 (device control 1) 设备控制1
+    public final static char DC2 = (char) 18;// 0001 0010 18 12 DC2 (device control 2) 设备控制2
 
     static LoadingCache<EqlUniqueSqlTemplate, EqlParamsParserResult> cache = CacheBuilder.newBuilder().build(
             new CacheLoader<EqlUniqueSqlTemplate, EqlParamsParserResult>() {
@@ -91,12 +93,12 @@ public class EqlParamsParser {
             if ("?".equals(placeHolder))
                 placeHolder = inferVarName(eqlType, templateSql, startPos, matcher.start());
 
-            placeHolders.add(placeHolder);
+            placeHolders.add(S.unEscapeCrossAndDollar(placeHolder));
             placeHolderOptions.add(paramOptions);
 
             String prev = templateSql.substring(startPos, matcher.start());
             sql.append(prev).append('?');
-            evalSql.append(prev).append(LINE_SEPARATOR).append(++questionSeq).append(LINE_SEPARATOR);
+            evalSql.append(prev).append(S.wrap(++questionSeq, SUB));
             startPos = matcher.end();
         }
 
@@ -104,11 +106,11 @@ public class EqlParamsParser {
         sql.append(tail);
         evalSql.append(tail);
 
-        String onelineSql = sql.toString();
-        String onelineEvalSql = evalSql.toString();
+        String oneLineSql = sql.toString();
+        String oneLineEvalSql = evalSql.toString();
 
-        result.setRunSql(hasEscape ? unescape(onelineSql) : onelineSql);
-        result.setEvalSql(hasEscape ? unescape(onelineEvalSql) : onelineEvalSql);
+        result.setRunSql(hasEscape ? unescape(oneLineSql) : oneLineSql);
+        result.setEvalSql(hasEscape ? unescape(oneLineEvalSql) : oneLineEvalSql);
 
         result.setPlaceholderNum(placeHolders.size());
 

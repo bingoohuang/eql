@@ -50,9 +50,52 @@ public class ForTest {
                 eqlRun.getPrintSql());
     }
 
-    @Test @Ignore
+    @Test
     public void queryGoodsAttrsBaseInfo() {
-        List<Map> goodsAttrs = new Dql().params(of("productId", "3001")).execute();
-        new Dql().select("dkr").params(of("productId", "3001", "goodsAttrs", goodsAttrs)).execute();
+        new Eql("mysql").id("dkt_setup").execute();
+
+        List goodsAttrs = Lists.newArrayList(ImmutableMap.of("ATTR_ID", "2000"), ImmutableMap.of("ATTR_ID", "2001"));
+        ImmutableMap<String, List> of = of("goodsAttrs", goodsAttrs);
+        Eql eql = new Eql("mysql").select("dkr").params(of);
+        eql.execute();
+        EqlRun eqlRun = eql.getEqlRuns().get(0);
+        assertEquals("SELECT * FROM  ( SELECT V.ATTR_VALUE_ID AS ID0 ,V.ATTR_VALUE_NAME AS NAME0 " +
+                        "FROM TEST_ATTR_VALUE V WHERE V.ATTR_ID = 2000 ) V0 " +
+                        "JOIN" +
+                        "( SELECT V.ATTR_VALUE_ID AS ID1 ,V.ATTR_VALUE_NAME AS NAME1 " +
+                        "FROM TEST_ATTR_VALUE V WHERE V.ATTR_ID = 2001 ) V1",
+                eqlRun.getPrintSql());
+    }
+
+    @Test
+    public void queryOgnlSelection1() {
+        new Eql("mysql").id("dkt_setup").execute();
+
+        List goodsAttrs = Lists.newArrayList(ImmutableMap.of("ATTR_ID", "2000", "attrType","1"), ImmutableMap.of("ATTR_ID", "2001", "attrType","0"));
+        ImmutableMap<String, List> of = of("goodsAttrs", goodsAttrs);
+        Eql eql = new Eql("mysql").select("haoye").params(of).dynamics(of);
+        eql.execute();
+        EqlRun eqlRun = eql.getEqlRuns().get(0);
+        assertEquals("SELECT  MAX(case V.ATTR_ID WHEN ? THEN V.ATTR_ID ELSE NULL END) ATTR_ID0 ," +
+                        "MAX(case V.ATTR_ID WHEN ? THEN V.ATTR_VALUE_ID ELSE NULL END) ATTR_VALUE_ID0 " +
+                        "FROM TEST_ATTR_VALUE V GROUP BY V.ATTR_ID",
+                eqlRun.getPrintSql());
+    }
+
+    @Test
+    public void queryOgnlSelection2() {
+        new Eql("mysql").id("dkt_setup").execute();
+
+        List goodsAttrs = Lists.newArrayList(ImmutableMap.of("ATTR_ID", "2000", "attrType","1"), ImmutableMap.of("ATTR_ID", "2001", "attrType","1"));
+        ImmutableMap<String, List> of = of("goodsAttrs", goodsAttrs);
+        Eql eql = new Eql("mysql").select("haoye").params(of).dynamics(of);
+        eql.execute();
+        EqlRun eqlRun = eql.getEqlRuns().get(0);
+        assertEquals("SELECT  MAX(case V.ATTR_ID WHEN ? THEN V.ATTR_ID ELSE NULL END) ATTR_ID0 " +
+                        ",MAX(case V.ATTR_ID WHEN ? THEN V.ATTR_VALUE_ID ELSE NULL END) ATTR_VALUE_ID0 " +
+                        ",MAX(case V.ATTR_ID WHEN ? THEN V.ATTR_ID ELSE NULL END) ATTR_ID1 " +
+                        ",MAX(case V.ATTR_ID WHEN ? THEN V.ATTR_VALUE_ID ELSE NULL END) ATTR_VALUE_ID1 " +
+                        "FROM TEST_ATTR_VALUE V GROUP BY V.ATTR_ID",
+                eqlRun.getPrintSql());
     }
 }

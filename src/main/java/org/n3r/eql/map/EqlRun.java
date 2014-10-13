@@ -74,7 +74,7 @@ public class EqlRun implements Cloneable {
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-DD HH:mm:ss");
         while (startPos < evalSqlLength) {
-            String placeholder = EqlParamsParser.LINE_SEPARATOR + (++index) + EqlParamsParser.LINE_SEPARATOR;
+            String placeholder = S.wrap(++index, EqlParamsParser.SUB);
             int pos = evalSql.indexOf(placeholder, startPos);
             if (pos < 0) break;
 

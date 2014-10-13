@@ -20,8 +20,8 @@ public class Logs {
         int size = list.size();
         int logMaxRows = 50;
         if (size > logMaxRows) {
-            List first30Rows = list.subList(0, logMaxRows);
-            logger.debug("first {}/{} rows of result for [{}]: {}", logMaxRows, size, sqlId, first30Rows);
+            List logRows = list.subList(0, logMaxRows);
+            logger.debug("first {}/{} rows of result for [{}]: {}", logMaxRows, size, sqlId, logRows);
         } else {
             logger.debug("total {} rows of result for [{}]: {}", size, sqlId, list);
         }
