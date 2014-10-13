@@ -56,7 +56,7 @@ public class ForTest {
 
         List goodsAttrs = Lists.newArrayList(ImmutableMap.of("ATTR_ID", "2000"), ImmutableMap.of("ATTR_ID", "2001"));
         ImmutableMap<String, List> of = of("goodsAttrs", goodsAttrs);
-        Eql eql = new Eql("mysql").select("dkr").params(of);
+        Eql eql = new Eql("mysql").select("dkr").params(of).dynamics(of);
         eql.execute();
         EqlRun eqlRun = eql.getEqlRuns().get(0);
         assertEquals("SELECT * FROM  ( SELECT V.ATTR_VALUE_ID AS ID0 ,V.ATTR_VALUE_NAME AS NAME0 " +
