@@ -176,13 +176,13 @@ public class Eql {
     }
 
     private void trySetCache(String[] directSqls) {
-        if (!isCachUsable(directSqls)) return;
+        if (!isCacheUsable(directSqls)) return;
 
         eqlBlock.cacheResult(currRun, page);
     }
 
     private Object tryGetCache(String[] directSqls) {
-        if (!isCachUsable(directSqls)) return null;
+        if (!isCacheUsable(directSqls)) return null;
 
         Optional<Object> cachedResult = eqlBlock.getCachedResult(params, dynamics, page);
         if (cachedResult == null) return null;
@@ -190,7 +190,7 @@ public class Eql {
         return cachedResult.orNull();
     }
 
-    private boolean isCachUsable(String[] directSqls) {
+    private boolean isCacheUsable(String[] directSqls) {
         return directSqls.length == 0 && cached;
     }
 
@@ -202,6 +202,7 @@ public class Eql {
             case UPDATE:
             case MERGE:
             case DELETE:
+            case REPLACE:
                 // OK!
                 break;
             default:
