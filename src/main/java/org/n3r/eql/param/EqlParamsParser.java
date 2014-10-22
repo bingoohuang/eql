@@ -152,6 +152,7 @@ public class EqlParamsParser {
                 variableName = inferVarNameInUpdateSql(rawSql, startPos, endPos);
                 break;
             case INSERT:
+            case REPLACE:
                 variableName = inferVarNameInInsertSql(rawSql, endPos);
                 break;
             case MERGE:

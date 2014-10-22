@@ -25,7 +25,7 @@ public class EqlDiamondConfig extends EqlPropertiesConfig implements EqlTranFact
         diamondListener = new DiamondListenerAdapter() {
             @Override
             public void accept(DiamondStone diamondStone) {
-                EqlConfigManager.invlidateCache(eqlConfig);
+                EqlConfigManager.invalidateCache(eqlConfig);
             }
         };
 
