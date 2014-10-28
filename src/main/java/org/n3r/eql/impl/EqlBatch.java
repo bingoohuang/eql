@@ -2,10 +2,11 @@ package org.n3r.eql.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.n3r.eql.Eql;
+import org.n3r.eql.EqlTran;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.Closes;
+import org.n3r.eql.util.EqlUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -14,27 +15,26 @@ import java.util.List;
 import java.util.Map;
 
 public class EqlBatch {
-    private Eql eql;
     private int maxBatches;
     private int currentBatches;
     private int totalBatches;
     private List<PreparedStatement> batchedPs; // for sequence use
     private Map<String, PreparedStatement> batchedMap;
 
-    public EqlBatch(Eql eql) {
-        this.eql = eql;
+    public EqlBatch() {
+        this(0);
     }
 
-    public void startBatch(int maxBatches) {
+    public EqlBatch(int maxBatches) {
         this.maxBatches = maxBatches;
         batchedPs = Lists.newArrayList();
         batchedMap = Maps.newHashMap();
     }
 
-    public int addBatch(EqlRun eqlRun) throws SQLException {
+    public int addBatch(EqlRun eqlRun, String sqlId) throws SQLException {
         PreparedStatement ps = batchedMap.get(eqlRun.getRunSql());
         if (ps == null) {
-            ps = eql.prepareSql(eqlRun);
+            ps = EqlUtils.prepareSql(eqlRun, sqlId);
             batchedMap.put(eqlRun.getRunSql(), ps);
             batchedPs.add(ps);
         }
@@ -48,11 +48,11 @@ public class EqlBatch {
                 ? executeBatch(false) : 0;
     }
 
-    public int executeBatch() throws SQLException {
+    public int executeBatch()  {
         return executeBatch(true);
     }
 
-    public int executeBatch(boolean cleanup) throws SQLException {
+    public int executeBatch(boolean cleanup)  {
         try {
             int totalRowCount = 0;
             for (PreparedStatement ps : batchedPs) {
@@ -70,7 +70,7 @@ public class EqlBatch {
             return totalBatches;
         } catch (SQLException ex) {
             cleanupBatch();
-            throw ex;
+            throw new EqlExecuteException(ex);
         } finally {
             if (cleanup) cleanupBatch();
         }

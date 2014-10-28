@@ -1,7 +1,15 @@
 package org.n3r.eql.util;
 
+import org.n3r.eql.map.EqlRun;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
 @SuppressWarnings("unchecked")
 public class EqlUtils {
+    static Logger logger = LoggerFactory.getLogger(EqlUtils.class);
 
     public static String trimLastUnusedPart(String sql) {
         String returnSql = S.trimRight(sql);
@@ -18,4 +26,10 @@ public class EqlUtils {
         return returnSql;
     }
 
+    public static PreparedStatement prepareSql(EqlRun eqlRun, String sqlId) throws SQLException {
+        logger.debug("prepare sql for [{}]: {} ", sqlId, eqlRun.getPrintSql());
+        return eqlRun.getSqlType().isProcedure()
+                ? eqlRun.getConnection().prepareCall(eqlRun.getRunSql())
+                : eqlRun.getConnection().prepareStatement(eqlRun.getRunSql());
+    }
 }

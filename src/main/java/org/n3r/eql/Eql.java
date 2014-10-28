@@ -32,6 +32,7 @@ public class Eql {
     public static final String DEFAULT_CONN_NAME = "DEFAULT";
     public static final int STACKTRACE_DEEP_FOUR = 4;
     public static final int STACKTRACE_DEEP_FIVE = 5;
+
     protected static Logger logger = LoggerFactory.getLogger(Eql.class);
 
     protected EqlConfigDecorator eqlConfig;
@@ -92,12 +93,10 @@ public class Eql {
     }
 
     public Connection getConnection() {
-        return newTran(eqlConfig, this).getConn();
+        return newTran(eqlConfig).getConn();
     }
 
     protected Connection getConn() {
-        // if (connection != null) return;
-
         Connection connection = internalTran != null ? internalTran.getConn() : externalTran.getConn();
         dbDialect = DbDialect.parseDbType(connection);
         executionContext.put("_databaseId", dbDialect.getDatabaseId());
@@ -141,7 +140,7 @@ public class Eql {
         Object ret = null;
         Connection conn;
         try {
-            if (batch == null) tranStart();
+            tranStart();
             conn = getConn();
 
             if (directSqls.length > 0) eqlBlock = new EqlBlock();
@@ -149,8 +148,8 @@ public class Eql {
             eqlRuns = eqlBlock.createEqlRuns(eqlConfig, executionContext, params, dynamics, directSqls);
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
+                checkBatchCmdsSupporting(eqlRun);
                 new EqlParamsBinder().prepareBindParams(currRun);
-                checkBatchCmdsSupporting(currRun);
 
                 currRun.setConnection(conn);
                 ret = runEql();
@@ -164,7 +163,6 @@ public class Eql {
             if (batch == null) tranCommit();
         } catch (SQLException e) {
             logger.error("sql exception", e);
-            if (batch != null) batch.cleanupBatch();
             throw new EqlExecuteException("exec sql failed["
                     + currRun.getPrintSql() + "]" + e.getMessage());
         } finally {
@@ -236,7 +234,6 @@ public class Eql {
                 executionContext.put("_" + (i + 1), params[i]);
         }
 
-
         executionContext.put("_dynamics", dynamics);
         if (dynamics != null) executionContext.put("_dynamicsCount", dynamics.length);
     }
@@ -250,9 +247,8 @@ public class Eql {
     }
 
     public void close() {
-        if (batch == null) tranClose();
+        tranClose();
     }
-
 
     public ESelectStmt selectStmt() {
         newExecutionContext();
@@ -368,9 +364,8 @@ public class Eql {
         return execRet;
     }
 
-
     private Object execDmlInBatch() throws SQLException {
-        return batch.addBatch(currRun);
+        return batch.addBatch(currRun, getSqlId());
     }
 
     private void prepareStmt(EStmt stmt) {
@@ -414,14 +409,7 @@ public class Eql {
     }
 
     private PreparedStatement prepareSql() throws SQLException {
-        return prepareSql(currRun);
-    }
-
-    public PreparedStatement prepareSql(EqlRun eqlRun) throws SQLException {
-        logger.debug("prepare sql for [{}]: {} ", getSqlId(), eqlRun.getPrintSql());
-        return eqlRun.getSqlType().isProcedure()
-                ? eqlRun.getConnection().prepareCall(eqlRun.getRunSql())
-                : eqlRun.getConnection().prepareStatement(eqlRun.getRunSql());
+        return EqlUtils.prepareSql(currRun, getSqlId());
     }
 
     public Eql returnType(Class<?> returnType) {
@@ -433,7 +421,6 @@ public class Eql {
         rsRetriever.setEqlRowMapper(eqlRowMapper);
         return this;
     }
-
 
     protected void initSqlId(String sqlId) {
         initSqlId(sqlId, STACKTRACE_DEEP_FIVE);
@@ -510,14 +497,16 @@ public class Eql {
     }
 
     protected void tranStart() {
+        if (batch != null) return;
         if (externalTran != null) return;
         if (internalTran != null) return;
 
-        internalTran = newTran(eqlConfig, this);
+        internalTran = newTran(eqlConfig);
         internalTran.start();
     }
 
     protected void tranCommit() {
+        if (batch != null) return;
         if (externalTran != null) return;
 
         internalTran.commit();
@@ -530,7 +519,7 @@ public class Eql {
     }
 
     public EqlTran newTran() {
-        EqlTran tran = newTran(eqlConfig, this);
+        EqlTran tran = newTran(eqlConfig);
         // connection = tran.getConn();
         useTran(tran);
 
@@ -542,8 +531,13 @@ public class Eql {
         return this;
     }
 
-    public static EqlTran newTran(EqlConfigDecorator eqlConfig, Eql eql) {
-        return EqlConfigManager.getConfig(eqlConfig).createTran(eql);
+    public Eql useBatch(EqlBatch eqlBatch) {
+        this.batch = eqlBatch;
+        return this;
+    }
+
+    public static EqlTran newTran(EqlConfigDecorator eqlConfig) {
+        return EqlConfigManager.getConfig(eqlConfig).createTran();
     }
 
     public EqlConfig getEqlConfig() {
@@ -563,33 +557,6 @@ public class Eql {
         this.page = page;
 
         return this;
-    }
-
-    public Eql startBatch() {
-        return startBatch(0);
-    }
-
-    public Eql startBatch(int maxBatches) {
-        batch = new EqlBatch(this);
-        batch.startBatch(maxBatches);
-
-        tranStart();
-        return this;
-    }
-
-    public int executeBatch() {
-        int totalRows = 0;
-        try {
-            totalRows = batch.executeBatch();
-            tranCommit();
-        } catch (SQLException e) {
-            throw new EqlExecuteException("executeBatch failed:" + e.getMessage());
-        } finally {
-            tranClose();
-            batch = null;
-        }
-
-        return totalRows;
     }
 
     public Eql dynamics(Object... dynamics) {

@@ -11,7 +11,7 @@ public class EqlJtaTran implements EqlTran {
     private final EqlConnection eqlConnection;
     private Connection connection;
 
-    public EqlJtaTran(Eql eql, EqlConnection connection) {
+    public EqlJtaTran(EqlConnection connection) {
         this.eqlConnection = connection;
     }
 

@@ -4,6 +4,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.n3r.eql.ex.EqlExecuteException;
+import org.n3r.eql.impl.EqlBatch;
+import org.n3r.eql.util.Closes;
 
 import java.security.SecureRandom;
 
@@ -19,42 +21,49 @@ public class BatchTest {
 
     @Test
     public void test1() {
-        Eql eql = new Eql();
-        eql.startBatch();
+        EqlTran eqlTran = new Eql().newTran();
+        eqlTran.start();
+        EqlBatch eqlBatch = new EqlBatch();
         for (int i = 0; i < 10; ++i) {
             String orderNo = randLetters(10);
             String userId = randLetters(10);
             int prizeItem = randInt(10);
-            int ret = eql.insert("insertPrizeBingoo")
+            int ret = new Eql().useBatch(eqlBatch).useTran(eqlTran).insert("insertPrizeBingoo")
                     .params(orderNo, "Olympic", "" + prizeItem, userId)
                     .execute();
 
             assertThat(ret, is(0));
         }
 
-        eql.executeBatch();
+        eqlBatch.executeBatch();
+        eqlTran.commit();
+        Closes.closeQuietly(eqlTran);
     }
 
 
     @Test
     public void test2() {
-        Eql eql = new Eql();
+        EqlTran eqlTran = new Eql().newTran();
+        eqlTran.start();
 
-        eql.startBatch(5);
+        EqlBatch eqlBatch = new EqlBatch(5);
+
         for (int i = 0; i < 10; ++i) {
             String orderNo = randLetters(10);
             String userId = randLetters(10);
             int prizeItem = randInt(10);
-            int ret = eql.insert("insertPrizeBingoo")
+            int ret = new Eql().useBatch(eqlBatch).useTran(eqlTran).insert("insertPrizeBingoo")
                     .params(orderNo, "Olympic", "" + prizeItem, userId)
                     .execute();
 
             assertThat(ret, is(0));
         }
 
-        eql.executeBatch();
+        eqlBatch.executeBatch();
+        eqlTran.commit();
+        Closes.closeQuietly(eqlTran);
 
-        String str = eql.id("test").limit(1).execute();
+        String str = new Eql().id("test").limit(1).execute();
         assertThat(str, is("x"));
     }
 
@@ -63,22 +72,24 @@ public class BatchTest {
      */
     @Test(expected = EqlExecuteException.class)
     public void test3() {
-        Eql eql = new Eql();
+        EqlTran eqlTran = new Eql().newTran();
+        eqlTran.start();
+        EqlBatch eqlBatch = new EqlBatch(5);
 
-        eql.startBatch(5);
         for (int i = 0; i < 10; ++i) {
-            eql.id("test").limit(1).execute();
+            new Eql().useBatch(eqlBatch).useTran(eqlTran).id("test").limit(1).execute();
             String orderNo = randLetters(10);
             String userId = randLetters(10);
             int prizeItem = randInt(10);
-            int ret = eql.insert("insertPrizeBingoo")
+            int ret = new Eql().useBatch(eqlBatch).useTran(eqlTran).insert("insertPrizeBingoo")
                     .params(orderNo, "Olympic", "" + prizeItem, userId)
                     .execute();
 
             assertThat(ret, is(0));
         }
 
-        eql.executeBatch();
+        eqlBatch.executeBatch();
+        Closes.closeQuietly(eqlTran);
     }
 
 
@@ -86,7 +97,8 @@ public class BatchTest {
         return random.nextInt(i);
     }
 
-    static  SecureRandom random = new SecureRandom();
+    static SecureRandom random = new SecureRandom();
+
     private String randLetters(int len) {
         StringBuilder str = new StringBuilder(len);
         for (int i = 0; i < len; ++i) {
