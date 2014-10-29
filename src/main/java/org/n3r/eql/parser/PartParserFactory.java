@@ -28,6 +28,7 @@ public class PartParserFactory {
         else if (keyword.equals("switch")) partParser = new SwitchParser(option);
         else if (keyword.equals("for")) partParser = new ForParser(option);
         else if (keyword.equals("trim")) partParser = new TrimParser(option);
+        else if (keyword.equals("in")) partParser = new InParser(option);
 
         if (partParser != null && S.isBlank(option))
             throw new RuntimeException(clearLine + " is invalid");

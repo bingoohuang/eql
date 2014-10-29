@@ -1,11 +1,13 @@
 package org.n3r.eql.util;
 
+import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.map.EqlRun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Collection;
 
 @SuppressWarnings("unchecked")
 public class EqlUtils {
@@ -31,5 +33,14 @@ public class EqlUtils {
         return eqlRun.getSqlType().isProcedure()
                 ? eqlRun.getConnection().prepareCall(eqlRun.getRunSql())
                 : eqlRun.getConnection().prepareStatement(eqlRun.getRunSql());
+    }
+
+    public static Collection<?> evalCollection(String collectionExpr, EqlRun eqlRun) {
+        ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
+        Object value = evaluator.eval(collectionExpr, eqlRun);
+        if (value instanceof Collection) return (Collection<?>) value;
+
+        throw new RuntimeException(collectionExpr + " in "
+                + eqlRun.getParamBean() + " is not an expression of a collection");
     }
 }

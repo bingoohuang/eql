@@ -2,6 +2,7 @@ package org.n3r.eql.parser;
 
 import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.util.S;
 
 import java.util.Collection;
@@ -40,7 +41,7 @@ public class ForPart implements EqlPart {
     public String evalSql(EqlRun eqlRun) {
         StringBuilder str = new StringBuilder(open).append(' ');
 
-        Collection<?> items = evalCollection(eqlRun);
+        Collection<?> items = EqlUtils.evalCollection(collection, eqlRun);
         if (items == null || items.size() == 0) return "";
 
         Map<String, Object> preContext = eqlRun.getExecutionContext();
@@ -97,13 +98,6 @@ public class ForPart implements EqlPart {
         return str.toString();
     }
 
-    private Collection<?> evalCollection(EqlRun eqlRun) {
-        ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
-        Object value = evaluator.eval(collection, eqlRun);
-        if (value instanceof Collection) return (Collection<?>) value;
 
-        throw new RuntimeException(collection + " in "
-                + eqlRun.getParamBean() + " is not a collection");
-    }
 
 }

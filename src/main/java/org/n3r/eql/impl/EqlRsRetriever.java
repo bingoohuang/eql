@@ -30,7 +30,7 @@ public class EqlRsRetriever {
         if (!rs.next()) return null;
 
         boolean singleColumn = rs.getMetaData().getColumnCount() == 1;
-        if (singleColumn) return convertSingleValue(Rs.getResultSetValue(rs, 1));
+        if (singleColumn) return convertSingleValue(Rs.getResultSetValue(rs, 1), rs);
 
         EqlRowMapper rowMapper = getRowMapper(rs.getMetaData());
         return rowBeanCreate(rowMapper, singleColumn, rs, 1);
@@ -61,7 +61,7 @@ public class EqlRsRetriever {
 
     private Object rowBeanCreate(EqlRowMapper rowMapper, boolean singleColumn, ResultSet rs, int rowNum) throws SQLException {
         Object rowBean = rowMapper.mapRow(rs, rowNum);
-        if (singleColumn) rowBean = convertSingleValue(rowBean);
+        if (singleColumn) rowBean = convertSingleValue(rowBean, rs);
 
         if (rowBean instanceof AfterPropertiesSet)
             ((AfterPropertiesSet) rowBean).afterPropertiesSet();
@@ -94,9 +94,7 @@ public class EqlRsRetriever {
         return new EqlCallableReturnMapMapper();
     }
 
-    private Object convertSingleValue(Object value) {
-        if (value == null) return null;
-
+    private Object convertSingleValue(Object value, ResultSet rs) throws SQLException {
         if (returnType == null && eqlBlock != null) returnType = eqlBlock.getReturnType();
 
         String returnTypeName = this.returnTypeName;
@@ -107,17 +105,28 @@ public class EqlRsRetriever {
 
         if ("string".equalsIgnoreCase(returnTypeName) || returnType == String.class) {
             if (value instanceof byte[]) return S.bytesToStr((byte[]) value);
-            return String.valueOf(value);
+            return value == null ? null : String.valueOf(value);
         }
 
         if ("int".equalsIgnoreCase(returnTypeName) || returnType == Integer.class || returnType == int.class) {
             if (value instanceof Number) return ((Number) value).intValue();
-            return Integer.parseInt(value.toString());
+            return value == null ? null : Integer.parseInt(value.toString());
         }
 
         if ("long".equalsIgnoreCase(returnTypeName) || returnType == Long.class || returnType == long.class) {
             if (value instanceof Number) return ((Number) value).longValue();
-            return Long.parseLong(value.toString());
+            return value == null ? null : Long.parseLong(value.toString());
+        }
+
+        if (returnType == null && returnTypeName != null) {
+            returnType = Reflect.on(returnTypeName).type();
+        }
+        if (returnType != null && !returnType.isPrimitive()) {
+            if (returnType.isEnum() && value instanceof String) {
+                return Enum.valueOf((Class<Enum>) returnType, (String)value);
+            }
+
+            return new EqlBeanRowMapper(returnType).mapRow(rs, 1);
         }
 
         return value;

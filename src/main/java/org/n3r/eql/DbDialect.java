@@ -101,6 +101,7 @@ public class DbDialect {
         totalEqlSql.setPrintSql(createTotalSql(totalEqlSql.getPrintSql()));
 
         totalEqlSql.setWillReturnOnlyOneRow(true);
+        totalEqlSql.getEqlBlock().setReturnTypeName("int");
 
         return totalEqlSql;
     }

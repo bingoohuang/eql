@@ -150,22 +150,34 @@ public class Reflect {
      * @throws ReflectException If any reflection exception occurred.
      */
     public Reflect set(String name, Object value) throws ReflectException {
+        Object unwrapValue = unwrap(value);
         try {
 
             // Try setting a public field
             Field field = type().getField(name);
-            field.set(object, unwrap(value));
+            field.set(object, convertValue(field, unwrapValue));
             return this;
         } catch (Exception e1) {
-
             // Try again, setting a non-public field
             try {
-                accessible(type().getDeclaredField(name)).set(object, unwrap(value));
+                Field field = type().getDeclaredField(name);
+                accessible(field).set(object, convertValue(field, unwrapValue));
                 return this;
             } catch (Exception e2) {
                 throw new ReflectException(e2);
             }
         }
+    }
+
+    private Object convertValue(Field field, Object unwrapValue) {
+        if (field.getType().isEnum()) {
+            Class<? > type = field.getType();
+            if (unwrapValue instanceof String) {
+                return Enum.valueOf((Class<Enum>) type, (String)unwrapValue );
+
+            }
+        }
+        return unwrapValue;
     }
 
     /**

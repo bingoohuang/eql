@@ -219,4 +219,8 @@ public class EqlBlock {
     public String getReturnTypeName() {
         return returnTypeName;
     }
+
+    public void setReturnTypeName(String returnTypeName) {
+        this.returnTypeName = returnTypeName;
+    }
 }
