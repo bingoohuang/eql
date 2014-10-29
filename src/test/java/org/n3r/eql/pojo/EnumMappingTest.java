@@ -6,6 +6,9 @@ import org.n3r.eql.Eql;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+// CREATE TABLE students (name VARCHAR(64), mark ENUM('ABSENT','COPY CASE' ));
+// INSERT INTO students VALUES ('john', 'COPY CASE');
+// SELECT * FROM students;
 public class EnumMappingTest {
     @Test
     public void test1() {
