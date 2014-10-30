@@ -101,8 +101,6 @@ public class EqlBlock {
     private void addEqlRun(EqlRun eqlRun, String sqlStr) {
         EqlParamsParser.parseParams(eqlRun, sqlStr);
         new DynamicReplacer().replaceDynamics(eqlRun);
-
-        eqlRun.createPrintSql();
     }
 
     public List<EqlRun> createSqlSubsByDirectSqls(EqlConfigDecorator eqlConfig, Map<String, Object> executionContext,

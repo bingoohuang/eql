@@ -44,6 +44,16 @@ public class EnumMappingTest {
         assertThat(value, is(Sex.female));
     }
 
+    @Test
+    public void test4() {
+        Sex2 value = new Eql("mysql").returnType(Sex2.class).limit(1)
+                .execute("select '1' as sex");
+        assertThat(value, is(Sex2.male));
+
+        value = new Eql("mysql").returnType(Sex2.class).limit(1)
+                .execute("select '0' as sex");
+        assertThat(value, is(Sex2.female));
+    }
 
     public static enum Sex {
         male,female
@@ -51,6 +61,34 @@ public class EnumMappingTest {
 
     public static class Custom {
         Sex sex;
+        int age;
+    }
+
+    public static enum Sex2 {
+        male("1"),female("0");
+        private final String value;
+
+        Sex2(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public static Sex2 valueOff(String value) {
+            for(Sex2 v : values())
+                if(v.getValue().equalsIgnoreCase(value)) return v;
+            throw new IllegalArgumentException();
+        }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Sex2.female);
+    }
+
+    public static class Custom2 {
+        Sex2 sex;
         int age;
     }
 }

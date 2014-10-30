@@ -7,3 +7,7 @@ INSERT INTO EQL_IN VALUES(3, 'CC');
 
 -- [test]
 SELECT NAME FROM EQL_IN WHERE ID IN (/* in _1 */)
+
+
+-- [testDynamic]
+SELECT NAME FROM $$ WHERE ID IN (/* in _1 */)

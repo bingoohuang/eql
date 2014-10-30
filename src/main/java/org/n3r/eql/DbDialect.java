@@ -55,7 +55,6 @@ public class DbDialect {
     private EqlRun createMySqlPageSql(EqlRun eqlRun, EqlPage page) {
         EqlRun eqlRun1 = eqlRun.clone();
         eqlRun1.setRunSql(eqlRun.getRunSql() + " LIMIT ?,?");
-        eqlRun1.setPrintSql(eqlRun.getPrintSql() + " LIMIT ?,?");
         eqlRun1.setExtraBindParams(page.getStartIndex(), page.getPageRows());
 
         return eqlRun1;
@@ -64,7 +63,6 @@ public class DbDialect {
     private EqlRun createOraclePageSql(EqlRun eqlRun0, EqlPage eqlPage) {
         EqlRun eqlRun = eqlRun0.clone();
         eqlRun.setRunSql(createOraclePageSql(eqlRun.getRunSql()));
-        eqlRun.setPrintSql(createOraclePageSql(eqlRun.getPrintSql()));
 
         int endIndex = eqlPage.getStartIndex() + eqlPage.getPageRows();
         eqlRun.setExtraBindParams(endIndex, eqlPage.getStartIndex());
@@ -80,7 +78,6 @@ public class DbDialect {
     private EqlRun createH2PageSql(EqlRun eqlRun0, EqlPage eqlPage) {
         EqlRun eqlRun = eqlRun0.clone();
         eqlRun.setRunSql(createH2PageSql(eqlRun.getRunSql()));
-        eqlRun.setPrintSql(createH2PageSql(eqlRun.getPrintSql()));
 
         int endIndex = eqlPage.getStartIndex() + eqlPage.getPageRows();
         eqlRun.setExtraBindParams(endIndex, eqlPage.getStartIndex());
@@ -98,7 +95,6 @@ public class DbDialect {
         EqlRun totalEqlSql = currRun.clone();
 
         totalEqlSql.setRunSql(createTotalSql(totalEqlSql.getRunSql()));
-        totalEqlSql.setPrintSql(createTotalSql(totalEqlSql.getPrintSql()));
 
         totalEqlSql.setWillReturnOnlyOneRow(true);
         totalEqlSql.getEqlBlock().setReturnTypeName("int");

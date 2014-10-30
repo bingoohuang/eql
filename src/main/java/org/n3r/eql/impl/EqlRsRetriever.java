@@ -4,6 +4,7 @@ import org.n3r.eql.base.AfterPropertiesSet;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.map.*;
 import org.n3r.eql.parser.EqlBlock;
+import org.n3r.eql.util.Enums;
 import org.n3r.eql.util.Rs;
 import org.n3r.eql.util.S;
 
@@ -123,7 +124,7 @@ public class EqlRsRetriever {
         }
         if (returnType != null && !returnType.isPrimitive()) {
             if (returnType.isEnum() && value instanceof String) {
-                return Enum.valueOf((Class<Enum>) returnType, (String)value);
+                return Enums.valueOff((Class<Enum>) returnType, (String) value);
             }
 
             return new EqlBeanRowMapper(returnType).mapRow(rs, 1);

@@ -29,6 +29,7 @@ public class EqlRun implements Cloneable {
     private List<Object> boundParams;
     private Connection connection;
     private String evalSql;
+    private EqlDynamic evalEqlDynamic;
 
     public void addRealParam(int index, Object value) {
         realParams.add(Pair.of(index, value));
@@ -61,8 +62,13 @@ public class EqlRun implements Cloneable {
         if (boundParams != null && boundParams.size() > 0 && logger.isDebugEnabled()) {
             String sqlId = getSqlId();
             logger.debug("params for [{}]: {}", sqlId, boundParams.toString());
-            logger.debug("eval sql for [{}]: {}", sqlId, parseEvalSql());
+            this.evalSql  = parseEvalSql();
+            logger.debug("eval sql for [{}]: {}", sqlId, this.evalSql );
         }
+    }
+
+    public String getEvalSql() {
+        return evalSql;
     }
 
     private String parseEvalSql() {
@@ -203,17 +209,9 @@ public class EqlRun implements Cloneable {
         return printSql;
     }
 
-    public void setPrintSql(String printSql) {
-        this.printSql = printSql;
-    }
-
-    public void createPrintSql() {
-        printSql = runSql.replaceAll("\\r?\\n", " ");
-    }
-
-
     public void setRunSql(String runSql) {
         this.runSql = runSql;
+        printSql = runSql.replaceAll("\\r?\\n", " ");
     }
 
     public String getRunSql() {
@@ -327,7 +325,11 @@ public class EqlRun implements Cloneable {
         this.evalSql = evalSql;
     }
 
-    public String getEvalSql() {
-        return evalSql;
+    public void setEvalEqlDynamic(EqlDynamic evalEqlDynamic) {
+        this.evalEqlDynamic = evalEqlDynamic;
+    }
+
+    public EqlDynamic getEvalEqlDynamic() {
+        return evalEqlDynamic;
     }
 }
