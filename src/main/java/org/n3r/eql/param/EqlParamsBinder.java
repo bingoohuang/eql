@@ -79,8 +79,8 @@ public class EqlParamsBinder {
             eqlRun.addRealParam(index + 1, date);
         } else {
             Object paramValue = value;
-            if (placeHolder != null && value instanceof String) {
-                String strValue = (String) value;
+            if (placeHolder != null && value instanceof CharSequence) {
+                String strValue = value.toString();
                 if (placeHolder.isLob()) {
                     paramValue = S.toBytes(strValue);
                 } else if (placeHolder.getLike() == EqlParamPlaceholder.Like.Like) {
@@ -89,6 +89,8 @@ public class EqlParamsBinder {
                     paramValue = tryAddRightPercent(strValue);
                 } else if (placeHolder.getLike() == EqlParamPlaceholder.Like.LeftLike) {
                     paramValue = tryAddLeftPercent(strValue);
+                } else if (placeHolder.isNumberColumn() && strValue.trim().length() == 0) {
+                    paramValue = null;
                 }
             }
 

@@ -6,6 +6,15 @@ import org.n3r.eql.util.S;
 public class EqlParamPlaceholder {
     private boolean lob;
     private Like like = Like.None;
+    private boolean numberColumn;
+
+    public void setNumberColumn(boolean numberColumn) {
+        this.numberColumn = numberColumn;
+    }
+
+    public boolean isNumberColumn() {
+        return numberColumn;
+    }
 
     public static enum InOut {
         IN, OUT, INOUT
@@ -63,6 +72,7 @@ public class EqlParamPlaceholder {
             else if (S.equalsIgnoreCase("Like", optionPart)) setLike(Like.Like);
             else if (S.equalsIgnoreCase("LeftLike", optionPart)) setLike(Like.LeftLike);
             else if (S.equalsIgnoreCase("RightLike", optionPart)) setLike(Like.RightLike);
+            else if (S.equalsIgnoreCase("Number", optionPart)) setNumberColumn(true);
         }
     }
 

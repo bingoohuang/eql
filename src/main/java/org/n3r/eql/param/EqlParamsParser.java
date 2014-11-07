@@ -216,7 +216,7 @@ public class EqlParamsParser {
     private String inferVarNameInUpdateSql(String rawSql, int startPos, int endPos) {
         String substr = rawSql.substring(startPos, endPos);
         Matcher matcher = lastWord.matcher(substr);
-        if (!matcher.matches()) throw new EqlConfigException("无法解析#?#： " + substr);
+        if (!matcher.matches()) throw new EqlConfigException("Unable to resolve #?#： " + substr);
 
         return matcher.group(1);
     }
