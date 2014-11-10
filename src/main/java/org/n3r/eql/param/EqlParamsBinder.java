@@ -61,7 +61,7 @@ public class EqlParamsBinder {
         try {
             switch (extra) {
                 case Extra:
-                    setParamExtra(placeHolder, index, value);
+                    setParamValue(placeHolder, index, value);
                     break;
                 default:
                     setParamEx(placeHolder, index, value);
@@ -72,13 +72,21 @@ public class EqlParamsBinder {
         }
     }
 
-    private void setParamExtra(EqlParamPlaceholder placeHolder, int index, Object value) throws SQLException {
-        if (value instanceof Date) {
+    private void setParamValue(EqlParamPlaceholder placeHolder, int index, Object value) throws SQLException {
+        Object boundParam = value;
+        Object paramValue = value;
+        if (value == null) {
+            // nothing to do
+        } else if (value instanceof Date) {
             Timestamp date = new Timestamp(((Date) value).getTime());
-            boundParams.add(S.toDateTimeStr(date));
-            eqlRun.addRealParam(index + 1, date);
+            boundParam = S.toDateTimeStr(date);
+            paramValue = date;
+        } else if (value.getClass().isEnum()) {
+            if (value instanceof InternalValueable) {
+                paramValue = ((InternalValueable) value).internalValue();
+                boundParam = paramValue;
+            }
         } else {
-            Object paramValue = value;
             if (placeHolder != null && value instanceof CharSequence) {
                 String strValue = value.toString();
                 if (placeHolder.isLob()) {
@@ -94,9 +102,11 @@ public class EqlParamsBinder {
                 }
             }
 
-            boundParams.add(paramValue);
-            eqlRun.addRealParam(index + 1, paramValue);
+            boundParam = paramValue;
         }
+
+        boundParams.add(boundParam);
+        eqlRun.addRealParam(index + 1, paramValue);
     }
 
     private String tryAddLeftPercent(String strValue) {
@@ -114,7 +124,7 @@ public class EqlParamsBinder {
     private void setParamEx(EqlParamPlaceholder placeHolder, int index, Object value) throws SQLException {
         if (registerOut(index)) return;
 
-        setParamExtra(placeHolder, index, value);
+        setParamValue(placeHolder, index, value);
     }
 
     private boolean registerOut(int index) throws SQLException {

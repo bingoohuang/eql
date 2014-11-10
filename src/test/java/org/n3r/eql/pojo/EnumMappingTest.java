@@ -2,7 +2,9 @@ package org.n3r.eql.pojo;
 
 import org.junit.Test;
 import org.n3r.eql.Eql;
+import org.n3r.eql.param.InternalValueable;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -55,6 +57,16 @@ public class EnumMappingTest {
         assertThat(value, is(Sex2.female));
     }
 
+    @Test
+    public void testEnumAsParam() {
+        new Eql("mysql").execute("drop table if exists eql_sex", "create table eql_sex(sex char(1))");
+        new Eql("mysql").params(Sex2.male).execute("insert into eql_sex value(##)");
+        Eql eql = new Eql("mysql").limit(1).returnType(Sex2.class).params(Sex2.male);
+        Sex2 value = eql.execute("select sex from eql_sex where sex = ##");
+        assertThat(value, is(Sex2.male));
+        assertThat(eql.getEqlRun().getEvalSql(), is(equalTo("select sex from eql_sex where sex = '1'")));
+    }
+
     public static enum Sex {
         male,female
     }
@@ -64,7 +76,7 @@ public class EnumMappingTest {
         int age;
     }
 
-    public static enum Sex2 {
+    public static enum Sex2 implements InternalValueable<String> {
         male("1"),female("0");
         private final String value;
 
@@ -72,19 +84,16 @@ public class EnumMappingTest {
             this.value = value;
         }
 
-        public String getValue() {
+        @Override
+        public String internalValue() {
             return value;
         }
 
         public static Sex2 valueOff(String value) {
             for(Sex2 v : values())
-                if(v.getValue().equalsIgnoreCase(value)) return v;
+                if(v.internalValue().equalsIgnoreCase(value)) return v;
             throw new IllegalArgumentException();
         }
-    }
-
-    public static void main(String[] args) {
-        System.out.println(Sex2.female);
     }
 
     public static class Custom2 {

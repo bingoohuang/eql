@@ -597,4 +597,7 @@ public class Eql {
         internalTran = null;
     }
 
+    public EqlRun getEqlRun() {
+        return eqlRuns.get(0);
+    }
 }
