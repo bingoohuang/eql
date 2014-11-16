@@ -18,14 +18,14 @@ public class DynamicReplacer {
         this.dynamics = eqlRun.getDynamics();
         if (dynamics != null && dynamics.length > 0 && eqlRun.getEqlDynamic() == null) {
             eqlRun.setEqlDynamic(new DynamicParser().parseRawSql(eqlRun.getRunSql()));
-            eqlRun.setEvalEqlDynamic(new DynamicParser().parseRawSql(eqlRun.getEvalSql()));
+            eqlRun.setEvalEqlDynamic(new DynamicParser().parseRawSql(eqlRun.getEvalSqlTemplate()));
         }
 
         EqlDynamic eqlDynamic = eqlRun.getEqlDynamic();
         if (eqlDynamic == null) return;
 
         eqlRun.setRunSql(replaceRunSqlDynamics(eqlDynamic));
-        eqlRun.setEvalSql(replaceRunSqlDynamics(eqlRun.getEvalEqlDynamic()));
+        eqlRun.setEvalSqlTemplate(replaceRunSqlDynamics(eqlRun.getEvalEqlDynamic()));
     }
 
     private String replaceRunSqlDynamics(EqlDynamic eqlDynamic) {

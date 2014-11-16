@@ -5,25 +5,26 @@ import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.Names;
-import org.n3r.eql.util.S;
 
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class EqlParamsBinder {
     private EqlRun eqlRun;
     private List<Object> boundParams;
+    private boolean hasBatchOption;
 
     private static enum ParamExtra {
         Extra, Normal
     }
 
-    public void prepareBindParams(EqlRun eqlRun) {
+    public void prepareBindParams(boolean hasBatchOption, EqlRun eqlRun) {
+        this.hasBatchOption = hasBatchOption;
         this.eqlRun = eqlRun;
+
+        eqlRun.setBatchOption(hasBatchOption);
         boundParams = new ArrayList<Object>();
 
         switch (eqlRun.getPlaceHolderType()) {
@@ -73,53 +74,29 @@ public class EqlParamsBinder {
     }
 
     private void setParamValue(EqlParamPlaceholder placeHolder, int index, Object value) throws SQLException {
-        Object boundParam = value;
-        Object paramValue = value;
-        if (value == null) {
-            // nothing to do
-        } else if (value instanceof Date) {
-            Timestamp date = new Timestamp(((Date) value).getTime());
-            boundParam = S.toDateTimeStr(date);
-            paramValue = date;
-        } else if (value.getClass().isEnum()) {
-            if (value instanceof InternalValueable) {
-                paramValue = ((InternalValueable) value).internalValue();
-                boundParam = paramValue;
+
+        if (hasBatchOption) {
+            List<Object> values = (List<Object>) value;
+            Object[] boundParam = new Object[values.size()];
+            Object[] paramsValue = new Object[boundParam.length];
+
+            for (int i = 0, ii = boundParam.length; i < ii; ++i) {
+                ParamValueDealer paramValueDealer = new ParamValueDealer(placeHolder);
+                paramValueDealer.dealSingleValue(values.get(i));
+                boundParam[i] = paramValueDealer.getBoundParam();
+                paramsValue[i] = paramValueDealer.getParamValue();
             }
+
+            boundParams.add(boundParam);
+            eqlRun.addRealParam(index + 1, paramsValue);
         } else {
-            if (placeHolder != null && value instanceof CharSequence) {
-                String strValue = value.toString();
-                if (placeHolder.isLob()) {
-                    paramValue = S.toBytes(strValue);
-                } else if (placeHolder.getLike() == EqlParamPlaceholder.Like.Like) {
-                    paramValue = tryAddLeftAndRightPercent(strValue);
-                } else if (placeHolder.getLike() == EqlParamPlaceholder.Like.RightLike) {
-                    paramValue = tryAddRightPercent(strValue);
-                } else if (placeHolder.getLike() == EqlParamPlaceholder.Like.LeftLike) {
-                    paramValue = tryAddLeftPercent(strValue);
-                } else if (placeHolder.isNumberColumn() && strValue.trim().length() == 0) {
-                    paramValue = null;
-                }
-            }
-
-            boundParam = paramValue;
+            ParamValueDealer paramValueDealer = new ParamValueDealer(placeHolder);
+            paramValueDealer.dealSingleValue(value);
+            boundParams.add(paramValueDealer.getBoundParam());
+            eqlRun.addRealParam(index + 1, paramValueDealer.getParamValue());
         }
-
-        boundParams.add(boundParam);
-        eqlRun.addRealParam(index + 1, paramValue);
     }
 
-    private String tryAddLeftPercent(String strValue) {
-        return (strValue.startsWith("%") ? "" : "%") + strValue;
-    }
-
-    private String tryAddRightPercent(String strValue) {
-        return strValue + (strValue.endsWith("%") ? "" : "%");
-    }
-
-    private String tryAddLeftAndRightPercent(String strValue) {
-        return (strValue.startsWith("%") ? "" : "%") + strValue + (strValue.endsWith("%") ? "" : "%");
-    }
 
     private void setParamEx(EqlParamPlaceholder placeHolder, int index, Object value) throws SQLException {
         if (registerOut(index)) return;
@@ -130,7 +107,6 @@ public class EqlParamsBinder {
     private boolean registerOut(int index) throws SQLException {
         EqlParamPlaceholder.InOut inOut = eqlRun.getPlaceHolders()[index].getInOut();
         if (eqlRun.getSqlType().isProcedure() && inOut != EqlParamPlaceholder.InOut.IN) {
-            // ((CallableStatement) ps).registerOutParameter(index + 1, Types.VARCHAR);
             eqlRun.registerOutParameter(index + 1, Types.VARCHAR);
         }
 
@@ -144,10 +120,20 @@ public class EqlParamsBinder {
 
         Object property = evaluator.eval(varName, eqlRun);
 
-        if (property != null) return property;
+        if (!hasBatchOption && property != null
+                || hasBatchOption && !isAllNullInBatchOption(property)) return property;
 
         String propertyName = Names.underscoreNameToPropertyName(varName);
         return Objects.equal(propertyName, varName) ? property : evaluator.eval(propertyName, eqlRun);
+    }
+
+    private boolean isAllNullInBatchOption(Object property) {
+        List<Object> listProperties = (List<Object>) property;
+        for (Object object : listProperties) {
+            if (object != null) return false;
+        }
+
+        return true;
     }
 
 
@@ -155,6 +141,9 @@ public class EqlParamsBinder {
         EqlParamPlaceholder[] placeHolders = eqlRun.getPlaceHolders();
         if (index < placeHolders.length && eqlRun.getSqlType().isProcedure()
                 && placeHolders[index].getInOut() == EqlParamPlaceholder.InOut.OUT) return null;
+
+        if (hasBatchOption)
+            throw new EqlExecuteException("bad parameters when batch option is set");
 
         Object[] params = eqlRun.getParams();
         if (params != null && index < params.length)

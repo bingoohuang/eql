@@ -20,16 +20,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class EqlRun implements Cloneable {
     public List<Pair<Integer, Object>> realParams = Lists.newArrayList();
     private List<Object> boundParams;
     private Connection connection;
     private String evalSql;
+    private String evalSqlTemplate;
     private EqlDynamic evalEqlDynamic;
+    private boolean batchOption;
 
     public void addRealParam(int index, Object value) {
         realParams.add(Pair.of(index, value));
@@ -62,31 +62,60 @@ public class EqlRun implements Cloneable {
         if (boundParams != null && boundParams.size() > 0 && logger.isDebugEnabled()) {
             String sqlId = getSqlId();
             logger.debug("params for [{}]: {}", sqlId, boundParams.toString());
-            this.evalSql  = parseEvalSql();
+            this.evalSql  = parseEvalSql(-1);
             logger.debug("eval sql for [{}]: {}", sqlId, this.evalSql );
         }
     }
 
-    public String getEvalSql() {
-        return evalSql;
+    public void bindBatchParams(PreparedStatement ps, int index) {
+        try {
+            for (Pair<Integer, Object> param : realParams) {
+                ps.setObject(param._1, ((Object[]) param._2)[index]);
+            }
+        } catch (SQLException e) {
+            throw new EqlExecuteException(e);
+        }
+
+        if (boundParams != null && boundParams.size() > 0 && logger.isDebugEnabled()) {
+            String sqlId = getSqlId();
+            logger.debug("params for [{}]: {}", sqlId, batchParamsString(boundParams, index));
+            this.evalSql  = parseEvalSql(index);
+            logger.debug("eval sql for [{}]: {}", sqlId, this.evalSql );
+        }
     }
 
-    private String parseEvalSql() {
+    private String batchParamsString(List<Object> boundParams, int index) {
+        ArrayList<Object> bounds = new ArrayList<Object>();
+        for (Object object: boundParams) {
+            bounds.add(((Object[])object)[index]);
+        }
+        return bounds.toString();
+    }
+
+    public String getEvalSqlTemplate() {
+        return evalSqlTemplate;
+    }
+
+    private String parseEvalSql(int batchIndex) {
         StringBuilder eval = new StringBuilder();
         int startPos = 0;
         int index = -1;
         int size = boundParams.size();
-        int evalSqlLength = evalSql.length();
+        int evalSqlLength = evalSqlTemplate.length();
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-DD HH:mm:ss");
         while (startPos < evalSqlLength) {
             String placeholder = S.wrap(++index, EqlParamsParser.SUB);
-            int pos = evalSql.indexOf(placeholder, startPos);
+            int pos = evalSqlTemplate.indexOf(placeholder, startPos);
             if (pos < 0) break;
 
-            eval.append(evalSql.substring(startPos, pos));
+            eval.append(evalSqlTemplate.substring(startPos, pos));
             if (index < size) {
                 Object boundParam = boundParams.get(index);
+                if (batchIndex >= 0) {
+                    boundParam = ((Object[])boundParam)[batchIndex];
+                }
+
                 if (boundParam == null) {
                     eval.append("NULL");
                 } else if (boundParam instanceof Number) {
@@ -108,7 +137,7 @@ public class EqlRun implements Cloneable {
             startPos = pos + placeholder.length();
         }
 
-        eval.append(evalSql.substring(startPos));
+        eval.append(evalSqlTemplate.substring(startPos));
 
         return eval.toString();
     }
@@ -317,12 +346,21 @@ public class EqlRun implements Cloneable {
         return P.mergeProperties(executionContext, getParamBean());
     }
 
+
+    public Map<String, Object> getMergedParamPropertiesWith(Object element) {
+        return P.mergeProperties(executionContext, element);
+    }
+
+    public Collection<Object> getBatchCollectionParams() {
+        return (Collection<Object>) ((Object[])((Map)getParamBean()).get("_params"))[0];
+    }
+
     public Map<String, Object> getMergedDynamicsProperties() {
         return P.mergeProperties(executionContext, getDynamicsBean());
     }
 
-    public void setEvalSql(String evalSql) {
-        this.evalSql = evalSql;
+    public void setEvalSqlTemplate(String evalSqlTemplate) {
+        this.evalSqlTemplate = evalSqlTemplate;
     }
 
     public void setEvalEqlDynamic(EqlDynamic evalEqlDynamic) {
@@ -331,5 +369,18 @@ public class EqlRun implements Cloneable {
 
     public EqlDynamic getEvalEqlDynamic() {
         return evalEqlDynamic;
+    }
+
+    public void setBatchOption(boolean batchOption) {
+        this.batchOption = batchOption;
+    }
+
+    public boolean hasBatchOption() {
+        return batchOption;
+    }
+
+
+    public String getEvalSql() {
+        return evalSql;
     }
 }

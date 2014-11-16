@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -146,10 +147,12 @@ public class Eql {
             if (directSqls.length > 0) eqlBlock = new EqlBlock();
 
             eqlRuns = eqlBlock.createEqlRuns(eqlConfig, executionContext, params, dynamics, directSqls);
+            checkBatchOption();
+
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
                 checkBatchCmdsSupporting(eqlRun);
-                new EqlParamsBinder().prepareBindParams(currRun);
+                new EqlParamsBinder().prepareBindParams(eqlBlock.hasBatchOption(), currRun);
 
                 currRun.setConnection(conn);
                 ret = runEql();
@@ -171,6 +174,20 @@ public class Eql {
         }
 
         return (T) ret;
+    }
+
+    private void checkBatchOption() {
+        if (!eqlBlock.hasBatchOption()) return;
+
+        if (eqlRuns.size() != 1)
+            throw new EqlExecuteException("batch mode only allow enabled when only one sql in a block");
+
+        EqlRun eqlRun = eqlRuns.get(0);
+        if (!eqlRun.getSqlType().isUpdateStmt())
+            throw new EqlExecuteException("batch mode only allow enabled when sql type is update");
+
+        if (params == null || params.length != 1 || !(params[0] instanceof Collection))
+            throw new EqlExecuteException("batch mode only allow enabled when single parameter in collection type");
     }
 
     private void trySetCache(String[] directSqls) {
@@ -337,7 +354,7 @@ public class Eql {
         EqlRun temp = currRun;
         currRun = dbDialect.createPageSql(currRun, page);
 
-        new EqlParamsBinder().prepareBindParams(currRun);
+        new EqlParamsBinder().prepareBindParams(eqlBlock.hasBatchOption(), currRun);
 
         Object o = execDml();
         currRun = temp;
@@ -389,19 +406,31 @@ public class Eql {
         PreparedStatement ps = null;
         try {
             ps = prepareSql();
-            currRun.bindParams(ps);
 
-            if (currRun.getSqlType() == EqlType.SELECT) {
-                rs = ps.executeQuery();
-                if (fetchSize > 0) rs.setFetchSize(fetchSize);
+            if (eqlBlock.hasBatchOption()) {
+                int rowCount = 0;
+                Collection<Object> collection = (Collection<Object>) params[0];
+                for (int i = 0, ii = collection.size(); i < ii; ++i) {
+                    currRun.bindBatchParams(ps, i);
+                    rowCount += ps.executeUpdate();
+                }
 
-                return rsRetriever.convert(rs, currRun);
+                return rowCount;
+            } else {
+                currRun.bindParams(ps);
+
+                if (currRun.getSqlType() == EqlType.SELECT) {
+                    rs = ps.executeQuery();
+                    if (fetchSize > 0) rs.setFetchSize(fetchSize);
+
+                    return rsRetriever.convert(rs, currRun);
+                }
+
+                if (currRun.getSqlType().isProcedure())
+                    return new EqlProc(currRun, rsRetriever).dealProcedure(ps);
+
+                return ps.executeUpdate();
             }
-
-            if (currRun.getSqlType().isProcedure())
-                return new EqlProc(currRun, rsRetriever).dealProcedure(ps);
-
-            return ps.executeUpdate();
 
         } finally {
             Closes.closeQuietly(rs, ps);

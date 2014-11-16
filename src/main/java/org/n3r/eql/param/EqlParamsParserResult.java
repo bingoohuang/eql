@@ -10,7 +10,7 @@ public class EqlParamsParserResult {
     private PlaceholderType placeHolderType;
     private PlaceholderType placeHolderOutType;
     private EqlParamPlaceholder[] placeHolders;
-    private String evalSql;
+    private String evalSqlTemplate;
 
     public void setSqlType(EqlType sqlType) {
         this.sqlType = sqlType;
@@ -60,11 +60,11 @@ public class EqlParamsParserResult {
         return placeHolders;
     }
 
-    public void setEvalSql(String evalSql) {
-        this.evalSql = evalSql.replaceAll("\\r?\\n", " ");
+    public void setEvalSqlTemplate(String evalSqlTemplate) {
+        this.evalSqlTemplate = evalSqlTemplate.replaceAll("\\r?\\n", " ");
     }
 
-    public String getEvalSql() {
-        return evalSql;
+    public String getEvalSqlTemplate() {
+        return evalSqlTemplate;
     }
 }

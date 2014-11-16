@@ -29,7 +29,7 @@ public class EUpdateStmt implements Closeable, EStmt {
 
     public int update(Object... params) {
         eqlRun.setParams(params);
-        new EqlParamsBinder().prepareBindParams(eqlRun);
+        new EqlParamsBinder().prepareBindParams(false, eqlRun);
         eqlRun.bindParams(preparedStatement);
         int ret;
         try {

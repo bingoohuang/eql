@@ -43,7 +43,7 @@ public class EqlParamsParser {
 
         eqlRun.setSqlType(result.getSqlType());
         eqlRun.setRunSql(result.getRunSql());
-        eqlRun.setEvalSql(result.getEvalSql());
+        eqlRun.setEvalSqlTemplate(result.getEvalSqlTemplate());
         eqlRun.setPlaceholderNum(result.getPlaceholderNum());
         eqlRun.setPlaceHolderType(result.getPlaceHolderType());
         eqlRun.setPlaceHolderOutType(result.getPlaceHolderOutType());
@@ -110,7 +110,7 @@ public class EqlParamsParser {
         String oneLineEvalSql = evalSql.toString();
 
         result.setRunSql(hasEscape ? unescape(oneLineSql) : oneLineSql);
-        result.setEvalSql(hasEscape ? unescape(oneLineEvalSql) : oneLineEvalSql);
+        result.setEvalSqlTemplate(hasEscape ? unescape(oneLineEvalSql) : oneLineEvalSql);
 
         result.setPlaceholderNum(placeHolders.size());
 
