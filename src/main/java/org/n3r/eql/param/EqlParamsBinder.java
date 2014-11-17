@@ -14,17 +14,17 @@ import java.util.List;
 public class EqlParamsBinder {
     private EqlRun eqlRun;
     private List<Object> boundParams;
-    private boolean hasBatchOption;
+    private boolean hasIterateOption;
 
     private static enum ParamExtra {
         Extra, Normal
     }
 
-    public void prepareBindParams(boolean hasBatchOption, EqlRun eqlRun) {
-        this.hasBatchOption = hasBatchOption;
+    public void prepareBindParams(boolean hasIterateOption, EqlRun eqlRun) {
+        this.hasIterateOption = hasIterateOption;
         this.eqlRun = eqlRun;
 
-        eqlRun.setIterateOption(hasBatchOption);
+        eqlRun.setIterateOption(hasIterateOption);
         boundParams = new ArrayList<Object>();
 
         switch (eqlRun.getPlaceHolderType()) {
@@ -75,7 +75,7 @@ public class EqlParamsBinder {
 
     private void setParamValue(EqlParamPlaceholder placeHolder, int index, Object value) throws SQLException {
 
-        if (hasBatchOption) {
+        if (hasIterateOption) {
             List<Object> values = (List<Object>) value;
             Object[] boundParam = new Object[values.size()];
             Object[] paramsValue = new Object[boundParam.length];
@@ -120,8 +120,8 @@ public class EqlParamsBinder {
 
         Object property = evaluator.eval(varName, eqlRun);
 
-        if (!hasBatchOption && property != null
-                || hasBatchOption && !isAllNullInBatchOption(property)) return property;
+        if (!hasIterateOption && property != null
+                || hasIterateOption && !isAllNullInBatchOption(property)) return property;
 
         String propertyName = Names.underscoreNameToPropertyName(varName);
         return Objects.equal(propertyName, varName) ? property : evaluator.eval(propertyName, eqlRun);
@@ -142,7 +142,7 @@ public class EqlParamsBinder {
         if (index < placeHolders.length && eqlRun.getSqlType().isProcedure()
                 && placeHolders[index].getInOut() == EqlParamPlaceholder.InOut.OUT) return null;
 
-        if (hasBatchOption)
+        if (hasIterateOption)
             throw new EqlExecuteException("bad parameters when batch option is set");
 
         Object[] params = eqlRun.getParams();
