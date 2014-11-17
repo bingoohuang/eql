@@ -11,7 +11,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-public class BatchOptionTest {
+public class IterateOptionTest {
     @BeforeClass
     public static void beforeClass() {
         new Eql("mysql").execute();

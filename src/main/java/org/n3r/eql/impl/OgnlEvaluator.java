@@ -10,7 +10,7 @@ import java.util.Collection;
 public class OgnlEvaluator implements ExpressionEvaluator {
     @Override
     public Object eval(String expr, EqlRun eqlRun) {
-        if (eqlRun.hasBatchOption()) {
+        if (eqlRun.hasIterateOption()) {
             Collection<Object> collection = eqlRun.getBatchCollectionParams();
             int size = collection.size();
             ArrayList<Object> result = new ArrayList<Object>(size);

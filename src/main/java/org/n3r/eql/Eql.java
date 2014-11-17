@@ -152,7 +152,7 @@ public class Eql {
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
                 checkBatchCmdsSupporting(eqlRun);
-                new EqlParamsBinder().prepareBindParams(eqlBlock.hasBatchOption(), currRun);
+                new EqlParamsBinder().prepareBindParams(eqlBlock.hasIterateOption(), currRun);
 
                 currRun.setConnection(conn);
                 ret = runEql();
@@ -177,14 +177,14 @@ public class Eql {
     }
 
     private void checkBatchOption() {
-        if (!eqlBlock.hasBatchOption()) return;
+        if (!eqlBlock.hasIterateOption()) return;
 
         if (eqlRuns.size() != 1)
-            throw new EqlExecuteException("batch mode only allow enabled when only one sql in a block");
+            throw new EqlExecuteException("iterate mode only allow enabled when only one sql in a block");
 
         EqlRun eqlRun = eqlRuns.get(0);
         if (!eqlRun.getSqlType().isUpdateStmt())
-            throw new EqlExecuteException("batch mode only allow enabled when sql type is update");
+            throw new EqlExecuteException("iterate mode only allow enabled when sql type is update");
 
         if (params == null || params.length != 1 || !(params[0] instanceof Collection))
             throw new EqlExecuteException("batch mode only allow enabled when single parameter in collection type");
@@ -354,7 +354,7 @@ public class Eql {
         EqlRun temp = currRun;
         currRun = dbDialect.createPageSql(currRun, page);
 
-        new EqlParamsBinder().prepareBindParams(eqlBlock.hasBatchOption(), currRun);
+        new EqlParamsBinder().prepareBindParams(eqlBlock.hasIterateOption(), currRun);
 
         Object o = execDml();
         currRun = temp;
@@ -407,7 +407,7 @@ public class Eql {
         try {
             ps = prepareSql();
 
-            if (eqlBlock.hasBatchOption()) {
+            if (eqlBlock.hasIterateOption()) {
                 int rowCount = 0;
                 Collection<Object> collection = (Collection<Object>) params[0];
                 for (int i = 0, ii = collection.size(); i < ii; ++i) {

@@ -33,7 +33,7 @@ public class EqlBlock {
     private EqlUniqueSqlId uniqueSqlId;
     private EqlCacheProvider cacheProvider;
     private String returnTypeName;
-    private boolean batchOption;
+    private boolean iterateOption;
 
     public EqlBlock(String sqlClassPath, String sqlId, String options, int startLineNo) {
         this.uniqueSqlId = new EqlUniqueSqlId(sqlClassPath, sqlId);
@@ -50,7 +50,7 @@ public class EqlBlock {
     private void initSomeOptions() {
         onerr = options.get("onerr");
         returnTypeName = options.get("returnType");
-        batchOption = options.containsKey("batch");
+        iterateOption = options.containsKey("iterate");
         returnType = C.tryLoadClass(returnTypeName);
 
         split = options.get("split");
@@ -224,7 +224,7 @@ public class EqlBlock {
         this.returnTypeName = returnTypeName;
     }
 
-    public boolean hasBatchOption() {
-        return batchOption;
+    public boolean hasIterateOption() {
+        return iterateOption;
     }
 }

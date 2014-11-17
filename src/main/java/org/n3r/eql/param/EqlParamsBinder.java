@@ -24,7 +24,7 @@ public class EqlParamsBinder {
         this.hasBatchOption = hasBatchOption;
         this.eqlRun = eqlRun;
 
-        eqlRun.setBatchOption(hasBatchOption);
+        eqlRun.setIterateOption(hasBatchOption);
         boundParams = new ArrayList<Object>();
 
         switch (eqlRun.getPlaceHolderType()) {

@@ -29,7 +29,7 @@ public class EqlRun implements Cloneable {
     private String evalSql;
     private String evalSqlTemplate;
     private EqlDynamic evalEqlDynamic;
-    private boolean batchOption;
+    private boolean iterateOption;
 
     public void addRealParam(int index, Object value) {
         realParams.add(Pair.of(index, value));
@@ -371,12 +371,12 @@ public class EqlRun implements Cloneable {
         return evalEqlDynamic;
     }
 
-    public void setBatchOption(boolean batchOption) {
-        this.batchOption = batchOption;
+    public void setIterateOption(boolean iterateOption) {
+        this.iterateOption = iterateOption;
     }
 
-    public boolean hasBatchOption() {
-        return batchOption;
+    public boolean hasIterateOption() {
+        return iterateOption;
     }
 
 
