@@ -3,8 +3,7 @@ package org.n3r.eql;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import org.n3r.eql.codedesc.CodeDescs;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigCache;
 import org.n3r.eql.config.EqlConfigDecorator;
@@ -114,7 +113,7 @@ public class Eql {
     public List<EqlRun> evaluate(String... directSqls) {
         checkPreconditions(directSqls);
 
-        newExecutionContext();
+        executionContext = EqlUtils.newExecutionContext(params, dynamics);
 
         if (directSqls.length > 0) eqlBlock = new EqlBlock();
 
@@ -137,7 +136,7 @@ public class Eql {
         Object o = tryGetCache(directSqls);
         if (o != null) return (T) o;
 
-        newExecutionContext();
+        executionContext = EqlUtils.newExecutionContext(params, dynamics);
         Object ret = null;
         Connection conn;
         try {
@@ -236,25 +235,6 @@ public class Eql {
         executionContext.put("_lastResult", lastResult);
     }
 
-    protected void newExecutionContext() {
-        executionContext = Maps.newHashMap();
-        executionContext.put("_time", new Timestamp(System.currentTimeMillis()));
-        executionContext.put("_date", new java.util.Date());
-        executionContext.put("_host", HostAddress.getHost());
-        executionContext.put("_ip", HostAddress.getIp());
-        executionContext.put("_results", Lists.newArrayList());
-        executionContext.put("_lastResult", "");
-        executionContext.put("_params", params);
-        if (params != null) {
-            executionContext.put("_paramsCount", params.length);
-            for (int i = 0; i < params.length; ++i)
-                executionContext.put("_" + (i + 1), params[i]);
-        }
-
-        executionContext.put("_dynamics", dynamics);
-        if (dynamics != null) executionContext.put("_dynamicsCount", dynamics.length);
-    }
-
     public List<EqlRun> getEqlRuns() {
         return eqlRuns;
     }
@@ -268,7 +248,7 @@ public class Eql {
     }
 
     public ESelectStmt selectStmt() {
-        newExecutionContext();
+        executionContext = EqlUtils.newExecutionContext(params, dynamics);
         tranStart();
         Connection conn = getConn();
 
@@ -291,7 +271,7 @@ public class Eql {
     }
 
     public EUpdateStmt updateStmt() {
-        newExecutionContext();
+        executionContext = EqlUtils.newExecutionContext(params, dynamics);
         tranStart();
         Connection conn = getConn();
 
@@ -423,7 +403,8 @@ public class Eql {
                     rs = ps.executeQuery();
                     if (fetchSize > 0) rs.setFetchSize(fetchSize);
 
-                    return rsRetriever.convert(rs, currRun);
+                    ResultSet wrapRs = CodeDescs.codeDescWrap(currRun, eqlBlock, eqlConfig, sqlClassPath, rs);
+                    return rsRetriever.convert(wrapRs, currRun);
                 }
 
                 if (currRun.getSqlType().isProcedure())

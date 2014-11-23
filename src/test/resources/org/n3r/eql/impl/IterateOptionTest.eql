@@ -5,7 +5,7 @@ CREATE TABLE EQL_BATCH_OPTION (ID INT, NAME VARCHAR(100));
 -- [insert iterate]
 INSERT INTO EQL_BATCH_OPTION VALUES(#id#, #name#)
 
--- [select iterate]
+-- [select]
 SELECT ID, NAME FROM EQL_BATCH_OPTION
 
 -- [update iterate]

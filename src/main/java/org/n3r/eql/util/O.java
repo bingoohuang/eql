@@ -5,8 +5,11 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
+import org.joor.ReflectException;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.joor.Reflect;
+import org.n3r.eql.spec.ParamsAppliable;
+import org.n3r.eql.spec.Spec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,12 +20,29 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
 public class O {
     static Logger log = LoggerFactory.getLogger(O.class);
+
+    public static <T> T createObject(Class<T> clazz, Spec spec) {
+        Object object;
+        try {
+            object = org.joor.Reflect.on(spec.getName()).create().get();
+        } catch (ReflectException e) {
+            throw new EqlExecuteException(e);
+        }
+
+        if (!clazz.isInstance(object)) {
+            throw new EqlExecuteException(spec.getName() + " does not implement " + clazz);
+        }
+
+        if (object instanceof ParamsAppliable)
+            ((ParamsAppliable) object).applyParams(spec.getParams());
+
+        return (T) object;
+    }
 
     public static <T> boolean in(T target, T... compares) {
         for (T compare : compares)

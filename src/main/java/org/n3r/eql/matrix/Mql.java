@@ -11,6 +11,7 @@ import org.n3r.eql.matrix.sqlparser.MatrixSqlParserUtils;
 import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.C;
+import org.n3r.eql.util.EqlUtils;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -46,7 +47,7 @@ public class Mql extends Eql {
 
         checkPreconditions(directSqls);
 
-        newExecutionContext();
+        executionContext = EqlUtils.newExecutionContext(params, dynamics);
         Object ret = null;
         Connection conn;
         try {

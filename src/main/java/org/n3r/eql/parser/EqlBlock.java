@@ -8,6 +8,8 @@ import org.n3r.eql.EqlPage;
 import org.n3r.eql.cache.EqlCacheKey;
 import org.n3r.eql.cache.EqlCacheProvider;
 import org.n3r.eql.cache.EqlCacheSettings;
+import org.n3r.eql.codedesc.CodeDesc;
+import org.n3r.eql.codedesc.CodeDescs;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.map.EqlRun;
@@ -34,6 +36,7 @@ public class EqlBlock {
     private EqlCacheProvider cacheProvider;
     private String returnTypeName;
     private boolean iterateOption;
+    private List<CodeDesc> codeDescs;
 
     public EqlBlock(String sqlClassPath, String sqlId, String options, int startLineNo) {
         this.uniqueSqlId = new EqlUniqueSqlId(sqlClassPath, sqlId);
@@ -51,6 +54,7 @@ public class EqlBlock {
         onerr = options.get("onerr");
         returnTypeName = options.get("returnType");
         iterateOption = options.containsKey("iterate");
+        codeDescs = CodeDescs.parseOption(this, options);
         returnType = C.tryLoadClass(returnTypeName);
 
         split = options.get("split");
@@ -226,5 +230,9 @@ public class EqlBlock {
 
     public boolean hasIterateOption() {
         return iterateOption;
+    }
+
+    public List<CodeDesc> getCodeDescs() {
+        return codeDescs;
     }
 }
