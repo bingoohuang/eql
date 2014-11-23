@@ -1,11 +1,18 @@
 package org.n3r.eql.impl;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.n3r.diamond.client.impl.MockDiamondServer;
 import org.n3r.eql.Eql;
 import org.n3r.eql.codedesc.CodeDescMapper;
+import org.n3r.eql.map.EqlBeanRowMapper;
+import org.n3r.eql.map.EqlRowMapper;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,8 +22,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class CodeDescTest {
-    @BeforeClass
-    public static void beforeClass() {
+    @Before
+    public void beforeClass() {
         new Eql("mysql").execute();
     }
 
@@ -55,6 +62,18 @@ public class CodeDescTest {
         assertThat(codeDescs.get(3), is(equalTo(new CodeDesc(4L, "DD未知", "未识别xx"))));
 
         MockDiamondServer.tearDownMockServer();
+    }
+
+    @Test
+    public void test3() {
+        List<String> states = new Eql("mysql").id("test1").returnType(new EqlRowMapper(){
+            public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return rs.getString(2);
+            }
+        }).execute();
+
+        List<String> expect = Lists.newArrayList("处理中", "处理完毕", "处理失败", "未知");
+        assertThat(states, is(equalTo(expect)));
     }
 
     public static class CodeDesc {
