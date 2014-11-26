@@ -3,13 +3,12 @@ package org.n3r.eql.util;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.n3r.eql.base.ExpressionEvaluator;
+import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.map.EqlRun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.Collection;
 import java.util.Map;
 
@@ -53,11 +52,28 @@ public class EqlUtils {
         return returnSql;
     }
 
-    public static PreparedStatement prepareSql(EqlRun eqlRun, String sqlId) throws SQLException {
+    public static PreparedStatement prepareSql(EqlConfig eqlConfig, EqlRun eqlRun, String sqlId) throws SQLException {
         logger.debug("prepare sql for [{}]: {} ", sqlId, eqlRun.getPrintSql());
-        return eqlRun.getSqlType().isProcedure()
-                ? eqlRun.getConnection().prepareCall(eqlRun.getRunSql())
-                : eqlRun.getConnection().prepareStatement(eqlRun.getRunSql());
+        Connection conn = eqlRun.getConnection();
+        String sql = eqlRun.getRunSql();
+        boolean procedure = eqlRun.getSqlType().isProcedure();
+        PreparedStatement ps = procedure ? conn.prepareCall(sql) : conn.prepareStatement(sql);
+
+        setQueryTimeout(eqlConfig, ps);
+
+        return ps;
+    }
+
+    public static void setQueryTimeout(EqlConfig eqlConfig, Statement stmt) throws SQLException {
+        String queryTimeoutSeconds = eqlConfig.getStr("queryTimeoutSeconds");
+        int queryTimeout = -1;
+        if (queryTimeoutSeconds != null && queryTimeoutSeconds.matches("\\d+")) {
+            queryTimeout = Integer.parseInt(queryTimeoutSeconds);
+        }
+
+        if (queryTimeout <= 0) queryTimeout = 60;
+
+        stmt.setQueryTimeout(queryTimeout);
     }
 
     public static Collection<?> evalCollection(String collectionExpr, EqlRun eqlRun) {

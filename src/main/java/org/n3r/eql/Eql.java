@@ -313,6 +313,7 @@ public class Eql {
         logger.debug("ddl sql for {}: {}", getSqlId(), currRun.getPrintSql());
         try {
             stmt = currRun.getConnection().createStatement();
+            EqlUtils.setQueryTimeout(eqlConfig, stmt);
             return stmt.execute(currRun.getRunSql());
         } catch (SQLException ex) {
             throw new EqlExecuteException(ex);
@@ -419,7 +420,7 @@ public class Eql {
 
     private PreparedStatement prepareSql() throws SQLException {
         createConn();
-        return EqlUtils.prepareSql(currRun, getSqlId());
+        return EqlUtils.prepareSql(eqlConfig, currRun, getSqlId());
     }
 
     public Eql returnType(Class<?> returnType) {
