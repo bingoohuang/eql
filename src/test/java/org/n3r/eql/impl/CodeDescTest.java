@@ -49,7 +49,7 @@ public class CodeDescTest {
 
         new Eql("mysql").id("updatexx").execute();
 
-        MockDiamondServer.setConfigInfo("EQL.CACHE.DESC", "org.n3r.eql.impl.CodeDescTest.eql", "meaning.cacheVersion=" + System.currentTimeMillis());
+        MockDiamondServer.setConfigInfo("EQL.CACHE.DESC", "org.n3r.eql.impl.CodeDescTest.eql", "meaning2.cacheVersion=" + System.currentTimeMillis());
         codeDescs = new Eql("mysql").returnType(CodeDesc.class).execute();
         assertThat(codeDescs.size(), is(4));
 

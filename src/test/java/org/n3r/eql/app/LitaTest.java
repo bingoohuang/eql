@@ -2,7 +2,7 @@ package org.n3r.eql.app;
 
 import com.google.common.collect.Maps;
 import org.junit.Test;
-import org.n3r.eql.Eqll;
+import org.n3r.eql.Eql;
 
 import java.sql.SQLException;
 import java.util.Map;
@@ -11,7 +11,7 @@ public class LitaTest {
 
     @Test
     public void lita() throws SQLException {
-        new Eqll().id("LITA").execute();
+        new Eql().id("LITA").execute();
     }
 
     @Test
@@ -21,7 +21,7 @@ public class LitaTest {
         map.put("bean", bean);
         bean.put("name", "huang");
 
-        new Eqll().id("LITA2").params(map).execute();
+        new Eql().id("LITA2").params(map).execute();
     }
 
     @Test
@@ -31,7 +31,7 @@ public class LitaTest {
         map.put("bean", bean);
         bean.setName("huang");
 
-        new Eqll().id("LITA2").params(map).execute();
+        new Eql().id("LITA2").params(map).execute();
     }
 
     public static class OrderInfo {

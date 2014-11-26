@@ -54,7 +54,7 @@ public class EqlBlock {
         onerr = options.get("onerr");
         returnTypeName = options.get("returnType");
         iterateOption = options.containsKey("iterate");
-        codeDescs = CodeDescs.parseOption(this, options);
+        codeDescs = CodeDescs.parseOption(this,  options.get("desc"));
         returnType = C.tryLoadClass(returnTypeName);
 
         split = options.get("split");

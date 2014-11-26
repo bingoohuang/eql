@@ -1,12 +1,12 @@
 package org.n3r.eql.codedesc;
 
-import com.google.common.base.Splitter;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.ex.EqlConfigException;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.parser.EqlBlock;
+import org.n3r.eql.parser.OffsetAndOptionValue;
 import org.n3r.eql.spec.Spec;
 import org.n3r.eql.spec.SpecParser;
 import org.n3r.eql.util.Rs;
@@ -17,7 +17,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class CodeDescs {
     public static ResultSet codeDescWrap(EqlRun currEqlRun, EqlBlock eqlBlock,
@@ -48,14 +47,21 @@ public class CodeDescs {
         }
     }
 
-    public static List<CodeDesc> parseOption(EqlBlock eqlBlock, Map<String, String> options) {
-        String desc = options.get("desc");
+    public static List<CodeDesc> parseOption(EqlBlock eqlBlock, String desc) {
         if (S.isBlank(desc)) return null;
 
         List<CodeDesc> codeDescs = new ArrayList<CodeDesc>();
-        Splitter descParts = Splitter.on(',').omitEmptyStrings().trimResults();
-        for (String descPart : descParts.split(desc)) {
-            CodeDesc codeDesc = parseCodeDesc(eqlBlock, descPart);
+
+        DescOptionValueParser descOptionValueParser = new DescOptionValueParser();
+        int pos = 0;
+        int size = desc.length();
+        while (pos < size) {
+            OffsetAndOptionValue oo = descOptionValueParser.parseValueOption(desc.substring(pos));
+            if (oo == null) break;
+
+            pos += oo.getOffset();
+
+            CodeDesc codeDesc = parseCodeDesc(eqlBlock, oo.getOptionValue());
             codeDescs.add(codeDesc);
         }
 
