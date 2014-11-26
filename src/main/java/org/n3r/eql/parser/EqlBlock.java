@@ -18,6 +18,7 @@ import org.n3r.eql.param.EqlParamsParser;
 import org.n3r.eql.util.C;
 import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.util.O;
+import org.n3r.eql.util.S;
 
 import java.util.Collection;
 import java.util.List;
@@ -92,9 +93,9 @@ public class EqlBlock {
             String sqlStr = sql.evalSql(eqlRun);
             sqlStr = EqlUtils.trimLastUnusedPart(sqlStr);
 
+            if (S.isBlank(sqlStr)) continue;
+
             addEqlRun(eqlRun, sqlStr);
-
-
             if (eqlRun.getSqlType() == EqlType.SELECT) lastSelectSql = eqlRun;
         }
 

@@ -149,6 +149,7 @@ public class Eql {
 
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
+                if (S.isBlank(currRun.getRunSql())) continue;
 
                 checkBatchCmdsSupporting(eqlRun);
                 new EqlParamsBinder().prepareBindParams(eqlBlock.hasIterateOption(), currRun);
