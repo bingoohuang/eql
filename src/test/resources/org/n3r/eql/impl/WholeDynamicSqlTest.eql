@@ -16,3 +16,8 @@ WHERE ID = #1#
   INSERT INTO EQL_IN VALUES(100, 'XX')
 -- end
 ;
+
+-- [test3]
+-- if _1 == 1
+  INSERT INTO EQL_IN VALUES(100, 'XX')
+-- end

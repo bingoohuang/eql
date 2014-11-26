@@ -88,13 +88,14 @@ public class EqlBlock {
         List<EqlRun> eqlRuns = Lists.newArrayList();
         EqlRun lastSelectSql = null;
         for (Sql sql : sqls) {
-            EqlRun eqlRun = newEqlRun(eqlConfig, executionContext, params, dynamics, paramBean, eqlRuns);
+            EqlRun eqlRun = newEqlRun(eqlConfig, executionContext, params, dynamics, paramBean);
 
             String sqlStr = sql.evalSql(eqlRun);
             sqlStr = EqlUtils.trimLastUnusedPart(sqlStr);
 
             if (S.isBlank(sqlStr)) continue;
 
+            eqlRuns.add(eqlRun);
             addEqlRun(eqlRun, sqlStr);
             if (eqlRun.getSqlType() == EqlType.SELECT) lastSelectSql = eqlRun;
         }
@@ -117,8 +118,9 @@ public class EqlBlock {
         List<EqlRun> eqlRuns = Lists.newArrayList();
         EqlRun lastSelectSql = null;
         for (String sql : sqls) {
-            EqlRun eqlRun = newEqlRun(eqlConfig, executionContext, params, dynamics, paramBean, eqlRuns);
+            EqlRun eqlRun = newEqlRun(eqlConfig, executionContext, params, dynamics, paramBean);
 
+            eqlRuns.add(eqlRun);
             addEqlRun(eqlRun, sql);
 
             if (eqlRun.getSqlType() == EqlType.SELECT) lastSelectSql = eqlRun;
@@ -131,9 +133,8 @@ public class EqlBlock {
 
 
     private EqlRun newEqlRun(EqlConfigDecorator eqlConfig, Map<String, Object> executionContext, Object[] params,
-                             Object[] dynamics, Object paramBean, List<EqlRun> eqlRuns) {
+                             Object[] dynamics, Object paramBean) {
         EqlRun eqlRun = new EqlRun();
-        eqlRuns.add(eqlRun);
 
         eqlRun.setEqlConfig(eqlConfig);
         eqlRun.setExecutionContext(executionContext);

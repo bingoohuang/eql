@@ -100,6 +100,7 @@ public class Eql {
         dbDialect = DbDialect.parseDbType((internalTran != null ? internalTran : externalTran).getDriverName());
         execContext.put("_databaseId", dbDialect.getDatabaseId());
     }
+
     protected void createConn() {
         (internalTran != null ? internalTran : externalTran).getConn(eqlConfig, currRun);
     }
@@ -606,6 +607,6 @@ public class Eql {
     }
 
     public EqlRun getEqlRun() {
-        return eqlRuns.get(0);
+        return eqlRuns.size() > 0 ? eqlRuns.get(eqlRuns.size() - 1) : null;
     }
 }
