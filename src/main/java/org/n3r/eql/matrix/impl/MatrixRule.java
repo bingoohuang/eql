@@ -2,8 +2,6 @@ package org.n3r.eql.matrix.impl;
 
 import org.n3r.eql.matrix.MatrixTableFieldValue;
 import org.n3r.eql.matrix.RealPartition;
-import org.n3r.eql.matrix.impl.MatrixFunction;
-import org.n3r.eql.matrix.impl.MatrixMapper;
 
 public class MatrixRule {
     public int ruleNo;

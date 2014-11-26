@@ -7,7 +7,7 @@ import org.n3r.eql.ex.EqlExecuteException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class EqlC3p0Connection implements EqlConnection {
+public class EqlC3p0Connection extends AbstractEqlConnection {
     ComboPooledDataSource cpds;
 
     @Override
@@ -16,7 +16,7 @@ public class EqlC3p0Connection implements EqlConnection {
     }
 
     @Override
-    public Connection getConnection() {
+    public Connection getConnection(String dbName) {
         try {
             return cpds.getConnection();
         } catch (SQLException e) {
@@ -27,6 +27,11 @@ public class EqlC3p0Connection implements EqlConnection {
     @Override
     public void destroy() {
         cpds.close();
+    }
+
+    @Override
+    public String getDriverName() {
+        return cpds.getDriverClass();
     }
 
 

@@ -2,6 +2,7 @@
 
 -- [setup onerr=resume]
 create table demo_attr (id varchar2(32), attr varchar2(64))
+
 -- [teardown]
 drop table demo_attr
 

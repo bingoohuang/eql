@@ -2,7 +2,6 @@ package org.n3r.eql;
 
 import org.n3r.eql.ex.EqlException;
 import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.util.S;
 
 import java.sql.Connection;
@@ -23,6 +22,10 @@ public class DbDialect {
         } catch (SQLException ex) {
             throw new EqlException(ex);
         }
+    }
+
+    public static DbDialect parseDbType(String driverName) {
+        return new DbDialect(driverName);
     }
 
     public DbDialect(String driverName) {
@@ -103,7 +106,8 @@ public class DbDialect {
     }
 
     static Pattern orderByPattern = Pattern.compile("\\border\\s+by\\b");
-    private  String createTotalSql(String runSql) {
+
+    private String createTotalSql(String runSql) {
         String sql = runSql.toUpperCase();
 
         boolean oneFromWoDistinctOrGroupby = false;

@@ -1,5 +1,6 @@
 package org.n3r.eql;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -7,6 +8,11 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class ESelectStmtTest {
+    @BeforeClass
+    public static void beforeClass() {
+        new Eql().id("createTestTable").execute();
+    }
+
     @Test
     public void test() {
         Eql eql = new Eql().id("selectStmt");

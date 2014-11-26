@@ -5,6 +5,7 @@ import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.dbfieldcryptor.parser.ParserCache;
 import org.n3r.eql.dbfieldcryptor.proxy.ConnectionHandler;
 import org.n3r.eql.joor.Reflect;
+import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.trans.EqlConnection;
 import org.n3r.eql.util.S;
 
@@ -46,17 +47,28 @@ public class EqlSecretFieldsConnectionProxy implements EqlConnection {
     }
 
     @Override
-    public Connection getConnection() {
-        Connection connection = eqlConnection.getConnection();
+    public String getDbName(EqlConfig eqlConfig, EqlRun eqlRun) {
+        return eqlConnection.getDbName(eqlConfig, eqlRun);
+    }
+
+    @Override
+    public Connection getConnection(String dbName) {
+        Connection connection = eqlConnection.getConnection(dbName);
         DbDialect dbDialect = DbDialect.parseDbType(connection);
 
         if (parserCache == null || sensitiveCryptor == null) return null;
-        return new ConnectionHandler(connection, sensitiveCryptor,
+        Connection connectionProxy = new ConnectionHandler(connection, sensitiveCryptor,
                 parserCache, dbDialect).createConnectionProxy();
+        return connectionProxy;
     }
 
     @Override
     public void destroy() {
         eqlConnection.destroy();
+    }
+
+    @Override
+    public String getDriverName() {
+        return eqlConnection.getDriverName();
     }
 }

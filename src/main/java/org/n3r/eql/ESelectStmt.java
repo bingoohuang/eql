@@ -33,6 +33,7 @@ public class ESelectStmt implements Closeable, EStmt {
         try {
             eqlRun.setParams(params);
             new EqlParamsBinder().prepareBindParams(false, eqlRun);
+
             eqlRun.bindParams(preparedStatement);
             resultSet = preparedStatement.executeQuery();
             if (fetchSize > 0) resultSet.setFetchSize(fetchSize);

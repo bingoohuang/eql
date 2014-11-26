@@ -1,16 +1,20 @@
 package org.n3r.eql.trans;
 
+import com.google.common.collect.Maps;
 import org.n3r.eql.EqlTran;
+import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
+import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.Closes;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
 
 public class EqlJdbcTran implements EqlTran {
     private EqlConnection eqlConnection;
-    private Connection connection;
+    private Map<String, Connection> connections = Maps.newHashMap();
 
     public EqlJdbcTran(EqlConnection connection) {
         this.eqlConnection = connection;
@@ -22,33 +26,36 @@ public class EqlJdbcTran implements EqlTran {
 
     @Override
     public void commit() {
-        if (connection == null) return;
-
-        try {
-            connection.commit();
-        } catch (SQLException e) {
-            throw new EqlExecuteException(e);
+        for (Connection connection : connections.values()) {
+            try {
+                connection.commit();
+            } catch (SQLException e) {
+                throw new EqlExecuteException(e);
+            }
         }
     }
 
     @Override
     public void rollback() {
-        if (connection == null) return;
-
-        try {
-            connection.rollback();
-        } catch (SQLException e) {
-            throw new EqlExecuteException(e);
+        for (Connection connection : connections.values()) {
+            try {
+                connection.rollback();
+            } catch (SQLException e) {
+                throw new EqlExecuteException(e);
+            }
         }
     }
 
     @Override
-    public Connection getConn() {
-        return getConnection();
-    }
+    public Connection getConn(EqlConfig eqlConfig, EqlRun eqlRun) {
+        String dbName = eqlConnection.getDbName(eqlConfig, eqlRun);
+        Connection connection = connections.get(dbName);
+        if (connection != null) {
+            eqlRun.setConnection(connection);
+            return connection;
+        }
 
-    protected Connection getConnection() {
-        if (connection == null) connection = eqlConnection.getConnection();
+        connection = eqlConnection.getConnection(dbName);
 
         if (connection == null) throw new EqlExecuteException(
                 "EqlJdbcTran could not start transaction. " +
@@ -59,7 +66,15 @@ public class EqlJdbcTran implements EqlTran {
             throw new EqlExecuteException(e);
         }
 
+        connections.put(dbName, connection);
+        if (eqlRun != null) eqlRun.setConnection(connection);
+
         return connection;
+    }
+
+    @Override
+    public String getDriverName() {
+        return eqlConnection.getDriverName();
     }
 
     /**
@@ -67,7 +82,9 @@ public class EqlJdbcTran implements EqlTran {
      */
     @Override
     public void close() throws IOException {
-        Closes.closeQuietly(connection);
+        for (Connection connection : connections.values()) {
+            Closes.closeQuietly(connection);
+        }
     }
 
 }

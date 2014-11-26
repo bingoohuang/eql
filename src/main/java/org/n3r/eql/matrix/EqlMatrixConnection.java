@@ -7,8 +7,12 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
+import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.matrix.sqlparser.MatrixSqlParseNoResult;
+import org.n3r.eql.matrix.sqlparser.MatrixSqlParseResult;
+import org.n3r.eql.matrix.sqlparser.MatrixSqlParser;
 import org.n3r.eql.trans.EqlConnection;
-import org.n3r.eql.util.S;
+import org.n3r.eql.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,21 +24,13 @@ import java.util.concurrent.ConcurrentMap;
 public class EqlMatrixConnection implements EqlConnection {
     public static final String DEFAULT = "default";
     LoadingCache<String, DruidDataSource> dataSourceCache;
-    static ThreadLocal<String> databaseNameTl = new ThreadLocal<String>();
     Logger logger = LoggerFactory.getLogger(EqlMatrixConnection.class);
+    private String url;
 
-    public static void chooseDatabase(String databaseName) {
-        databaseNameTl.set(databaseName);
-    }
-
-
-    public static void chooseDefaultDatabase() {
-        databaseNameTl.set(DEFAULT);
-    }
 
     @Override
     public void initialize(EqlConfig eqlConfig) {
-        final String url = eqlConfig.getStr("url");
+        this.url = eqlConfig.getStr("url");
         final String username = eqlConfig.getStr("username");
         final String password = eqlConfig.getStr("password");
 
@@ -54,6 +50,46 @@ public class EqlMatrixConnection implements EqlConnection {
                         timeBetweenEvictionRunsMillis, minEvictableIdleTimeMillis, validationQuery);
             }
         });
+    }
+
+    LoadingCache<Pair<EqlConfig, String>, MatrixSqlParseResult> cache = CacheBuilder.newBuilder().build(
+            new CacheLoader<Pair<EqlConfig, String>, MatrixSqlParseResult>() {
+                @Override
+                public MatrixSqlParseResult load(Pair<EqlConfig, String> key) throws Exception {
+                    return new MatrixSqlParser().parse(key._1, key._2);
+                }
+            });
+
+    static ThreadLocal<String> dbNameTL = new ThreadLocal<String>();
+
+    public static void chooseDbName(String dbName) {
+        dbNameTL.set(dbName);
+    }
+
+    @Override
+    public String getDbName(EqlConfig eqlConfig, EqlRun eqlRun) {
+        MatrixSqlParseResult result = cache.getUnchecked(Pair.of(eqlConfig, eqlRun.getRunSql()));
+
+        if (result instanceof MatrixSqlParseNoResult) return DEFAULT;
+
+        return result.getDatabaseName(eqlRun);
+    }
+
+    @Override
+    public Connection getConnection(String dbName) {
+        try {
+            String localDbName;
+
+            if (!DEFAULT.equals(dbName)) localDbName = dbName;
+            else localDbName = dbNameTL.get() != null ? dbNameTL.get() : DEFAULT;
+
+            DruidDataSource dataSource = dataSourceCache.getUnchecked(localDbName);
+            logger.debug("use database [{}]", dbName);
+            return dataSource.getConnection();
+
+        } catch (SQLException e) {
+            throw new EqlExecuteException("unable to find database " + dbName, e);
+        }
     }
 
     private DruidDataSource createDruidDataSource(String database, String url, String username, String password,
@@ -137,18 +173,6 @@ public class EqlMatrixConnection implements EqlConnection {
     }
 
     @Override
-    public Connection getConnection() {
-        try {
-            String databaseName = databaseNameTl.get();
-            if (S.isBlank(databaseName)) databaseName = DEFAULT;
-            logger.debug("use database [{}]", databaseName);
-            return dataSourceCache.getUnchecked(databaseName).getConnection();
-        } catch (SQLException e) {
-            throw new EqlExecuteException(e);
-        }
-    }
-
-    @Override
     public void destroy() {
         ConcurrentMap<String, DruidDataSource> map = dataSourceCache.asMap();
 
@@ -164,5 +188,11 @@ public class EqlMatrixConnection implements EqlConnection {
         dataSourceCache.invalidateAll();
         dataSourceCache = null;
     }
+
+    @Override
+    public String getDriverName() {
+        return url;
+    }
+
 
 }

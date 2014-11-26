@@ -8,11 +8,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 
-public class EqlSimpleConnection implements EqlConnection {
+public class EqlSimpleConnection extends AbstractEqlConnection {
     private SimpleDataSource dataSource;
 
     @Override
-    public Connection getConnection() {
+    public Connection getConnection(String dbName) {
         try {
             return dataSource.getConnection();
         } catch (SQLException e) {
@@ -23,6 +23,11 @@ public class EqlSimpleConnection implements EqlConnection {
     @Override
     public void destroy() {
         dataSource.forceCloseAll();
+    }
+
+    @Override
+    public String getDriverName() {
+        return dataSource.getJdbcDriver();
     }
 
     @Override

@@ -2,6 +2,8 @@ package org.n3r.eql.trans;
 
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlConfigException;
+import org.n3r.eql.ex.EqlExecuteException;
+import org.n3r.eql.util.Closes;
 import org.n3r.eql.util.S;
 
 import javax.naming.InitialContext;
@@ -11,11 +13,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Hashtable;
 
-public class EqlJndiConnection implements EqlConnection {
+public class EqlJndiConnection extends AbstractEqlConnection {
     private DataSource dataSource;
 
     @Override
-    public Connection getConnection() {
+    public Connection getConnection(String dbName) {
         try {
             return dataSource.getConnection();
         } catch (SQLException e) {
@@ -26,6 +28,20 @@ public class EqlJndiConnection implements EqlConnection {
     @Override
     public void destroy() {
         dataSource = null;
+    }
+
+    @Override
+    public String getDriverName() {
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            return connection.getMetaData().getDriverName();
+        } catch (SQLException e) {
+            throw new EqlExecuteException(e);
+        } finally {
+            Closes.closeQuietly(connection);
+        }
     }
 
     @Override

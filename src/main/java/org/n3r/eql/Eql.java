@@ -49,7 +49,7 @@ public class Eql {
     private int fetchSize;
     protected List<EqlRun> eqlRuns;
     protected EqlRun currRun;
-    protected Map<String, Object> executionContext;
+    protected Map<String, Object> execContext;
     private String defaultSqlId;
     private boolean cached = true;
 
@@ -93,19 +93,19 @@ public class Eql {
     }
 
     public Connection getConnection() {
-        return newTran(eqlConfig).getConn();
+        return newTran(eqlConfig).getConn(eqlConfig, currRun);
     }
 
-    protected Connection getConn() {
-        Connection connection = internalTran != null ? internalTran.getConn() : externalTran.getConn();
-        dbDialect = DbDialect.parseDbType(connection);
-        executionContext.put("_databaseId", dbDialect.getDatabaseId());
-
-        return connection;
+    private void createDbDialect() {
+        dbDialect = DbDialect.parseDbType((internalTran != null ? internalTran : externalTran).getDriverName());
+        execContext.put("_databaseId", dbDialect.getDatabaseId());
+    }
+    protected void createConn() {
+        (internalTran != null ? internalTran : externalTran).getConn(eqlConfig, currRun);
     }
 
     public Eql addContext(String key, Object value) {
-        executionContext.put(key, value);
+        execContext.put(key, value);
 
         return this;
     }
@@ -113,12 +113,12 @@ public class Eql {
     public List<EqlRun> evaluate(String... directSqls) {
         checkPreconditions(directSqls);
 
-        executionContext = EqlUtils.newExecutionContext(params, dynamics);
+        execContext = EqlUtils.newExecContext(params, dynamics);
 
         if (directSqls.length > 0) eqlBlock = new EqlBlock();
 
         List<EqlRun> runs = eqlBlock.createEqlRuns(eqlConfig,
-                executionContext, params, dynamics, directSqls);
+                execContext, params, dynamics, directSqls);
 
         if (logger.isDebugEnabled()) {
             for (EqlRun run : runs) {
@@ -136,24 +136,24 @@ public class Eql {
         Object o = tryGetCache(directSqls);
         if (o != null) return (T) o;
 
-        executionContext = EqlUtils.newExecutionContext(params, dynamics);
+        execContext = EqlUtils.newExecContext(params, dynamics);
         Object ret = null;
-        Connection conn;
         try {
             tranStart();
-            conn = getConn();
+            createDbDialect();
 
             if (directSqls.length > 0) eqlBlock = new EqlBlock();
 
-            eqlRuns = eqlBlock.createEqlRuns(eqlConfig, executionContext, params, dynamics, directSqls);
+            eqlRuns = eqlBlock.createEqlRuns(eqlConfig, execContext, params, dynamics, directSqls);
             checkBatchOption();
 
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
+
                 checkBatchCmdsSupporting(eqlRun);
                 new EqlParamsBinder().prepareBindParams(eqlBlock.hasIterateOption(), currRun);
+                createConn();
 
-                currRun.setConnection(conn);
                 ret = runEql();
                 currRun.setConnection(null);
                 updateLastResultToExecutionContext(ret);
@@ -232,7 +232,7 @@ public class Eql {
             else if (list.size() == 1) lastResult = list.get(0);
         }
 
-        executionContext.put("_lastResult", lastResult);
+        execContext.put("_lastResult", lastResult);
     }
 
     public List<EqlRun> getEqlRuns() {
@@ -248,11 +248,10 @@ public class Eql {
     }
 
     public ESelectStmt selectStmt() {
-        executionContext = EqlUtils.newExecutionContext(params, dynamics);
+        execContext = EqlUtils.newExecContext(params, dynamics);
         tranStart();
-        Connection conn = getConn();
 
-        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(eqlConfig, executionContext, params, dynamics);
+        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(eqlConfig, execContext, params, dynamics);
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one select sql supported");
 
@@ -260,7 +259,6 @@ public class Eql {
         if (currRun.getSqlType() != EqlType.SELECT)
             throw new EqlExecuteException("only one select sql supported");
 
-        currRun.setConnection(conn);
         ESelectStmt selectStmt = new ESelectStmt();
         prepareStmt(selectStmt);
 
@@ -271,11 +269,11 @@ public class Eql {
     }
 
     public EUpdateStmt updateStmt() {
-        executionContext = EqlUtils.newExecutionContext(params, dynamics);
+        execContext = EqlUtils.newExecContext(params, dynamics);
         tranStart();
-        Connection conn = getConn();
+        createConn();
 
-        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(eqlConfig, executionContext, params, dynamics);
+        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(eqlConfig, execContext, params, dynamics);
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one update sql supported in this method");
 
@@ -283,7 +281,6 @@ public class Eql {
         if (!currRun.getSqlType().isUpdateStmt())
             throw new EqlExecuteException("only one update/merge/delete/insert sql supported in this method");
 
-        currRun.setConnection(conn);
         EUpdateStmt updateStmt = new EUpdateStmt();
         prepareStmt(updateStmt);
 
@@ -419,6 +416,7 @@ public class Eql {
     }
 
     private PreparedStatement prepareSql() throws SQLException {
+        createConn();
         return EqlUtils.prepareSql(currRun, getSqlId());
     }
 
@@ -530,7 +528,6 @@ public class Eql {
 
     public EqlTran newTran() {
         EqlTran tran = newTran(eqlConfig);
-        // connection = tran.getConn();
         useTran(tran);
 
         return tran;

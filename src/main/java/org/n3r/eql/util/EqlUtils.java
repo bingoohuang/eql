@@ -17,7 +17,7 @@ import java.util.Map;
 public class EqlUtils {
     static Logger logger = LoggerFactory.getLogger(EqlUtils.class);
 
-    public static Map<String, Object> newExecutionContext(Object[] params, Object[] dynamics) {
+    public static Map<String, Object> newExecContext(Object[] params, Object[] dynamics) {
         Map<String, Object> executionContext = Maps.newHashMap();
         executionContext.put("_time", new Timestamp(System.currentTimeMillis()));
         executionContext.put("_date", new java.util.Date());

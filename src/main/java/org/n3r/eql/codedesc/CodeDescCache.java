@@ -107,7 +107,7 @@ public class CodeDescCache {
                                                               CodeDesc codeDesc) {
         // try to load code desc mapping by sqlid
         try {
-            Map<String, Object> executionContext = EqlUtils.newExecutionContext(codeDesc.getParams(), null);
+            Map<String, Object> executionContext = EqlUtils.newExecContext(codeDesc.getParams(), null);
             List<EqlRun> eqlRuns = eqlBlock.createEqlRunsByEqls(eqlConfig, executionContext, codeDesc.getParams(), null);
             if (eqlRuns.size() != 1) throw new EqlExecuteException("only one select sql supported ");
 

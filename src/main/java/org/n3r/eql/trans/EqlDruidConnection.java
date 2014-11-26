@@ -8,7 +8,7 @@ import org.n3r.eql.ex.EqlExecuteException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class EqlDruidConnection implements EqlConnection {
+public class EqlDruidConnection extends AbstractEqlConnection {
     DruidDataSource dataSource;
 
     @Override
@@ -60,7 +60,7 @@ public class EqlDruidConnection implements EqlConnection {
     }
 
     @Override
-    public Connection getConnection() {
+    public Connection getConnection(String dbName) {
         try {
             return dataSource.getConnection();
         } catch (SQLException e) {
@@ -71,5 +71,10 @@ public class EqlDruidConnection implements EqlConnection {
     @Override
     public void destroy() {
         dataSource.close();
+    }
+
+    @Override
+    public String getDriverName() {
+        return dataSource.getDriverClassName();
     }
 }

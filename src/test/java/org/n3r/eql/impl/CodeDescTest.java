@@ -1,14 +1,11 @@
 package org.n3r.eql.impl;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.n3r.diamond.client.impl.MockDiamondServer;
 import org.n3r.eql.Eql;
 import org.n3r.eql.codedesc.CodeDescMapper;
-import org.n3r.eql.map.EqlBeanRowMapper;
 import org.n3r.eql.map.EqlRowMapper;
 
 import java.sql.ResultSet;
@@ -66,7 +63,7 @@ public class CodeDescTest {
 
     @Test
     public void test3() {
-        List<String> states = new Eql("mysql").id("test1").returnType(new EqlRowMapper(){
+        List<String> states = new Eql("mysql").id("test1").returnType(new EqlRowMapper() {
             public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
                 return rs.getString(2);
             }
