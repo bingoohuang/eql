@@ -124,10 +124,11 @@
         </dependency>
         <dependency>
             <groupId>com.oracle</groupId>
-            <artifactId>ojdbc6</artifactId>
-            <version>12.1.0.1</version>
+            <artifactId>ojdbc14</artifactId>
+            <version>10.2.0.4.0</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
