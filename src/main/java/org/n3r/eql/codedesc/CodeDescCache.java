@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.Miner;
 import org.n3r.diamond.client.Minerable;
 import org.n3r.eql.cache.EqlCacheKey;
+import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.impl.EqlUniqueSqlId;
@@ -120,7 +121,7 @@ public class CodeDescCache {
                 new EqlParamsBinder().prepareBindParams(eqlBlock.hasIterateOption(), eqlRun);
 
                 eqlRun.setConnection(currEqlRun.getConnection());
-                ps = EqlUtils.prepareSql(eqlRun, codeDesc.getDescLabel());
+                ps = EqlUtils.prepareSql(eqlConfig, eqlRun, codeDesc.getDescLabel());
                 eqlRun.bindParams(ps);
                 rs = ps.executeQuery();
                 rs.setFetchSize(100);

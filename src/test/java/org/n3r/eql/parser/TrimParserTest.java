@@ -68,6 +68,11 @@ where id=#id#
             }
 
             @Override
+            public Map<String, String> params() {
+                return null;
+            }
+
+            @Override
             public void onLoad() {
 
             }

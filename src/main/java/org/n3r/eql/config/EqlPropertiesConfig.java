@@ -4,6 +4,8 @@ import org.n3r.eql.util.P;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class EqlPropertiesConfig implements EqlConfig {
@@ -28,6 +30,14 @@ public class EqlPropertiesConfig implements EqlConfig {
     @Override
     public String getStr(String key) {
         return properties.getProperty(key);
+    }
+
+    @Override
+    public Map<String, String> params() {
+        HashMap<String, String> map = new HashMap<String, String>(properties.size());
+        for (final String name : properties.stringPropertyNames())
+            map.put(name, properties.getProperty(name));
+        return map;
     }
 
     @Override

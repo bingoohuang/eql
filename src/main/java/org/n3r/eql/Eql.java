@@ -362,7 +362,7 @@ public class Eql {
     }
 
     private Object execDmlInBatch() throws SQLException {
-        return batch.addBatch(currRun, getSqlId());
+        return batch.addBatch(eqlConfig, currRun, getSqlId());
     }
 
     private void prepareStmt(EStmt stmt) {

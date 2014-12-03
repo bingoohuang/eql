@@ -10,6 +10,8 @@ import org.n3r.eql.config.EqlTranFactoryCacheLifeCycle;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.util.S;
 
+import java.util.Map;
+
 public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
     private final EqlConfig eqlConfig;
     private EqlResourceLoader eqlResourceLoader;
@@ -58,6 +60,11 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
     @Override
     public String getStr(String key) {
         return eqlConfig.getStr(key);
+    }
+
+    @Override
+    public Map<String, String> params() {
+        return eqlConfig.params();
     }
 
     @Override

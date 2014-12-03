@@ -1,5 +1,9 @@
 package org.n3r.eql.config;
 
+import com.google.common.collect.ImmutableMap;
+
+import java.util.Map;
+
 public class EqlJdbcConfig implements EqlConfig {
     private String driver, url, user, password;
 
@@ -18,6 +22,11 @@ public class EqlJdbcConfig implements EqlConfig {
         if (EqlConfigKeys.PASSWORD.equals(key)) return password;
 
         return "";
+    }
+
+    @Override
+    public Map<String, String> params() {
+        return ImmutableMap.of("driver", driver, "url", url, "user", user, "password", password);
     }
 
     @Override

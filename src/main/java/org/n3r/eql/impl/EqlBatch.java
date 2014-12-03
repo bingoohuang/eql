@@ -3,6 +3,8 @@ package org.n3r.eql.impl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.n3r.eql.EqlTran;
+import org.n3r.eql.config.EqlConfig;
+import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.Closes;
@@ -31,10 +33,10 @@ public class EqlBatch {
         batchedMap = Maps.newHashMap();
     }
 
-    public int addBatch(EqlRun eqlRun, String sqlId) throws SQLException {
+    public int addBatch(EqlConfig eqlConfig, EqlRun eqlRun, String sqlId) throws SQLException {
         PreparedStatement ps = batchedMap.get(eqlRun.getRunSql());
         if (ps == null) {
-            ps = EqlUtils.prepareSql(eqlRun, sqlId);
+            ps = EqlUtils.prepareSql(eqlConfig, eqlRun, sqlId);
             batchedMap.put(eqlRun.getRunSql(), ps);
             batchedPs.add(ps);
         }

@@ -1,5 +1,9 @@
 package org.n3r.eql.config;
 
+import com.google.common.collect.ImmutableMap;
+
+import java.util.Map;
+
 public class EqlJndiConfig implements EqlConfig {
     private String jndiName, initial, url;
     private String transactionType;
@@ -19,6 +23,11 @@ public class EqlJndiConfig implements EqlConfig {
         if (EqlConfigKeys.TRANSACTION_TYPE.equals(key)) return transactionType;  // JTA or not
 
         return null;
+    }
+
+    @Override
+    public Map<String, String> params() {
+        return ImmutableMap.of("jndiName", jndiName, "initial", initial, "url", url, "transactionType", transactionType);
     }
 
 

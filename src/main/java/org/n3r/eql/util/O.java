@@ -19,12 +19,62 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
 public class O {
     static Logger log = LoggerFactory.getLogger(O.class);
+
+    public static <T> T populate(T object, Map<String, String> map) {
+        Map<String, String> params = new HashMap<String, String>(map);
+        for (Method method : object.getClass().getMethods()) {
+            if (!Modifier.isPublic(method.getModifiers())) continue;
+            if (!(method.getReturnType() == Void.TYPE || method.getReturnType() == void.class)) continue;
+            String methodName = method.getName();
+            if (methodName.length() <= 3) continue;
+            if (!methodName.startsWith("set")) continue;
+            if (method.getParameterTypes().length != 1) continue;
+
+            String propertyName = methodName.substring(3);
+            propertyName = Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
+
+            if (!params.containsKey(propertyName)) continue;
+
+            String propertyValue = params.get(propertyName);
+
+            Class<?> paramType = method.getParameterTypes()[0];
+            try {
+                if (paramType == String.class) {
+                    method.invoke(object, propertyValue);
+                    params.remove(propertyName);
+                } else if (paramType == Long.class || paramType == long.class) {
+                    if (propertyValue.matches("\\d+")) {
+                        method.invoke(object, Long.parseLong(propertyValue));
+                        params.remove(propertyName);
+                    }
+                } else if (paramType == Integer.class || paramType == int.class) {
+                    if (propertyValue.matches("\\d+")) {
+                        method.invoke(object, Integer.parseInt(propertyValue));
+                        params.remove(propertyName);
+                    }
+                } else if (paramType == Boolean.class || paramType == boolean.class) {
+                    method.invoke(object, Boolean.parseBoolean(propertyValue));
+                    params.remove(propertyName);
+                }
+            } catch (Exception e) {
+                log.warn("{}:{} is not used by {}", propertyName, propertyValue, e.getMessage());
+            }
+        }
+
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            log.warn("{}:{} is not recognized", entry.getKey(), entry.getValue());
+        }
+
+        return object;
+    }
 
     public static <T> T createObject(Class<T> clazz, Spec spec) {
         Object object;
