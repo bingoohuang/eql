@@ -12,7 +12,9 @@ import org.n3r.eql.matrix.sqlparser.MatrixSqlParseNoResult;
 import org.n3r.eql.matrix.sqlparser.MatrixSqlParseResult;
 import org.n3r.eql.matrix.sqlparser.MatrixSqlParser;
 import org.n3r.eql.trans.EqlConnection;
+import org.n3r.eql.util.O;
 import org.n3r.eql.util.Pair;
+import org.n3r.eql.util.PropertyValueFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,30 +26,24 @@ import java.util.concurrent.ConcurrentMap;
 public class EqlMatrixConnection implements EqlConnection {
     public static final String DEFAULT = "default";
     LoadingCache<String, DruidDataSource> dataSourceCache;
-    Logger logger = LoggerFactory.getLogger(EqlMatrixConnection.class);
+    static Logger logger = LoggerFactory.getLogger(EqlMatrixConnection.class);
     private String url;
 
 
     @Override
     public void initialize(EqlConfig eqlConfig) {
         this.url = eqlConfig.getStr("url");
-        final String username = eqlConfig.getStr("username");
-        final String password = eqlConfig.getStr("password");
-
-        final String initialSize = eqlConfig.getStr("initialSize");
-        final String minIdle = eqlConfig.getStr("minIdle");
-        final String maxActive = eqlConfig.getStr("maxActive");
-        final String maxWait = eqlConfig.getStr("maxWait");
-        final String timeBetweenEvictionRunsMillis = eqlConfig.getStr("timeBetweenEvictionRunsMillis");
-        final String minEvictableIdleTimeMillis = eqlConfig.getStr("minEvictableIdleTimeMillis");
-        final String validationQuery = eqlConfig.getStr("validationQuery");
+        final Map<String, String> params = eqlConfig.params();
 
         dataSourceCache = CacheBuilder.newBuilder().build(new CacheLoader<String, DruidDataSource>() {
             @Override
-            public DruidDataSource load(String database) throws Exception {
-                return createDruidDataSource(database, url, username, password,
-                        initialSize, minIdle, maxActive, maxWait,
-                        timeBetweenEvictionRunsMillis, minEvictableIdleTimeMillis, validationQuery);
+            public DruidDataSource load(final String database) throws Exception {
+                return O.populate(new DruidDataSource(), params, new PropertyValueFilter() {
+                    @Override
+                    public String filter(String propertyValue) {
+                        return parseParameter(propertyValue, database);
+                    }
+                });
             }
         });
     }
@@ -92,49 +88,7 @@ public class EqlMatrixConnection implements EqlConnection {
         }
     }
 
-    private DruidDataSource createDruidDataSource(String database, String url, String username, String password,
-                                                  String initialSize, String minIdle, String maxActive, String maxWait,
-                                                  String timeBetweenEvictionRunsMillis,
-                                                  String minEvictableIdleTimeMillis,
-                                                  String validationQuery) {
-        DruidDataSource dataSource = new DruidDataSource();
-        dataSource.setUrl(parseParameter(url, database));
-        dataSource.setUsername(parseParameter(username, database));
-        dataSource.setPassword(parseParameter(password, database));
-
-        int myInitialSize = parseIntParameter(initialSize, database);
-        if (myInitialSize > 0) dataSource.setInitialSize(myInitialSize);
-
-        int myMinIdle = parseIntParameter(minIdle, database);
-        if (myMinIdle > 0) dataSource.setMinIdle(myMinIdle);
-
-        int myMaxActive = parseIntParameter(maxActive, database);
-        if (myMaxActive > 0) dataSource.setMaxActive(myMaxActive);
-
-        int myMaxWait = parseIntParameter(maxWait, database);
-        if (myMaxWait > 0) dataSource.setMaxWait(myMaxWait);
-
-        int myTimeBetweenEvictionRunsMillis = parseIntParameter(timeBetweenEvictionRunsMillis, database);
-        if (myTimeBetweenEvictionRunsMillis > 0)
-            dataSource.setTimeBetweenEvictionRunsMillis(myTimeBetweenEvictionRunsMillis);
-
-        int myMinEvictableIdleTimeMillis = parseIntParameter(minEvictableIdleTimeMillis, database);
-        if (myMinEvictableIdleTimeMillis > 0)
-            dataSource.setMinEvictableIdleTimeMillis(myMinEvictableIdleTimeMillis);
-
-        String myValidationQuery = parseParameter(validationQuery, database);
-        if (myValidationQuery.length() > 0) dataSource.setValidationQuery(myValidationQuery);
-
-        return dataSource;
-    }
-
-    private int parseIntParameter(String param, String database) {
-        String my = parseParameter(param, database);
-
-        return my.matches("\\d+") ? Integer.parseInt(my) : 0;
-    }
-
-    private String parseParameter(String param, String database) {
+    private static String parseParameter(String param, String database) {
         if (param == null || param.length() == 0) return "";
 
         StringBuilder parsed = new StringBuilder();
@@ -193,6 +147,4 @@ public class EqlMatrixConnection implements EqlConnection {
     public String getDriverName() {
         return url;
     }
-
-
 }

@@ -28,7 +28,7 @@ import java.util.Map;
 public class O {
     static Logger log = LoggerFactory.getLogger(O.class);
 
-    public static <T> T populate(T object, Map<String, String> map) {
+    public static <T> T populate(T object, Map<String, String> map, PropertyValueFilter... propertyValueFilters) {
         Map<String, String> params = new HashMap<String, String>(map);
         for (Method method : object.getClass().getMethods()) {
             if (!Modifier.isPublic(method.getModifiers())) continue;
@@ -44,6 +44,9 @@ public class O {
             if (!params.containsKey(propertyName)) continue;
 
             String propertyValue = params.get(propertyName);
+            for (PropertyValueFilter pvf : propertyValueFilters) {
+                propertyValue = pvf.filter(propertyValue);
+            }
 
             Class<?> paramType = method.getParameterTypes()[0];
             try {
