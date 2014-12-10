@@ -38,6 +38,7 @@ public class EqlBlock {
     private String returnTypeName;
     private boolean iterateOption;
     private List<CodeDesc> codeDescs;
+    private boolean override;
 
     public EqlBlock(String sqlClassPath, String sqlId, String options, int startLineNo) {
         this.uniqueSqlId = new EqlUniqueSqlId(sqlClassPath, sqlId);
@@ -55,8 +56,9 @@ public class EqlBlock {
         onerr = options.get("onerr");
         returnTypeName = options.get("returnType");
         iterateOption = options.containsKey("iterate");
-        codeDescs = CodeDescs.parseOption(this,  options.get("desc"));
+        codeDescs = CodeDescs.parseOption(this, options.get("desc"));
         returnType = C.tryLoadClass(returnTypeName);
+        override = options.containsKey("override");
 
         split = options.get("split");
         if (Strings.isNullOrEmpty(split)) split = ";";
@@ -236,5 +238,13 @@ public class EqlBlock {
 
     public List<CodeDesc> getCodeDescs() {
         return codeDescs;
+    }
+
+    public boolean isOverride() {
+        return override;
+    }
+
+    public void setOverride(boolean override) {
+        this.override = override;
     }
 }

@@ -158,7 +158,7 @@ public class EqlParser {
     }
 
     private void addBlock(EqlBlock eqlBlock) {
-        if (blocks.containsKey(eqlBlock.getSqlId())) {
+        if (blocks.containsKey(eqlBlock.getSqlId()) && !eqlBlock.isOverride()) {
             throw new RuntimeException(eqlBlock.getSqlId() + " deplicated in " + sqlClassPath);
         }
 
