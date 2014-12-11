@@ -37,4 +37,12 @@ public class InSqlTest {
         EqlRun eqlRun = eql.getEqlRuns().get(0);
         assertThat(eqlRun.getEvalSql(), is(equalTo("SELECT NAME FROM EQL_IN WHERE ID IN ( '1','2' )")));
     }
+
+    @Test
+    public void testArray () {
+        String[] ids = new String[]{"1", "2"};
+        Eql eql = new Eql("mysql").id("test").params(ids, null); // null is to ensure that string[] to be a whole parameter
+        List<String> result = eql.execute();
+        assertThat(result, is(equalTo((List<String>) of("AA", "BB"))));
+    }
 }

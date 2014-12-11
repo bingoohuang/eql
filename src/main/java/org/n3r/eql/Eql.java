@@ -9,10 +9,7 @@ import org.n3r.eql.config.EqlConfigCache;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.config.EqlConfigManager;
 import org.n3r.eql.ex.EqlExecuteException;
-import org.n3r.eql.impl.DefaultEqlConfigDecorator;
-import org.n3r.eql.impl.EqlBatch;
-import org.n3r.eql.impl.EqlProc;
-import org.n3r.eql.impl.EqlRsRetriever;
+import org.n3r.eql.impl.*;
 import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.map.EqlType;
@@ -23,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -146,7 +143,8 @@ public class Eql {
             if (directSqls.length > 0) eqlBlock = new EqlBlock();
 
             eqlRuns = eqlBlock.createEqlRuns(eqlConfig, execContext, params, dynamics, directSqls);
-            checkBatchOption();
+            IterateOptions.checkIterateOption(eqlBlock, eqlRuns, params);
+            ;
 
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
@@ -175,20 +173,6 @@ public class Eql {
         }
 
         return (T) ret;
-    }
-
-    private void checkBatchOption() {
-        if (!eqlBlock.hasIterateOption()) return;
-
-        if (eqlRuns.size() != 1)
-            throw new EqlExecuteException("iterate mode only allow enabled when only one sql in a block");
-
-        EqlRun eqlRun = eqlRuns.get(0);
-        if (!eqlRun.getSqlType().isUpdateStmt())
-            throw new EqlExecuteException("iterate mode only allow enabled when sql type is update");
-
-        if (params == null || params.length != 1 || !(params[0] instanceof Collection))
-            throw new EqlExecuteException("batch mode only allow enabled when single parameter in collection type");
     }
 
     private void trySetCache(String[] directSqls) {
@@ -389,12 +373,20 @@ public class Eql {
 
             if (eqlBlock.hasIterateOption()) {
                 int rowCount = 0;
-                Collection<Object> collection = (Collection<Object>) params[0];
-                for (int i = 0, ii = collection.size(); i < ii; ++i) {
-                    currRun.bindBatchParams(ps, i);
-                    rowCount += ps.executeUpdate();
-                }
 
+                if (params[0] instanceof Iterator) {
+                    Iterator<Object> iterator = (Iterator<Object>) params[0];
+                    for (int i = 0; iterator.hasNext(); ++i) {
+                        currRun.bindBatchParams(ps, i);
+                        rowCount += ps.executeUpdate();
+                    }
+                } else if (params[0] != null && params[0].getClass().isArray()){
+                    Object[] arr = (Object[]) params[0];
+                    for (int i = 0, ii = arr.length; i < ii; ++i) {
+                        currRun.bindBatchParams(ps, i);
+                        rowCount += ps.executeUpdate();
+                    }
+                }
                 return rowCount;
             } else {
                 currRun.bindParams(ps);

@@ -4,6 +4,7 @@ import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.EqlUtils;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 public class InPart implements EqlPart {
     private final String inParamsContainer;
@@ -14,11 +15,12 @@ public class InPart implements EqlPart {
 
     @Override
     public String evalSql(EqlRun eqlRun) {
-        Collection<?> items = EqlUtils.evalCollection(inParamsContainer, eqlRun);
-        if (items == null || items.size() == 0) return "";
+        Iterable<?> items = EqlUtils.evalCollection(inParamsContainer, eqlRun);
+        if (items == null ) return "";
+        Iterator<?> iterator = items.iterator();
 
         StringBuilder questions = new StringBuilder();
-        for (int i  = 0, ii = items.size(); i < ii; ++i) {
+        for (int i  = 0; iterator.hasNext(); ++i, iterator.next()) {
             if (i > 0) questions.append(',');
 
             questions.append('#').append(inParamsContainer)

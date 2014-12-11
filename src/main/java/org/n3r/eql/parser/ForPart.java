@@ -41,8 +41,8 @@ public class ForPart implements EqlPart {
     public String evalSql(EqlRun eqlRun) {
         StringBuilder str = new StringBuilder(open).append(' ');
 
-        Collection<?> items = EqlUtils.evalCollection(collection, eqlRun);
-        if (items == null || items.size() == 0) return "";
+        Iterable<?> items = EqlUtils.evalCollection(collection, eqlRun);
+        if (items == null) return "";
 
         Map<String, Object> preContext = eqlRun.getExecutionContext();
         Map<String, Object> context = new HashMap<String, Object>(preContext);

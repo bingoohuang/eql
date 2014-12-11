@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.util.Collection;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
@@ -76,10 +75,11 @@ public class EqlUtils {
         stmt.setQueryTimeout(queryTimeout);
     }
 
-    public static Collection<?> evalCollection(String collectionExpr, EqlRun eqlRun) {
+    public static Iterable<?> evalCollection(String collectionExpr, EqlRun eqlRun) {
         ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
         Object value = evaluator.eval(collectionExpr, eqlRun);
-        if (value instanceof Collection) return (Collection<?>) value;
+        if (value instanceof Iterable) return (Iterable<?>) value;
+        if (value != null && value.getClass().isArray()) return Lists.newArrayList((Object[]) value);
 
         throw new RuntimeException(collectionExpr + " in "
                 + eqlRun.getParamBean() + " is not an expression of a collection");
