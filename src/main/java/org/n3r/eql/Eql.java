@@ -374,9 +374,9 @@ public class Eql {
             if (eqlBlock.hasIterateOption()) {
                 int rowCount = 0;
 
-                if (params[0] instanceof Iterator) {
-                    Iterator<Object> iterator = (Iterator<Object>) params[0];
-                    for (int i = 0; iterator.hasNext(); ++i) {
+                if (params[0] instanceof Iterable) {
+                    Iterator<Object> iterator = ((Iterable<Object>) params[0]).iterator();
+                    for (int i = 0; iterator.hasNext(); ++i, iterator.next()) {
                         currRun.bindBatchParams(ps, i);
                         rowCount += ps.executeUpdate();
                     }

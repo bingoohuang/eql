@@ -5,18 +5,25 @@ import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.Og;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
 public class OgnlEvaluator implements ExpressionEvaluator {
     @Override
     public Object eval(String expr, EqlRun eqlRun) {
         if (eqlRun.hasIterateOption()) {
-            Collection<Object> collection = eqlRun.getBatchCollectionParams();
-            int size = collection.size();
-            ArrayList<Object> result = new ArrayList<Object>(size);
-            for (Object element : collection) {
-                Object eval = Og.eval(expr, eqlRun.getMergedParamPropertiesWith(element));
-                result.add(eval);
+            Object iterableOrArray = eqlRun.getIterateParams();
+            ArrayList<Object> result = new ArrayList<Object>();
+            if (iterableOrArray instanceof Iterable) {
+                Iterable<Object> iterable = (Iterable<Object>) iterableOrArray;
+                for (Object element : iterable) {
+                    Object eval = Og.eval(expr, eqlRun.getMergedParamPropertiesWith(element));
+                    result.add(eval);
+                }
+            } else if (iterableOrArray != null && iterableOrArray.getClass().isArray()) {
+                Object[] arr = (Object[]) iterableOrArray;
+                for (Object element : arr) {
+                    Object eval = Og.eval(expr, eqlRun.getMergedParamPropertiesWith(element));
+                    result.add(eval);
+                }
             }
 
             return result;

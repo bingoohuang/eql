@@ -18,11 +18,11 @@ public class IterateOptions {
         if (!eqlRun.getSqlType().isUpdateStmt())
             throw new EqlExecuteException("iterate mode only allow enabled when sql type is update");
 
-        if (params == null || params.length != 1)
+        if (params == null || params.length == 0)
             throw new EqlExecuteException("batch mode only allow enabled when single parameter in collection type");
 
-        if (params[0] instanceof Iterable) return;
-        if (params[0] != null && params[0].getClass().isArray()) return;
+        if (params[0] instanceof Iterable && params.length == 1) return;
+        if (params[0] != null && params[0].getClass().isArray() && params.length == 2 && params[1] == null) return;
 
         throw new EqlExecuteException("batch mode only allow enabled when single parameter of iterable or array type");
     }

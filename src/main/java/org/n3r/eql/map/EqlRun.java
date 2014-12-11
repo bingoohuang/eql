@@ -20,7 +20,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 public class EqlRun implements Cloneable {
     public List<Pair<Integer, Object>> realParams = Lists.newArrayList();
@@ -62,8 +65,8 @@ public class EqlRun implements Cloneable {
         if (boundParams != null && boundParams.size() > 0 && logger.isDebugEnabled()) {
             String sqlId = getSqlId();
             logger.debug("params for [{}]: {}", sqlId, boundParams.toString());
-            this.evalSql  = parseEvalSql(-1);
-            logger.debug("eval sql for [{}]: {}", sqlId, this.evalSql );
+            this.evalSql = parseEvalSql(-1);
+            logger.debug("eval sql for [{}]: {}", sqlId, this.evalSql);
         }
     }
 
@@ -79,15 +82,15 @@ public class EqlRun implements Cloneable {
         if (boundParams != null && boundParams.size() > 0 && logger.isDebugEnabled()) {
             String sqlId = getSqlId();
             logger.debug("params for [{}]: {}", sqlId, batchParamsString(boundParams, index));
-            this.evalSql  = parseEvalSql(index);
-            logger.debug("eval sql for [{}]: {}", sqlId, this.evalSql );
+            this.evalSql = parseEvalSql(index);
+            logger.debug("eval sql for [{}]: {}", sqlId, this.evalSql);
         }
     }
 
     private String batchParamsString(List<Object> boundParams, int index) {
         ArrayList<Object> bounds = new ArrayList<Object>();
-        for (Object object: boundParams) {
-            bounds.add(((Object[])object)[index]);
+        for (Object object : boundParams) {
+            bounds.add(((Object[]) object)[index]);
         }
         return bounds.toString();
     }
@@ -113,7 +116,7 @@ public class EqlRun implements Cloneable {
             if (index < size) {
                 Object boundParam = boundParams.get(index);
                 if (batchIndex >= 0) {
-                    boundParam = ((Object[])boundParam)[batchIndex];
+                    boundParam = ((Object[]) boundParam)[batchIndex];
                 }
 
                 if (boundParam == null) {
@@ -351,8 +354,8 @@ public class EqlRun implements Cloneable {
         return P.mergeProperties(executionContext, element);
     }
 
-    public Collection<Object> getBatchCollectionParams() {
-        return (Collection<Object>) ((Object[])((Map)getParamBean()).get("_params"))[0];
+    public Object getIterateParams() {
+        return ((Object[]) ((Map) getParamBean()).get("_params"))[0];
     }
 
     public Map<String, Object> getMergedDynamicsProperties() {
