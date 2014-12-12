@@ -1,10 +1,10 @@
 -- import org/n3r/eql/SimpleTest.eql *TestTable
 
 -- [test1]
-update ESQL_TEST set C = #c1# where A = #a1#
+update EQL_TEST set C = #c1# where A = #a1#
 
 -- [test2]
-update ESQL_TEST set C = #c2# where A = #a2#
+update EQL_TEST set C = #c2# where A = #a2#
 
 -- [partial]
 SELECT C
@@ -15,5 +15,5 @@ SELECT C
 
 -- [selectC]
 -- ref partial
-FROM ESQL_TEST
+FROM EQL_TEST
 WHERE A = ##

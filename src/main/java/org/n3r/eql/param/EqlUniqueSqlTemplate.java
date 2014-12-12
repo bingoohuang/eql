@@ -4,28 +4,28 @@ package org.n3r.eql.param;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 
 public class EqlUniqueSqlTemplate {
-    private EqlUniqueSqlId eqlUniqueSqlId;
-    private String templateSql;
+    private EqlUniqueSqlId eqlUniquEQLId;
+    private String templatEQL;
 
-    public EqlUniqueSqlTemplate(EqlUniqueSqlId eqlUniqueSqlId, String templateSql) {
-        this.eqlUniqueSqlId = eqlUniqueSqlId;
-        this.templateSql = templateSql;
+    public EqlUniqueSqlTemplate(EqlUniqueSqlId eqlUniquEQLId, String templatEQL) {
+        this.eqlUniquEQLId = eqlUniquEQLId;
+        this.templatEQL = templatEQL;
     }
 
-    public EqlUniqueSqlId getEqlUniqueSqlId() {
-        return eqlUniqueSqlId;
+    public EqlUniqueSqlId getEqlUniquEQLId() {
+        return eqlUniquEQLId;
     }
 
-    public void setEqlUniqueSqlId(EqlUniqueSqlId eqlUniqueSqlId) {
-        this.eqlUniqueSqlId = eqlUniqueSqlId;
+    public void setEqlUniquEQLId(EqlUniqueSqlId eqlUniquEQLId) {
+        this.eqlUniquEQLId = eqlUniquEQLId;
     }
 
-    public String getTemplateSql() {
-        return templateSql;
+    public String getTemplatEQL() {
+        return templatEQL;
     }
 
-    public void setTemplateSql(String templateSql) {
-        this.templateSql = templateSql;
+    public void setTemplatEQL(String templatEQL) {
+        this.templatEQL = templatEQL;
     }
 
     @Override
@@ -35,17 +35,17 @@ public class EqlUniqueSqlTemplate {
 
         EqlUniqueSqlTemplate that = (EqlUniqueSqlTemplate) o;
 
-        if (eqlUniqueSqlId != null ? !eqlUniqueSqlId.equals(that.eqlUniqueSqlId) : that.eqlUniqueSqlId != null)
+        if (eqlUniquEQLId != null ? !eqlUniquEQLId.equals(that.eqlUniquEQLId) : that.eqlUniquEQLId != null)
             return false;
-        if (templateSql != null ? !templateSql.equals(that.templateSql) : that.templateSql != null) return false;
+        if (templatEQL != null ? !templatEQL.equals(that.templatEQL) : that.templatEQL != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = eqlUniqueSqlId != null ? eqlUniqueSqlId.hashCode() : 0;
-        result = 31 * result + (templateSql != null ? templateSql.hashCode() : 0);
+        int result = eqlUniquEQLId != null ? eqlUniquEQLId.hashCode() : 0;
+        result = 31 * result + (templatEQL != null ? templatEQL.hashCode() : 0);
         return result;
     }
 }

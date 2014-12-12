@@ -7,20 +7,20 @@ import org.n3r.eql.impl.EqlUniqueSqlId;
 import java.util.Arrays;
 
 public class EqlCacheKey {
-    private EqlUniqueSqlId uniqueSqlId;
+    private EqlUniqueSqlId uniquEQLId;
     private Object[] params;
     private Object[] dynamics;
     private EqlPage page;
 
-    public EqlCacheKey(EqlUniqueSqlId uniqueSqlId, Object[] params, Object[] dynamics, EqlPage page) {
-        this.uniqueSqlId = uniqueSqlId;
+    public EqlCacheKey(EqlUniqueSqlId uniquEQLId, Object[] params, Object[] dynamics, EqlPage page) {
+        this.uniquEQLId = uniquEQLId;
         this.params = params;
         this.dynamics = dynamics;
         this.page = page;
     }
 
-    public EqlUniqueSqlId getUniqueSqlId() {
-        return uniqueSqlId;
+    public EqlUniqueSqlId getUniquEQLId() {
+        return uniquEQLId;
     }
 
     public Object[] getParams() {
@@ -47,14 +47,14 @@ public class EqlCacheKey {
         if (page != null ? !page.equals(that.page) : that.page != null) return false;
         // Probably incorrect - comparing Object[] arrays with Arrays.equals
         if (!Arrays.equals(params, that.params)) return false;
-        if (uniqueSqlId != null ? !uniqueSqlId.equals(that.uniqueSqlId) : that.uniqueSqlId != null) return false;
+        if (uniquEQLId != null ? !uniquEQLId.equals(that.uniquEQLId) : that.uniquEQLId != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = uniqueSqlId != null ? uniqueSqlId.hashCode() : 0;
+        int result = uniquEQLId != null ? uniquEQLId.hashCode() : 0;
         result = 31 * result + (params != null ? Arrays.hashCode(params) : 0);
         result = 31 * result + (dynamics != null ? Arrays.hashCode(dynamics) : 0);
         result = 31 * result + (page != null ? page.hashCode() : 0);

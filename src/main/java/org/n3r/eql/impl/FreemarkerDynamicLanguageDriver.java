@@ -16,8 +16,8 @@ import java.util.List;
 public class FreemarkerDynamicLanguageDriver implements DynamicLanguageDriver {
 
     @Override
-    public Sql parse(EqlBlock block, List<String> oneSqlLines) {
-        String template = Joiner.on('\n').join(oneSqlLines);
+    public Sql parse(EqlBlock block, List<String> onEQLLines) {
+        String template = Joiner.on('\n').join(onEQLLines);
 
         if (template.indexOf("<#") < 0) return new StaticSql(template);
 
@@ -25,11 +25,11 @@ public class FreemarkerDynamicLanguageDriver implements DynamicLanguageDriver {
         StringTemplateLoader stringLoader = new StringTemplateLoader();
         ftlConfig.setTemplateLoader(stringLoader);
 
-        String uniqueSqlIdStr = block.getUniqueSqlIdStr();
-        stringLoader.putTemplate(uniqueSqlIdStr, template);
+        String uniquEQLIdStr = block.getUniquEQLIdStr();
+        stringLoader.putTemplate(uniquEQLIdStr, template);
         Template temp;
         try {
-            temp = ftlConfig.getTemplate(uniqueSqlIdStr);
+            temp = ftlConfig.getTemplate(uniquEQLIdStr);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

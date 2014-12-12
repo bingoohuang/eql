@@ -101,8 +101,8 @@ public class EqlParser {
 
         if (block == null) return true;
 
-        String includeSqlId = matcher.group(2);
-        EqlBlock eqlBlock = blocks.get(includeSqlId);
+        String includEQLId = matcher.group(2);
+        EqlBlock eqlBlock = blocks.get(includEQLId);
         if (eqlBlock == null) throw new RuntimeException(cleanLine + " not found");
         sqlLines.addAll(eqlBlock.getSqlLines());
 

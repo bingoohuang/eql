@@ -82,10 +82,10 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
         return fieldsParser;
     }
 
-    public static OracleSensitiveFieldsParser parseOracleSql(String sql, Set<String> secureFields) {
+    public static OracleSensitiveFieldsParser parseOraclEQL(String sql, Set<String> secureFields) {
         OracleSensitiveFieldsParser fieldsParser = tryParseHint(sql, secureFields);
         if (fieldsParser == null) {
-            SQLStatement sqlStatement = parseSql(sql);
+            SQLStatement sqlStatement = parsEQL(sql);
             fieldsParser = new OracleSensitiveFieldsParser(secureFields, sql);
             fieldsParser = parseStatement(fieldsParser, sqlStatement);
         }
@@ -124,7 +124,7 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
         }
     }
 
-    private static SQLStatement parseSql(String sql) {
+    private static SQLStatement parsEQL(String sql) {
         SQLStatementParser parser = new OracleStatementParser(sql);
         List<SQLStatement> stmtList;
         try {

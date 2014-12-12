@@ -66,12 +66,12 @@ public class DynamicTest {
         Eql eql = new Eql().params(map);
         eql.execute();
         EqlRun eqlRun = eql.getEqlRuns().get(0);
-        assertThat(eqlRun.getPrintSql(), is(equalTo("SELECT A,B,C,D,E FROM ESQL_TEST")));
+        assertThat(eqlRun.getPrintSql(), is(equalTo("SELECT A,B,C,D,E FROM EQL_TEST")));
 
         eql = new Eql().params("1");
         eql.execute();
         eqlRun = eql.getEqlRuns().get(0);
-        assertThat(eqlRun.getPrintSql(), is(equalTo("SELECT A,B,C,D,E FROM ESQL_TEST WHERE A = ?")));
+        assertThat(eqlRun.getPrintSql(), is(equalTo("SELECT A,B,C,D,E FROM EQL_TEST WHERE A = ?")));
     }
 
     @Test

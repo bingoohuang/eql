@@ -16,7 +16,7 @@ public class JdbcTest {
                 "jdbc:oracle:thin:@127.0.0.1:1521:orcl", "orcl", "orcl");
         connection.setAutoCommit(false);
         PreparedStatement ps = connection.prepareStatement(
-                "update ESQL_TEST set B = 'BBB'");
+                "update EQL_TEST set B = 'BBB'");
         boolean execute = ps.execute();
         System.out.println(execute);
         ps.close();

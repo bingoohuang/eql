@@ -16,7 +16,7 @@ import static org.junit.Assert.assertThat;
 
 public class EqlParserTest {
     @Test
-    public void includeSqlId() {
+    public void includEQLId() {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [commondCondition]\n" +
@@ -35,7 +35,7 @@ public class EqlParserTest {
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [selectIf2 returnType=org.n3r.eql.SimpleTest$Bean]\n" +
                 "SELECT A,B,C,D,E\n" +
-                "FROM ESQL_TEST\n" +
+                "FROM EQL_TEST\n" +
                 "WHERE A = #a#\n" +
                 "AND\n" +
                 "-- if e == 100\n" +
@@ -63,7 +63,7 @@ public class EqlParserTest {
         Map<String, Object> context = Maps.newHashMap();
         EqlRun eqlRun = new EqlRun();
         eqlRun.setExecutionContext(context);
-        assertThat(eqlPart.evalSql(eqlRun), is("SELECT A,B,C,D,E\nFROM ESQL_TEST\nWHERE A = #a#\nAND\n"));
+        assertThat(eqlPart.evalSql(eqlRun), is("SELECT A,B,C,D,E\nFROM EQL_TEST\nWHERE A = #a#\nAND\n"));
 
         IfPart ifPart = (IfPart) dynamicSql.getParts().part(1);
         System.out.println(ifPart);
@@ -510,7 +510,7 @@ public class EqlParserTest {
     }
 
     @Test
-    public void oneBlock1DynamicIfElseSql() {
+    public void oneBlock1DynamicIfElsEQL() {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog]\r\n"
@@ -595,7 +595,7 @@ public class EqlParserTest {
         eqlParser.parse(
                 "-- [selectIf2 returnType=org.n3r.eql.SimpleTest$Bean]\n" +
                         "SELECT A,B,C,D,E\n" +
-                        "FROM ESQL_TEST\n" +
+                        "FROM EQL_TEST\n" +
                         "-- import org/n3r/eql/DynamicTest.eql\r\n"
         );
     }

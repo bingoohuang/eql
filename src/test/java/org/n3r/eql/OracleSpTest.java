@@ -100,10 +100,10 @@ public class OracleSpTest {
     @Test
     public void procedureNoOut() throws SQLException {
         new Eqll().update("createSpNoOut").execute();
-        Eql esql = new Eqll()
+        Eql eql = new Eqll()
                 .params("hjb")
                 .limit(1);
-        int ab = esql.returnType("int")
+        int ab = eql.returnType("int")
                 .execute("{CALL SP_EQL_NOOUT(##)}", "SELECT 1 FROM DUAL");
 
         assertThat(ab, is(1));

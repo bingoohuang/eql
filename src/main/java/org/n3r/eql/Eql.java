@@ -311,12 +311,12 @@ public class Eql {
 
         if (page.getTotalRows() == 0) page.setTotalRows(executeTotalRowsSql());
 
-        return executePageSql();
+        return executePagEQL();
     }
 
-    private Object executePageSql() throws SQLException {
+    private Object executePagEQL() throws SQLException {
         EqlRun temp = currRun;
-        currRun = dbDialect.createPageSql(currRun, page);
+        currRun = dbDialect.createPagEQL(currRun, page);
 
         new EqlParamsBinder().prepareBindParams(eqlBlock.hasIterateOption(), currRun);
 
@@ -352,7 +352,7 @@ public class Eql {
     private void prepareStmt(EStmt stmt) {
         PreparedStatement ps = null;
         try {
-            ps = prepareSql();
+            ps = preparEQL();
 
             stmt.setPreparedStatment(ps);
             stmt.setEqlRun(currRun);
@@ -369,7 +369,7 @@ public class Eql {
         ResultSet rs = null;
         PreparedStatement ps = null;
         try {
-            ps = prepareSql();
+            ps = preparEQL();
 
             if (eqlBlock.hasIterateOption()) {
                 int rowCount = 0;
@@ -410,9 +410,9 @@ public class Eql {
         }
     }
 
-    private PreparedStatement prepareSql() throws SQLException {
+    private PreparedStatement preparEQL() throws SQLException {
         createConn();
-        return EqlUtils.prepareSql(eqlConfig, currRun, getSqlId());
+        return EqlUtils.preparEQL(eqlConfig, currRun, getSqlId());
     }
 
     public Eql returnType(Class<?> returnType) {
@@ -439,12 +439,12 @@ public class Eql {
         rsRetriever.setEqlBlock(eqlBlock);
     }
 
-    public Eql useSqlFile(Class<?> sqlBoundClass) {
+    public Eql usEQLFile(Class<?> sqlBoundClass) {
         sqlClassPath = sqlBoundClass.getName().replace('.', '/') + ".eql";
         return this;
     }
 
-    public Eql useSqlFile(String sqlClassPath) {
+    public Eql usEQLFile(String sqlClassPath) {
         this.sqlClassPath = sqlClassPath;
         return this;
     }

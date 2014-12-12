@@ -20,38 +20,38 @@ public class EqlBlockParser {
     }
 
     public void parse(EqlBlock block, List<String> sqlLines) {
-        List<String> oneSqlLines = Lists.newArrayList();
+        List<String> onEQLLines = Lists.newArrayList();
 
         // split to multiple sql
         for (String sqlLine : sqlLines) {
             if (sqlLine.endsWith(block.getSplit())) {
-                oneSqlLines.add(sqlLine.substring(0, sqlLine.length() - 1));
-                addSql(block, oneSqlLines);
+                onEQLLines.add(sqlLine.substring(0, sqlLine.length() - 1));
+                addSql(block, onEQLLines);
             } else {
-                oneSqlLines.add(sqlLine);
+                onEQLLines.add(sqlLine);
             }
         }
 
-        addSql(block, oneSqlLines);
+        addSql(block, onEQLLines);
 
         block.setSqls(sqls);
         block.setSqlLines(sqlLines);
     }
 
-    private void addSql(EqlBlock block, List<String> oneSqlLines) {
-        if (oneSqlLines.size() == 0) return;
-        if (isAllComments(oneSqlLines)) return;
+    private void addSql(EqlBlock block, List<String> onEQLLines) {
+        if (onEQLLines.size() == 0) return;
+        if (isAllComments(onEQLLines)) return;
 
-        Sql sql = sqlParseDelay ? new DelaySql(dynamicLanguageDriver, block, new ArrayList<String>(oneSqlLines))
-                : dynamicLanguageDriver.parse(block, oneSqlLines);
+        Sql sql = sqlParseDelay ? new DelaySql(dynamicLanguageDriver, block, new ArrayList<String>(onEQLLines))
+                : dynamicLanguageDriver.parse(block, onEQLLines);
         if (sql != null) sqls.add(sql);
-        oneSqlLines.clear();
+        onEQLLines.clear();
     }
 
-    private boolean isAllComments(List<String> oneSqlLines) {
+    private boolean isAllComments(List<String> onEQLLines) {
         List<String> linesWoLineComments = Lists.newArrayList();
 
-        for (String line : oneSqlLines) {
+        for (String line : onEQLLines) {
             if (line.startsWith("--")) continue;
 
             linesWoLineComments.add(line);
@@ -61,8 +61,8 @@ public class EqlBlockParser {
 
         String join = Joiner.on('\n').join(linesWoLineComments);
         Matcher matcher = ParserUtils.inlineComment.matcher(join);
-        String pureSql = matcher.replaceAll("");
+        String purEQL = matcher.replaceAll("");
 
-        return S.isBlank(pureSql);
+        return S.isBlank(purEQL);
     }
 }

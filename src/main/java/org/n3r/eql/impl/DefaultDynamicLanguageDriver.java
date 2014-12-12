@@ -9,8 +9,8 @@ import java.util.regex.Matcher;
 
 public class DefaultDynamicLanguageDriver implements DynamicLanguageDriver {
     @Override
-    public Sql parse(EqlBlock block, List<String> oneSqlLines) {
-        List<String> stdLines = standardLines(oneSqlLines);
+    public Sql parse(EqlBlock block, List<String> onEQLLines) {
+        List<String> stdLines = standardLines(onEQLLines);
 
         MultiPart multiPart = new MultiPart();
 
@@ -56,8 +56,8 @@ public class DefaultDynamicLanguageDriver implements DynamicLanguageDriver {
         return new DynamicSql(multiPart);
     }
 
-    private List<String> standardLines(List<String> oneSqlLines) {
-        return rearrangeLinesForInlineComments(rearrangeLinesForLineCommentsAndOthers(oneSqlLines));
+    private List<String> standardLines(List<String> onEQLLines) {
+        return rearrangeLinesForInlineComments(rearrangeLinesForLineCommentsAndOthers(onEQLLines));
     }
 
     private List<String> rearrangeLinesForInlineComments(List<String> lines) {
@@ -92,11 +92,11 @@ public class DefaultDynamicLanguageDriver implements DynamicLanguageDriver {
         return convertedLines;
     }
 
-    private List<String> rearrangeLinesForLineCommentsAndOthers(List<String> oneSqlLines) {
+    private List<String> rearrangeLinesForLineCommentsAndOthers(List<String> onEQLLines) {
         List<String> convertedLines = Lists.newArrayList();
 
         StringBuilder mergedLine = new StringBuilder();
-        for (String line : oneSqlLines) {
+        for (String line : onEQLLines) {
             if (line.startsWith("--")) {
                 mergedAdd(convertedLines, mergedLine, line);
             } else {

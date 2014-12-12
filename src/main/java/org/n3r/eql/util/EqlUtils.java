@@ -51,7 +51,7 @@ public class EqlUtils {
         return returnSql;
     }
 
-    public static PreparedStatement prepareSql(EqlConfig eqlConfig, EqlRun eqlRun, String sqlId) throws SQLException {
+    public static PreparedStatement preparEQL(EqlConfig eqlConfig, EqlRun eqlRun, String sqlId) throws SQLException {
         logger.debug("prepare sql for [{}]: {} ", sqlId, eqlRun.getPrintSql());
         Connection conn = eqlRun.getConnection();
         String sql = eqlRun.getRunSql();

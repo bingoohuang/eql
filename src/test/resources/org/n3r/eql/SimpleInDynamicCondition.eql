@@ -1,4 +1,4 @@
 -- [test1]
-select 'x' from ESQL_TEST
+select 'x' from EQL_TEST
 -- iff _1 != 'none'
 where 'some' = ##

@@ -2,6 +2,6 @@
 
 -- [getOrders]
 SELECT *
-  FROM ESQL_TEST
+  FROM EQL_TEST
  WHERE B = #merchantId#
    AND C = #orderInfo.staffId#

@@ -44,11 +44,11 @@ public class TransactionTest {
     }
 
     private void rollback(int a, String b) {
-        Eql esql = new Eql();
-        EqlTran tran = esql.newTran();
+        EqlTran tran = new Eql().newTran();
         try {
             tran.start();
-            esql.update("updateBean")
+            new Eql().useTran(tran)
+                    .update("updateBean")
                     .params(a, b)
                     .execute();
 
@@ -62,11 +62,11 @@ public class TransactionTest {
     }
 
     private void commit(int a, String b) {
-        Eql esql = new Eql();
-        EqlTran tran = esql.newTran();
+        EqlTran tran = new Eql().newTran();
         try {
             tran.start();
-            esql.update("updateBean")
+            new Eql().useTran(tran)
+                    .update("updateBean")
                     .params(a, b)
                     .execute();
 

@@ -39,7 +39,7 @@ public class Pql extends Eql {
 
     public <T> void create(T pojo) {
         this.pojo = pojo;
-        this.sql = PojoParser.parseCreateSql(pojo.getClass());
+        this.sql = PojoParser.parseCreatEQL(pojo.getClass());
 
         super.id("create").params(pojo).execute();
     }
@@ -49,12 +49,12 @@ public class Pql extends Eql {
         int includePropertiesSize = includeProperties.length;
 
         if (includePropertiesSize == 0) {
-            this.sql = PojoParser.parseUpdateSql(pojo.getClass());
+            this.sql = PojoParser.parseUpdatEQL(pojo.getClass());
             String sqlid = Hashing.murmur3_32().hashString(sql, Charsets.UTF_8).toString();
             return super.id(sqlid).params(pojo).execute();
         }
 
-        this.sql = PojoParser.parseUpdateSql2(pojo.getClass());
+        this.sql = PojoParser.parseUpdatEQL2(pojo.getClass());
         String input = sql + Arrays.toString(includeProperties);
         String sqlid = Hashing.murmur3_32().hashString(input, Charsets.UTF_8).toString();
 
@@ -76,7 +76,7 @@ public class Pql extends Eql {
 
     public <T> int delete(T pojo) {
         this.pojo = pojo;
-        this.sql = PojoParser.parseDeleteSql(pojo.getClass());
+        this.sql = PojoParser.parseDeletEQL(pojo.getClass());
         return super.id("delete").params(pojo).execute();
     }
 

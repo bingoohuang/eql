@@ -19,8 +19,8 @@ public class EqlResourceLoaderHelper {
         return CacheBuilder.newBuilder().build(
                 new CacheLoader<EqlUniqueSqlId, Optional<EqlBlock>>() {
                     @Override
-                    public Optional<EqlBlock> load(EqlUniqueSqlId eqlUniqueSqlId) throws Exception {
-                        return loadBlocks(fileCache, eqlUniqueSqlId);
+                    public Optional<EqlBlock> load(EqlUniqueSqlId eqlUniquEQLId) throws Exception {
+                        return loadBlocks(fileCache, eqlUniquEQLId);
                     }
                 }
         );
@@ -28,16 +28,16 @@ public class EqlResourceLoaderHelper {
 
     private static Optional<EqlBlock> loadBlocks(
             Cache<String, Optional<Map<String, EqlBlock>>> fileCache,
-            EqlUniqueSqlId eqlUniqueSqlId) {
+            EqlUniqueSqlId eqlUniquEQLId) {
         Optional<Map<String, EqlBlock>> blocks;
-        blocks = fileCache.getIfPresent(eqlUniqueSqlId.getSqlClassPath());
+        blocks = fileCache.getIfPresent(eqlUniquEQLId.getSqlClassPath());
         if (!blocks.isPresent()) return Optional.absent();
 
         Map<String, EqlBlock> blockMap = blocks.get();
-        EqlBlock eqlBlock = blockMap.get(eqlUniqueSqlId.getSqlId());
+        EqlBlock eqlBlock = blockMap.get(eqlUniquEQLId.getSqlId());
         if (eqlBlock == null) return Optional.absent();
 
-        eqlBlock.tryParseSqls();
+        eqlBlock.tryParsEQLs();
 
         return Optional.of(eqlBlock);
     }
@@ -54,9 +54,9 @@ public class EqlResourceLoaderHelper {
         Map<String, EqlBlock> sqlBlocks = eqlParser.parse(sqlContent);
 
         for (EqlBlock sqlBlock : sqlBlocks.values()) {
-            EqlUniqueSqlId uniqueSqlId = sqlBlock.getUniqueSqlId();
-            sqlCache.put(uniqueSqlId, Optional.of(sqlBlock));
-            oldSqlIds.remove(uniqueSqlId.getSqlId());
+            EqlUniqueSqlId uniquEQLId = sqlBlock.getUniquEQLId();
+            sqlCache.put(uniquEQLId, Optional.of(sqlBlock));
+            oldSqlIds.remove(uniquEQLId.getSqlId());
         }
 
         for (String uniqueId : oldSqlIds) {

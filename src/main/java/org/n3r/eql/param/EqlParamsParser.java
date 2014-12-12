@@ -26,9 +26,9 @@ public class EqlParamsParser {
     static LoadingCache<EqlUniqueSqlTemplate, EqlParamsParserResult> cache = CacheBuilder.newBuilder().build(
             new CacheLoader<EqlUniqueSqlTemplate, EqlParamsParserResult>() {
                 @Override
-                public EqlParamsParserResult load(EqlUniqueSqlTemplate eqlUniqueSqlTemplate) throws Exception {
+                public EqlParamsParserResult load(EqlUniqueSqlTemplate eqlUniquEQLTemplate) throws Exception {
                     EqlParamsParserResult result = new EqlParamsParserResult();
-                    new EqlParamsParser(result, eqlUniqueSqlTemplate).parseParams();
+                    new EqlParamsParser(result, eqlUniquEQLTemplate).parseParams();
                     return result;
                 }
             }
@@ -36,8 +36,8 @@ public class EqlParamsParser {
 
     public static void parseParams(EqlRun eqlRun, String sqlStr) {
         EqlBlock eqlBlock = eqlRun.getEqlBlock();
-        EqlUniqueSqlId uniqueSqlId = eqlBlock != null ? eqlBlock.getUniqueSqlId() : null;
-        EqlUniqueSqlTemplate sqlTemplate = new EqlUniqueSqlTemplate(uniqueSqlId, sqlStr);
+        EqlUniqueSqlId uniquEQLId = eqlBlock != null ? eqlBlock.getUniquEQLId() : null;
+        EqlUniqueSqlTemplate sqlTemplate = new EqlUniqueSqlTemplate(uniquEQLId, sqlStr);
 
         EqlParamsParserResult result = cache.getUnchecked(sqlTemplate);
 
@@ -51,20 +51,20 @@ public class EqlParamsParser {
     }
 
     private final EqlParamsParserResult result;
-    private final EqlUniqueSqlId eqlUniqueSqlId;
-    private final String templateSql;
+    private final EqlUniqueSqlId eqlUniquEQLId;
+    private final String templatEQL;
 
-    public EqlParamsParser(EqlParamsParserResult result, EqlUniqueSqlTemplate eqlUniqueSqlTemplate) {
+    public EqlParamsParser(EqlParamsParserResult result, EqlUniqueSqlTemplate eqlUniquEQLTemplate) {
         this.result = result;
-        this.eqlUniqueSqlId = eqlUniqueSqlTemplate.getEqlUniqueSqlId();
-        this.templateSql = eqlUniqueSqlTemplate.getTemplateSql();
+        this.eqlUniquEQLId = eqlUniquEQLTemplate.getEqlUniquEQLId();
+        this.templatEQL = eqlUniquEQLTemplate.getTemplatEQL();
     }
 
     private void parseParams() {
-        EqlType eqlType = EqlType.parseSqlType(templateSql);
+        EqlType eqlType = EqlType.parsEQLType(templatEQL);
         result.setSqlType(eqlType);
 
-        Matcher matcher = PARAM_PATTERN.matcher(templateSql);
+        Matcher matcher = PARAM_PATTERN.matcher(templatEQL);
         List<String> placeHolders = new ArrayList<String>();
         List<String> placeHolderOptions = new ArrayList<String>();
         StringBuilder sql = new StringBuilder();
@@ -74,7 +74,7 @@ public class EqlParamsParser {
         boolean hasEscape = false;
         while (matcher.find(startPos)) {
             if (hasPrevEscape(matcher.start())) {
-                String prev = templateSql.substring(startPos, matcher.start() + 1);
+                String prev = templatEQL.substring(startPos, matcher.start() + 1);
                 sql.append(prev);
                 evalSql.append(prev);
                 startPos = matcher.start() + 1;
@@ -91,25 +91,25 @@ public class EqlParamsParser {
             }
 
             if ("?".equals(placeHolder))
-                placeHolder = inferVarName(eqlType, templateSql, startPos, matcher.start());
+                placeHolder = inferVarName(eqlType, templatEQL, startPos, matcher.start());
 
             placeHolders.add(S.unEscapeCrossAndDollar(placeHolder));
             placeHolderOptions.add(paramOptions);
 
-            String prev = templateSql.substring(startPos, matcher.start());
+            String prev = templatEQL.substring(startPos, matcher.start());
             sql.append(prev).append('?');
             evalSql.append(prev).append(S.wrap(++questionSeq, SUB));
             startPos = matcher.end();
         }
 
-        String tail = templateSql.substring(startPos);
+        String tail = templatEQL.substring(startPos);
         sql.append(tail);
         evalSql.append(tail);
 
-        String oneLineSql = sql.toString();
+        String oneLinEQL = sql.toString();
         String oneLineEvalSql = evalSql.toString();
 
-        result.setRunSql(hasEscape ? unescape(oneLineSql) : oneLineSql);
+        result.setRunSql(hasEscape ? unescape(oneLinEQL) : oneLinEQL);
         result.setEvalSqlTemplate(hasEscape ? unescape(oneLineEvalSql) : oneLineEvalSql);
 
         result.setPlaceholderNum(placeHolders.size());
@@ -136,7 +136,7 @@ public class EqlParamsParser {
 
         boolean hasPreEscape = false;
         for (int i = start - 1; i >= 0; --i, hasPreEscape = !hasPreEscape)
-            if (templateSql.charAt(i) != '\\') break;
+            if (templatEQL.charAt(i) != '\\') break;
 
         return hasPreEscape;
     }
@@ -149,14 +149,14 @@ public class EqlParamsParser {
         switch (sqlType) {
             case SELECT:
             case UPDATE:
-                variableName = inferVarNameInUpdateSql(rawSql, startPos, endPos);
+                variableName = inferVarNameInUpdatEQL(rawSql, startPos, endPos);
                 break;
             case INSERT:
             case REPLACE:
                 variableName = inferVarNameInInsertSql(rawSql, endPos);
                 break;
             case MERGE:
-                variableName = inferVarNameInMergeSql(rawSql, startPos, endPos);
+                variableName = inferVarNameInMergEQL(rawSql, startPos, endPos);
                 break;
             default:
                 break;
@@ -167,7 +167,7 @@ public class EqlParamsParser {
         return variableName;
     }
 
-    private String inferVarNameInMergeSql(String rawSql, int startPos, int endPos) {
+    private String inferVarNameInMergEQL(String rawSql, int startPos, int endPos) {
         String upperCaseRawSql = rawSql.toUpperCase();
         int updatePos = upperCaseRawSql.indexOf("UPDATE");
         int insertPos = upperCaseRawSql.indexOf("INSERT");
@@ -175,11 +175,11 @@ public class EqlParamsParser {
             return inferVarNameInInsertSql(rawSql, endPos);
 
         if (updatePos >= 0 && insertPos < 0)
-            return inferVarNameInUpdateSql(rawSql, startPos, endPos);
+            return inferVarNameInUpdatEQL(rawSql, startPos, endPos);
 
         int minPos = Math.min(updatePos, insertPos);
         if (minPos == updatePos && endPos < insertPos || minPos == insertPos && endPos > updatePos)
-            return inferVarNameInUpdateSql(rawSql, startPos, endPos);
+            return inferVarNameInUpdatEQL(rawSql, startPos, endPos);
         if (minPos == updatePos && endPos > insertPos || minPos == insertPos && endPos < updatePos)
             return inferVarNameInInsertSql(rawSql, endPos);
 
@@ -213,7 +213,7 @@ public class EqlParamsParser {
         return null;
     }
 
-    private String inferVarNameInUpdateSql(String rawSql, int startPos, int endPos) {
+    private String inferVarNameInUpdatEQL(String rawSql, int startPos, int endPos) {
         String substr = rawSql.substring(startPos, endPos);
         Matcher matcher = lastWord.matcher(substr);
         if (!matcher.matches()) throw new EqlConfigException("Unable to resolve #?#： " + substr);
@@ -255,7 +255,7 @@ public class EqlParamsParser {
                     && paramPlaceholder.getInOut() != inOut) {
                 if (placeHolderInType != PlaceholderType.UNSET)
                     throw new EqlConfigException("["
-                            + (eqlUniqueSqlId != null ? eqlUniqueSqlId.getSqlId() : templateSql)
+                            + (eqlUniquEQLId != null ? eqlUniquEQLId.getSqlId() : templatEQL)
                             + "] with different param binding types");
 
                 placeHolderInType = paramPlaceholder.getPlaceholderType();
@@ -264,7 +264,7 @@ public class EqlParamsParser {
         if (placeHolderInType == PlaceholderType.MANU_SEQ
                 && result.getSqlType() == EqlType.CALL)
             throw new EqlConfigException("["
-                    + (eqlUniqueSqlId != null ? eqlUniqueSqlId.getSqlId() : templateSql) + "] is a procedure without manually bind seq support");
+                    + (eqlUniquEQLId != null ? eqlUniquEQLId.getSqlId() : templatEQL) + "] is a procedure without manually bind seq support");
 
         return placeHolderInType;
     }

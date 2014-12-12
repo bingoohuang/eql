@@ -26,7 +26,7 @@ public class EqlUniqueSqlId {
 
     @Override
     public String toString() {
-        return "EqlUniqueSqlId{" +
+        return "EqlUniquEQLId{" +
                 "sqlClassPath='" + sqlClassPath + '\'' +
                 ", sqlId='" + sqlId + '\'' +
                 '}';

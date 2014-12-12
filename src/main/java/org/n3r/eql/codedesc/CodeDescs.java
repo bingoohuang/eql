@@ -81,7 +81,7 @@ public class CodeDescs {
     private static void check(EqlBlock eqlBlock, boolean expr) {
         if (expr) return;
 
-        throw new EqlConfigException(eqlBlock.getUniqueSqlIdStr() + "'s desc format is invalid");
+        throw new EqlConfigException(eqlBlock.getUniquEQLIdStr() + "'s desc format is invalid");
     }
 
 

@@ -36,7 +36,7 @@ public class EqlBatch {
     public int addBatch(EqlConfig eqlConfig, EqlRun eqlRun, String sqlId) throws SQLException {
         PreparedStatement ps = batchedMap.get(eqlRun.getRunSql());
         if (ps == null) {
-            ps = EqlUtils.prepareSql(eqlConfig, eqlRun, sqlId);
+            ps = EqlUtils.preparEQL(eqlConfig, eqlRun, sqlId);
             batchedMap.put(eqlRun.getRunSql(), ps);
             batchedPs.add(ps);
         }

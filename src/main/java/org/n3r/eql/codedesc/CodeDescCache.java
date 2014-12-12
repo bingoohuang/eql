@@ -8,7 +8,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.Miner;
 import org.n3r.diamond.client.Minerable;
 import org.n3r.eql.cache.EqlCacheKey;
-import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.impl.EqlUniqueSqlId;
@@ -27,7 +26,7 @@ import java.util.concurrent.ExecutionException;
 
 public class CodeDescCache {
     public static final String EQL_CACHE = "EQL.CACHE.DESC";
-    static Cache<EqlUniqueSqlId, Optional<String>> cacheSqlIdVersion
+    static Cache<EqlUniqueSqlId, Optional<String>> cachEQLIdVersion
             = CacheBuilder.newBuilder().build();
 
     static Cache<EqlUniqueSqlId, Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>>> cacheDict
@@ -39,17 +38,17 @@ public class CodeDescCache {
                                                         EqlConfigDecorator eqlConfig,
                                                         EqlBlock eqlBlock) {
 
-        EqlUniqueSqlId uniqueSqlId = new EqlUniqueSqlId(sqlClassPath, codeDesc.getDescLabel());
+        EqlUniqueSqlId uniquEQLId = new EqlUniqueSqlId(sqlClassPath, codeDesc.getDescLabel());
 
-        Optional<String> cachedSqlIdVersion = cacheSqlIdVersion.getIfPresent(uniqueSqlId);
-        String sqlIdVersion = getSqlIdCacheVersion(uniqueSqlId);
+        Optional<String> cachedSqlIdVersion = cachEQLIdVersion.getIfPresent(uniquEQLId);
+        String sqlIdVersion = getSqlIdCacheVersion(uniquEQLId);
 
-        Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>> subCache = getOrCreateSubCache(uniqueSqlId);
-        EqlCacheKey eqlCacheKey = new EqlCacheKey(uniqueSqlId, codeDesc.getParams(), null, null);
+        Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>> subCache = getOrCreateSubCache(uniquEQLId);
+        EqlCacheKey eqlCacheKey = new EqlCacheKey(uniquEQLId, codeDesc.getParams(), null, null);
 
         if (cachedSqlIdVersion != null && !StringUtils.equals(sqlIdVersion, cachedSqlIdVersion.orNull())) {
             subCache.invalidate(eqlCacheKey);
-            cacheSqlIdVersion.put(uniqueSqlId, Optional.fromNullable(sqlIdVersion));
+            cachEQLIdVersion.put(uniquEQLId, Optional.fromNullable(sqlIdVersion));
         }
 
         Optional<DefaultCodeDescMapper> mapperOptional = getOrCreateMapper(currEqlRun, eqlConfig, codeDesc,
@@ -58,10 +57,10 @@ public class CodeDescCache {
         return mapperOptional.orNull();
     }
 
-    private static String getSqlIdCacheVersion(EqlUniqueSqlId uniqueSqlId) {
-        final String dataId = uniqueSqlId.getSqlClassPath().replaceAll("/", ".");
+    private static String getSqlIdCacheVersion(EqlUniqueSqlId uniquEQLId) {
+        final String dataId = uniquEQLId.getSqlClassPath().replaceAll("/", ".");
         Minerable minerable = new Miner().getMiner(EQL_CACHE, dataId);
-        String key = uniqueSqlId.getSqlId() + ".cacheVersion";
+        String key = uniquEQLId.getSqlId() + ".cacheVersion";
         return minerable.getString(key);
     }
 
@@ -85,13 +84,13 @@ public class CodeDescCache {
         }
     }
 
-    private static Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>> getOrCreateSubCache(final EqlUniqueSqlId uniqueSqlId) {
+    private static Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>> getOrCreateSubCache(final EqlUniqueSqlId uniquEQLId) {
         try {
-            return cacheDict.get(uniqueSqlId, new Callable<Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>>>() {
+            return cacheDict.get(uniquEQLId, new Callable<Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>>>() {
                 @Override
                 public Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>> call() throws Exception {
-                    String sqlIdVersion = getSqlIdCacheVersion(uniqueSqlId);
-                    cacheSqlIdVersion.put(uniqueSqlId, Optional.fromNullable(sqlIdVersion));
+                    String sqlIdVersion = getSqlIdCacheVersion(uniquEQLId);
+                    cachEQLIdVersion.put(uniquEQLId, Optional.fromNullable(sqlIdVersion));
                     return CacheBuilder.newBuilder().build();
                 }
             });
@@ -121,7 +120,7 @@ public class CodeDescCache {
                 new EqlParamsBinder().prepareBindParams(eqlBlock.hasIterateOption(), eqlRun);
 
                 eqlRun.setConnection(currEqlRun.getConnection());
-                ps = EqlUtils.prepareSql(eqlConfig, eqlRun, codeDesc.getDescLabel());
+                ps = EqlUtils.preparEQL(eqlConfig, eqlRun, codeDesc.getDescLabel());
                 eqlRun.bindParams(ps);
                 rs = ps.executeQuery();
                 rs.setFetchSize(100);

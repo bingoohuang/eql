@@ -13,8 +13,8 @@ public class SimpleInDynamicCondition {
     @Test
     public void test1() {
         List<EqlRun> eqlRuns = new Eqll().params("some").limit(1).evaluate();
-        assertThat(eqlRuns.get(0).getRunSql(), is("select 'x' from ESQL_TEST\nwhere 'some' = ?"));
+        assertThat(eqlRuns.get(0).getRunSql(), is("select 'x' from EQL_TEST\nwhere 'some' = ?"));
         eqlRuns = new Eqll().params("none").limit(1).evaluate();
-        assertThat(eqlRuns.get(0).getRunSql(), is("select 'x' from ESQL_TEST"));
+        assertThat(eqlRuns.get(0).getRunSql(), is("select 'x' from EQL_TEST"));
     }
 }

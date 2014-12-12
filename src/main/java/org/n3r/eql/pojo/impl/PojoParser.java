@@ -16,15 +16,15 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 
 public class PojoParser {
-    static LoadingCache<Class<?>, String> createSqlCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
+    static LoadingCache<Class<?>, String> creatEQLCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
         @Override
         public String load(Class<?> pojoClass) throws Exception {
-            return parseCreateSqlWoCache(pojoClass);
+            return parseCreatEQLWoCache(pojoClass);
         }
     });
 
-    public static String parseCreateSql(Class<?> pojoClass) {
-        return createSqlCache.getUnchecked(pojoClass);
+    public static String parseCreatEQL(Class<?> pojoClass) {
+        return creatEQLCache.getUnchecked(pojoClass);
     }
 
     private static Field[] parsePropertiesName(Class<?> pojoClass) {
@@ -40,26 +40,26 @@ public class PojoParser {
         return properties.toArray(new Field[properties.size()]);
     }
 
-    static String parseCreateSqlWoCache(Class<?> pojoClass) {
+    static String parseCreatEQLWoCache(Class<?> pojoClass) {
         String tableName = parseTableName(pojoClass);
-        StringBuilder createSql = new StringBuilder("insert into ").append(tableName).append("(");
-        StringBuilder valueSql = new StringBuilder(") values(");
+        StringBuilder creatEQL = new StringBuilder("insert into ").append(tableName).append("(");
+        StringBuilder valuEQL = new StringBuilder(") values(");
         for (Field field : parsePropertiesName(pojoClass)) {
             String columnName = parseColumnName(field);
-            createSql.append(columnName).append(',');
-            valueSql.append('#').append(field.getName()).append("#,");
+            creatEQL.append(columnName).append(',');
+            valuEQL.append('#').append(field.getName()).append("#,");
         }
 
-        char c = createSql.charAt(createSql.length() - 1);
+        char c = creatEQL.charAt(creatEQL.length() - 1);
         if (c != ',') {
             throw new RuntimeException("there is no property to save for class " + pojoClass);
         }
 
-        createSql.delete(createSql.length() - 1, createSql.length());
-        valueSql.delete(valueSql.length() - 1, valueSql.length());
-        createSql.append(valueSql).append(')');
+        creatEQL.delete(creatEQL.length() - 1, creatEQL.length());
+        valuEQL.delete(valuEQL.length() - 1, valuEQL.length());
+        creatEQL.append(valuEQL).append(')');
 
-        return createSql.toString();
+        return creatEQL.toString();
     }
 
 
@@ -76,7 +76,7 @@ public class PojoParser {
 
     static String parseReadSqlWoCache(Class<?> pojoClass) {
         StringBuilder selectSql = new StringBuilder("select ");
-        StringBuilder whereSql = new StringBuilder();
+        StringBuilder wherEQL = new StringBuilder();
         int initialLen = selectSql.length();
 
         for (Field field : parsePropertiesName(pojoClass)) {
@@ -84,54 +84,54 @@ public class PojoParser {
             if (selectSql.length() > initialLen) selectSql.append(',');
             selectSql.append(columnName).append(" as ").append(field.getName());
 
-            whereSql.append("-- isNotEmpty ").append(field.getName()).append("\r\n");
-            whereSql.append(" and ").append(columnName).append("=#").append(field.getName()).append("#\r\n");
-            whereSql.append("-- end\r\n");
+            wherEQL.append("-- isNotEmpty ").append(field.getName()).append("\r\n");
+            wherEQL.append(" and ").append(columnName).append("=#").append(field.getName()).append("#\r\n");
+            wherEQL.append("-- end\r\n");
         }
 
         String tableName = parseTableName(pojoClass);
 
         return selectSql.append(" from ").append(tableName)
                 .append("\r\n-- trim prefix=where prefixOverrides=and\r\n")
-                .append(whereSql)
+                .append(wherEQL)
                 .append("-- end\r\n")
                 .toString();
     }
 
 
-    static LoadingCache<Class<?>, String> updateSqlCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
+    static LoadingCache<Class<?>, String> updatEQLCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
         @Override
         public String load(Class<?> pojoClass) throws Exception {
-            return parseUpdateSqlWoCache(pojoClass, "");
+            return parseUpdatEQLWoCache(pojoClass, "");
         }
     });
 
-    public static String parseUpdateSql(Class<?> pojoClass) {
-        return updateSqlCache.getUnchecked(pojoClass);
+    public static String parseUpdatEQL(Class<?> pojoClass) {
+        return updatEQLCache.getUnchecked(pojoClass);
     }
 
     static public String PREFIX_FLAG = "_flag_";
-    static LoadingCache<Class<?>, String> updateSqlCache2 = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
+    static LoadingCache<Class<?>, String> updatEQLCache2 = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
         @Override
         public String load(Class<?> pojoClass) throws Exception {
-            return parseUpdateSqlWoCache(pojoClass, PREFIX_FLAG);
+            return parseUpdatEQLWoCache(pojoClass, PREFIX_FLAG);
         }
     });
 
-    public static String parseUpdateSql2(Class<?> pojoClass) {
-        return updateSqlCache2.getUnchecked(pojoClass);
+    public static String parseUpdatEQL2(Class<?> pojoClass) {
+        return updatEQLCache2.getUnchecked(pojoClass);
     }
 
-    public static String parseUpdateSqlWoCache(Class<?> pojoClass, String fieldFlagPrefix) {
+    public static String parseUpdatEQLWoCache(Class<?> pojoClass, String fieldFlagPrefix) {
         StringBuilder setSql = new StringBuilder();
-        StringBuilder whereSql = new StringBuilder();
+        StringBuilder wherEQL = new StringBuilder();
 
         for (Field field : parsePropertiesName(pojoClass)) {
             String columnName = parseColumnName(field);
             boolean isIdColumn = isIdColumn(field, columnName);
             if (isIdColumn) {
-                if (whereSql.length() > 0) whereSql.append(" and ");
-                whereSql.append(columnName).append("=#").append(field.getName()).append("#");
+                if (wherEQL.length() > 0) wherEQL.append(" and ");
+                wherEQL.append(columnName).append("=#").append(field.getName()).append("#");
             } else {
                 setSql.append("-- isNotEmpty ").append(fieldFlagPrefix + field.getName()).append("\r\n");
                 setSql.append(columnName).append("=#").append(field.getName()).append("#,\r\n");
@@ -144,7 +144,7 @@ public class PojoParser {
                 .append("-- trim prefix=set suffixOverrides=,   \r\n")
                 .append(setSql)
                 .append("-- end \r\n")
-                .append("where ").append(whereSql);
+                .append("where ").append(wherEQL);
 
         return sql.toString();
     }
@@ -154,18 +154,18 @@ public class PojoParser {
         return idAnnotation != null || "id".equals(columnName);
     }
 
-    static LoadingCache<Class<?>, String> deleteSqlCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
+    static LoadingCache<Class<?>, String> deletEQLCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
         @Override
         public String load(Class<?> pojoClass) throws Exception {
-            return parseDeleteSqlWoCache(pojoClass);
+            return parseDeletEQLWoCache(pojoClass);
         }
     });
 
-    public static String parseDeleteSql(Class<?> pojoClass) {
-        return deleteSqlCache.getUnchecked(pojoClass);
+    public static String parseDeletEQL(Class<?> pojoClass) {
+        return deletEQLCache.getUnchecked(pojoClass);
     }
 
-    static String parseDeleteSqlWoCache(Class<?> pojoClass) {
+    static String parseDeletEQLWoCache(Class<?> pojoClass) {
         String tableName = parseTableName(pojoClass);
         StringBuilder sql = new StringBuilder("delete from ").append(tableName).append(" where ");
         int initialLen = sql.length();

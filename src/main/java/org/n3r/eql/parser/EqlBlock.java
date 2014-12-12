@@ -33,7 +33,7 @@ public class EqlBlock {
 
     private List<Sql> sqls = Lists.newArrayList();
     private Collection<String> sqlLines;
-    private EqlUniqueSqlId uniqueSqlId;
+    private EqlUniqueSqlId uniquEQLId;
     private EqlCacheProvider cacheProvider;
     private String returnTypeName;
     private boolean iterateOption;
@@ -41,7 +41,7 @@ public class EqlBlock {
     private boolean override;
 
     public EqlBlock(String sqlClassPath, String sqlId, String options, int startLineNo) {
-        this.uniqueSqlId = new EqlUniqueSqlId(sqlClassPath, sqlId);
+        this.uniquEQLId = new EqlUniqueSqlId(sqlClassPath, sqlId);
         this.startLineNo = startLineNo;
         this.options = BlockOptionsParser.parseOptions(options);
 
@@ -49,7 +49,7 @@ public class EqlBlock {
     }
 
     public EqlBlock() {
-        this.uniqueSqlId = new EqlUniqueSqlId("<DirectSql>", "<Auto>");
+        this.uniquEQLId = new EqlUniqueSqlId("<DirectSql>", "<Auto>");
     }
 
     private void initSomeOptions() {
@@ -69,7 +69,7 @@ public class EqlBlock {
     private void initEqlCache(boolean useCache, String cacheModel) {
         if (Strings.isNullOrEmpty(cacheModel) && !useCache) return;
 
-        cacheProvider = EqlCacheSettings.getCacheProvider(uniqueSqlId, cacheModel);
+        cacheProvider = EqlCacheSettings.getCacheProvider(uniquEQLId, cacheModel);
     }
 
     public List<Sql> getSqls() {
@@ -80,7 +80,7 @@ public class EqlBlock {
                                       Object[] params, Object[] dynamics, String[] directSqls) {
         return directSqls.length == 0
                 ? createEqlRunsByEqls(eqlConfig, executionContext, params, dynamics)
-                : createSqlSubsByDirectSqls(eqlConfig, executionContext, params, dynamics, directSqls);
+                : creatEQLSubsByDirectSqls(eqlConfig, executionContext, params, dynamics, directSqls);
     }
 
     public List<EqlRun> createEqlRunsByEqls(EqlConfigDecorator eqlConfig, Map<String, Object> executionContext,
@@ -113,7 +113,7 @@ public class EqlBlock {
         new DynamicReplacer().replaceDynamics(eqlRun);
     }
 
-    public List<EqlRun> createSqlSubsByDirectSqls(EqlConfigDecorator eqlConfig, Map<String, Object> executionContext,
+    public List<EqlRun> creatEQLSubsByDirectSqls(EqlConfigDecorator eqlConfig, Map<String, Object> executionContext,
                                                   Object[] params, Object[] dynamics, String[] sqls) {
         Object paramBean = O.createSingleBean(params);
 
@@ -175,33 +175,33 @@ public class EqlBlock {
         return split;
     }
 
-    public void tryParseSqls() {
+    public void tryParsEQLs() {
         for (Sql sql : sqls) {
             if (sql instanceof DelaySql) {
-                ((DelaySql) sql).parseSql();
+                ((DelaySql) sql).parsEQL();
             }
         }
     }
 
-    public EqlUniqueSqlId getUniqueSqlId() {
-        return uniqueSqlId;
+    public EqlUniqueSqlId getUniquEQLId() {
+        return uniquEQLId;
     }
 
-    public String getUniqueSqlIdStr() {
-        return uniqueSqlId.getSqlClassPath() + ":" + uniqueSqlId.getSqlId();
+    public String getUniquEQLIdStr() {
+        return uniquEQLId.getSqlClassPath() + ":" + uniquEQLId.getSqlId();
     }
 
     public String getSqlId() {
-        return uniqueSqlId.getSqlId();
+        return uniquEQLId.getSqlId();
     }
 
     public Optional<Object> getCachedResult(Object[] params, Object[] dynamics, EqlPage page) {
         if (cacheProvider == null) return null;
 
-        EqlCacheKey cacheKey = new EqlCacheKey(uniqueSqlId, params, dynamics, page);
+        EqlCacheKey cacheKey = new EqlCacheKey(uniquEQLId, params, dynamics, page);
         Optional<Object> cache = cacheProvider.getCache(cacheKey);
         if (cache != null && page != null) {
-            EqlUniqueSqlId totalRowSqlId = uniqueSqlId.newTotalRowSqlId();
+            EqlUniqueSqlId totalRowSqlId = uniquEQLId.newTotalRowSqlId();
             cacheKey = new EqlCacheKey(totalRowSqlId, params, dynamics, page);
             Optional<Object> totalNumber = cacheProvider.getCache(cacheKey);
             if (totalNumber.isPresent()) page.setTotalRows((Integer) totalNumber.get());
@@ -214,11 +214,11 @@ public class EqlBlock {
         if (cacheProvider == null) return;
         if (!currRun.isLastSelectSql()) return;
 
-        EqlCacheKey cacheKey = new EqlCacheKey(uniqueSqlId, currRun.getParams(), currRun.getDynamics(), page);
+        EqlCacheKey cacheKey = new EqlCacheKey(uniquEQLId, currRun.getParams(), currRun.getDynamics(), page);
         cacheProvider.setCache(cacheKey, currRun.getResult());
 
         if (page != null) {
-            EqlUniqueSqlId totalRowSqlId = uniqueSqlId.newTotalRowSqlId();
+            EqlUniqueSqlId totalRowSqlId = uniquEQLId.newTotalRowSqlId();
             cacheKey = new EqlCacheKey(totalRowSqlId, currRun.getParams(), currRun.getDynamics(), page);
             cacheProvider.setCache(cacheKey, page.getTotalRows());
         }

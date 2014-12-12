@@ -46,7 +46,7 @@ public enum EqlType {
 
     private static Pattern FIRST_WORD = Pattern.compile("\\b(\\w+)\\b");
 
-    public static EqlType parseSqlType(String rawSql) {
+    public static EqlType parsEQLType(String rawSql) {
         Matcher matcher = FIRST_WORD.matcher(rawSql);
         matcher.find();
         String firstWord = matcher.group(1).toUpperCase();

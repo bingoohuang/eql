@@ -64,17 +64,17 @@ public class EqlCacheSettings {
         return null;
     }
 
-    public static EqlCacheProvider getCacheProvider(EqlUniqueSqlId uniqueSqlId, String cacheModel) {
+    public static EqlCacheProvider getCacheProvider(EqlUniqueSqlId uniquEQLId, String cacheModel) {
         String model = Objects.firstNonNull(cacheModel, EqlCacheSettings.DEFAULT_GUAVA_CACHE_MODEL);
 
-        EqlCacheModelKey cacheModelKey = new EqlCacheModelKey(uniqueSqlId.getSqlClassPath(), model);
+        EqlCacheModelKey cacheModelKey = new EqlCacheModelKey(uniquEQLId.getSqlClassPath(), model);
         EqlCacheProvider provider = eqlCacheModels.getIfPresent(cacheModelKey);
         if (provider != null) return provider;
 
         if (DEFAULT_GUAVA_CACHE_MODEL.equals(model))
-            return createDefaultGuavaCacheModel(uniqueSqlId.getSqlClassPath(), cacheModelKey);
+            return createDefaultGuavaCacheModel(uniquEQLId.getSqlClassPath(), cacheModelKey);
         if (DEFAULT_DIAMOND_GUAVA_CACHE_MODEL.equals(model))
-            return createDefaultDiamondGuavaCacheModel(uniqueSqlId.getSqlClassPath(), cacheModelKey);
+            return createDefaultDiamondGuavaCacheModel(uniquEQLId.getSqlClassPath(), cacheModelKey);
 
         logger.warn("unable to find cache provider by cache model {}", model);
 

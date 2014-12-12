@@ -7,15 +7,15 @@ import static org.junit.Assert.assertThat;
 
 public class UseOtherEqlTest {
     @Test
-    public void testUseSqlClass() {
-        String str = new Eql().useSqlFile(SimpleTest.class)
+    public void testUsEQLClass() {
+        String str = new Eql().usEQLFile(SimpleTest.class)
                 .selectFirst("test1").execute();
         assertThat(str, is("1"));
     }
 
     @Test
-    public void testUseSqlFile() {
-        String str = new Eql().useSqlFile("org/n3r/eql/SimpleTest.eql")
+    public void testUsEQLFile() {
+        String str = new Eql().usEQLFile("org/n3r/eql/SimpleTest.eql")
                 .selectFirst("test1").execute();
         assertThat(str, is("1"));
     }
