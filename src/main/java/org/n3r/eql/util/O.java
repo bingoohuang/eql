@@ -5,9 +5,9 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
-import org.joor.ReflectException;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.joor.Reflect;
+import org.n3r.eql.joor.ReflectException;
 import org.n3r.eql.spec.ParamsAppliable;
 import org.n3r.eql.spec.Spec;
 import org.slf4j.Logger;
@@ -82,7 +82,7 @@ public class O {
     public static <T> T createObject(Class<T> clazz, Spec spec) {
         Object object;
         try {
-            object = org.joor.Reflect.on(spec.getName()).create().get();
+            object = Reflect.on(spec.getName()).create().get();
         } catch (ReflectException e) {
             throw new EqlExecuteException(e);
         }

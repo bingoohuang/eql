@@ -13,7 +13,6 @@ import java.util.Map;
  * <p/>
  * An example of using <code>Reflect</code> is <code><pre>
  * // Static import all reflection methods to decrease verbosity
- * import static org.joor.Reflect.*;
  * <p/>
  * // Wrap an Object / Class / class name with the on() method:
  * on("java.lang.String")
