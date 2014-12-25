@@ -154,23 +154,22 @@ public class O {
         }
     }
 
-    public static void setValue(Object mappedObject, String columnName, Object value) {
+    public static boolean setValue(Object mappedObject, String columnName, Object value) {
         if (mappedObject instanceof Map) {
             ((Map) mappedObject).put(columnName, value);
-            return;
+            return true;
         }
 
         int dotPos = columnName.indexOf('.');
         if (dotPos < 0) {
-            setProperty(mappedObject, columnName, value);
-            return;
+            return setProperty(mappedObject, columnName, value);
         }
 
         String property = columnName.substring(0, dotPos);
         Object propertyValue = createProperty(property, mappedObject);
-        if (propertyValue == null) return;
+        if (propertyValue == null) return false;
 
-        setValue(propertyValue, columnName.substring(dotPos + 1), value);
+        return setValue(propertyValue, columnName.substring(dotPos + 1), value);
     }
 
     public static Object createProperty(String propertyName, Object hostBean) {

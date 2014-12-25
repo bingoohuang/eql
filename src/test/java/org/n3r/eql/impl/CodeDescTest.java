@@ -64,7 +64,7 @@ public class CodeDescTest {
     @Test
     public void test3() {
         List<String> states = new Eql("mysql").id("test1").returnType(new EqlRowMapper() {
-            public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+            public Object mapRow(ResultSet rs, int rowNum, boolean isSingleColumn) throws SQLException {
                 return rs.getString(2);
             }
         }).execute();

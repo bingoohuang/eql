@@ -60,9 +60,9 @@ public class EqlRsRetriever {
         return result;
     }
 
-    private Object rowBeanCreate(EqlRowMapper rowMapper, boolean singleColumn, ResultSet rs, int rowNum) throws SQLException {
-        Object rowBean = rowMapper.mapRow(rs, rowNum);
-        if (singleColumn) rowBean = convertSingleValue(rowBean, rs);
+    private Object rowBeanCreate(EqlRowMapper rowMapper, boolean isSingleColumn, ResultSet rs, int rowNum) throws SQLException {
+        Object rowBean = rowMapper.mapRow(rs, rowNum, isSingleColumn);
+        if (isSingleColumn) rowBean = convertSingleValue(rowBean, rs);
 
         if (rowBean instanceof AfterPropertiesSet)
             ((AfterPropertiesSet) rowBean).afterPropertiesSet();
@@ -127,7 +127,7 @@ public class EqlRsRetriever {
                 return Enums.valueOff((Class<Enum>) returnType, (String) value);
             }
 
-            return new EqlBeanRowMapper(returnType).mapRow(rs, 1);
+            return new EqlBeanRowMapper(returnType).mapRow(rs, 1, false);
         }
 
         return value;

@@ -11,7 +11,7 @@ import java.util.Map;
 public class EqlMapMapper implements EqlRowMapper {
 
     @Override
-    public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+    public Object mapRow(ResultSet rs, int rowNum, boolean isSingleColumn) throws SQLException {
         Map<String, Object> row = new HashMap<String, Object>();
         ResultSetMetaData metaData = rs.getMetaData();
         for (int i = 1; i <= metaData.getColumnCount(); ++i) {

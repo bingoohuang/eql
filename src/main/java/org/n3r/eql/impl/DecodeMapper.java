@@ -20,7 +20,7 @@ public class DecodeMapper implements EqlRowMapper {
     }
 
     @Override
-    public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+    public Object mapRow(ResultSet rs, int rowNum, boolean isSingleColumn) throws SQLException {
         String code = rs.getString(1);
         String value = rs.getString(2);
 

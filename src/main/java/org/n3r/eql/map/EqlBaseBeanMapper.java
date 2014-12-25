@@ -39,24 +39,24 @@ public class EqlBaseBeanMapper {
         }
     }
 
-    protected void setColumnValue(RsAware rs, Object mappedObject, int index, String columnName) throws SQLException {
+    protected boolean setColumnValue(RsAware rs, Object mappedObject, int index, String columnName) throws SQLException {
         String lowerCaseName = columnName.replaceAll(" ", "").replaceAll("_", "").toLowerCase();
         PropertyDescriptor pd = this.mappedProperties.get(lowerCaseName);
         if (pd != null) {
             Object value = Rs.getResultSetValue(rs, index, pd.getPropertyType());
             boolean succ = O.setProperty(mappedObject, pd, value);
-            if (succ) return;
+            if (succ) return true;
         }
 
         Field field = this.mappedFields.get(lowerCaseName);
         if (field != null) {
             Object value = Rs.getResultSetValue(rs, index, field.getType());
             Reflect.on(mappedObject).set(field.getName(), value);
-            return;
+            return true;
         }
 
         Object value = Rs.getResultSetValue(rs, index);
-        O.setValue(mappedObject, columnName, value);
+        return O.setValue(mappedObject, columnName, value);
     }
 
 
