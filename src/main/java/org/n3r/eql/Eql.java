@@ -439,12 +439,12 @@ public class Eql {
         rsRetriever.setEqlBlock(eqlBlock);
     }
 
-    public Eql usEQLFile(Class<?> sqlBoundClass) {
+    public Eql useSqlFile(Class<?> sqlBoundClass) {
         sqlClassPath = sqlBoundClass.getName().replace('.', '/') + ".eql";
         return this;
     }
 
-    public Eql usEQLFile(String sqlClassPath) {
+    public Eql useSqlFile(String sqlClassPath) {
         this.sqlClassPath = sqlClassPath;
         return this;
     }
