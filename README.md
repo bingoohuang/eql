@@ -188,6 +188,21 @@ where 'a' = #x#
 and 'b' = #y#
 ```
 
+* example 3
+
+```java
+String x = new Eql().selectFirst("map")
+        .params("a", "b")
+        .execute();
+```
+
+```sql
+-- [map]
+select 'X' from dual
+where 'a' = #_1#
+and 'b' = #_2#
+```
+
 # Dynamic sql
 
 Eql's dynamic sql is now base on [OGNL](http://commons.apache.org/proper/commons-ognl/) expression.
@@ -334,6 +349,8 @@ SELECT B
 FROM eql_TEST
 -- isEmpty a
 WHERE A in (1,2)
+-- else
+WHERE A in (3,4)
 -- end
 
 -- [isNotEmpty]
@@ -342,6 +359,16 @@ FROM eql_TEST
 -- isNotEmpty a
 WHERE A = #a#
 -- end
+```
+
+## in statement in sql
+
+```sql
+SELECT NAME FROM EQL_IN WHERE ID IN (/* in _1 */)
+```
+
+```java
+List<String> names = new Eql().params(Lists.newArrayList("1", "2")).execute();
 ```
 
 ## trim
