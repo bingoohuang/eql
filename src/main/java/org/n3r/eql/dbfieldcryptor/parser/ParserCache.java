@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
-import static org.n3r.eql.dbfieldcryptor.parser.OracleSensitiveFieldsParser.parseOraclEQL;
+import static org.n3r.eql.dbfieldcryptor.parser.OracleSensitiveFieldsParser.parseOracleSql;
 
 public class ParserCache {
     Logger logger = LoggerFactory.getLogger(ParserCache.class);
@@ -49,7 +49,7 @@ public class ParserCache {
     }
 
     private SensitiveFieldsParser getSensitiveFieldsParser(String dbId, String sql) {
-        if ("oracle".equals(dbId)) return parseOraclEQL(sql, secureFieldsConfig);
+        if ("oracle".equals(dbId)) return parseOracleSql(sql, secureFieldsConfig);
 
         return null;
     }
