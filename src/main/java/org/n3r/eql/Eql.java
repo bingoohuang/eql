@@ -311,12 +311,12 @@ public class Eql {
 
         if (page.getTotalRows() == 0) page.setTotalRows(executeTotalRowsSql());
 
-        return executePagEQL();
+        return executePageSql();
     }
 
-    private Object executePagEQL() throws SQLException {
+    private Object executePageSql() throws SQLException {
         EqlRun temp = currRun;
-        currRun = dbDialect.createPagEQL(currRun, page);
+        currRun = dbDialect.createPageSql(currRun, page);
 
         new EqlParamsBinder().prepareBindParams(eqlBlock.hasIterateOption(), currRun);
 
@@ -352,7 +352,7 @@ public class Eql {
     private void prepareStmt(EStmt stmt) {
         PreparedStatement ps = null;
         try {
-            ps = preparEQL();
+            ps = prepareSql();
 
             stmt.setPreparedStatment(ps);
             stmt.setEqlRun(currRun);
@@ -369,7 +369,7 @@ public class Eql {
         ResultSet rs = null;
         PreparedStatement ps = null;
         try {
-            ps = preparEQL();
+            ps = prepareSql();
 
             if (eqlBlock.hasIterateOption()) {
                 int rowCount = 0;
@@ -410,7 +410,7 @@ public class Eql {
         }
     }
 
-    private PreparedStatement preparEQL() throws SQLException {
+    private PreparedStatement prepareSql() throws SQLException {
         createConn();
         return EqlUtils.preparEQL(eqlConfig, currRun, getSqlId());
     }

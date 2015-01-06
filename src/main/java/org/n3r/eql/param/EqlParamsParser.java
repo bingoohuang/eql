@@ -61,7 +61,7 @@ public class EqlParamsParser {
     }
 
     private void parseParams() {
-        EqlType eqlType = EqlType.parsEQLType(templatEQL);
+        EqlType eqlType = EqlType.parseSqlType(templatEQL);
         result.setSqlType(eqlType);
 
         Matcher matcher = PARAM_PATTERN.matcher(templatEQL);

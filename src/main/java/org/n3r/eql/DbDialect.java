@@ -37,10 +37,10 @@ public class DbDialect {
         return databaseId;
     }
 
-    public EqlRun createPagEQL(EqlRun eqlRun, EqlPage page) {
-        if ("oracle".equals(databaseId)) return createOraclePagEQL(eqlRun, page);
-        if ("mysql".equals(databaseId)) return createMySqlPagEQL(eqlRun, page);
-        if ("h2".equals(databaseId)) return createH2PagEQL(eqlRun, page);
+    public EqlRun createPageSql(EqlRun eqlRun, EqlPage page) {
+        if ("oracle".equals(databaseId)) return createOraclePageSql(eqlRun, page);
+        if ("mysql".equals(databaseId)) return createMySqlPageSql(eqlRun, page);
+        if ("h2".equals(databaseId)) return createH2PageSql(eqlRun, page);
 
         return eqlRun;
     }
@@ -55,7 +55,7 @@ public class DbDialect {
         return driverName;
     }
 
-    private EqlRun createMySqlPagEQL(EqlRun eqlRun, EqlPage page) {
+    private EqlRun createMySqlPageSql(EqlRun eqlRun, EqlPage page) {
         EqlRun eqlRun1 = eqlRun.clone();
         eqlRun1.setRunSql(eqlRun.getRunSql() + " LIMIT ?,?");
         eqlRun1.setExtraBindParams(page.getStartIndex(), page.getPageRows());
@@ -63,9 +63,9 @@ public class DbDialect {
         return eqlRun1;
     }
 
-    private EqlRun createOraclePagEQL(EqlRun eqlRun0, EqlPage eqlPage) {
+    private EqlRun createOraclePageSql(EqlRun eqlRun0, EqlPage eqlPage) {
         EqlRun eqlRun = eqlRun0.clone();
-        eqlRun.setRunSql(createOraclePagEQL(eqlRun.getRunSql()));
+        eqlRun.setRunSql(createOraclePageSql(eqlRun.getRunSql()));
 
         int endIndex = eqlPage.getStartIndex() + eqlPage.getPageRows();
         eqlRun.setExtraBindParams(endIndex, eqlPage.getStartIndex());
@@ -73,14 +73,14 @@ public class DbDialect {
         return eqlRun;
     }
 
-    private String createOraclePagEQL(String sql) {
+    private String createOraclePageSql(String sql) {
         return "SELECT * FROM ( SELECT ROW__.*, ROWNUM RN__ FROM ( " + sql
                 + " ) ROW__  WHERE ROWNUM <= ?) WHERE RN__ > ?";
     }
 
-    private EqlRun createH2PagEQL(EqlRun eqlRun0, EqlPage eqlPage) {
+    private EqlRun createH2PageSql(EqlRun eqlRun0, EqlPage eqlPage) {
         EqlRun eqlRun = eqlRun0.clone();
-        eqlRun.setRunSql(createH2PagEQL(eqlRun.getRunSql()));
+        eqlRun.setRunSql(createH2PageSql(eqlRun.getRunSql()));
 
         int endIndex = eqlPage.getStartIndex() + eqlPage.getPageRows();
         eqlRun.setExtraBindParams(endIndex, eqlPage.getStartIndex());
@@ -89,20 +89,20 @@ public class DbDialect {
     }
 
 
-    private String createH2PagEQL(String sql) {
+    private String createH2PageSql(String sql) {
         return "SELECT * FROM ( SELECT *, ROWNUM() RN__ FROM (" + sql
                 + " ) ROW__  WHERE ROWNUM() <= ?) WHERE RN__ > ?";
     }
 
     public EqlRun createTotalSql(EqlRun currRun) {
-        EqlRun totalEqlSql = currRun.clone();
+        EqlRun totalEqlRun = currRun.clone();
 
-        totalEqlSql.setRunSql(createTotalSql(totalEqlSql.getRunSql()));
+        totalEqlRun.setRunSql(createTotalSql(totalEqlRun.getRunSql()));
 
-        totalEqlSql.setWillReturnOnlyOneRow(true);
-        totalEqlSql.getEqlBlock().setReturnTypeName("int");
+        totalEqlRun.setWillReturnOnlyOneRow(true);
+        totalEqlRun.getEqlBlock().setReturnTypeName("int");
 
-        return totalEqlSql;
+        return totalEqlRun;
     }
 
     static Pattern orderByPattern = Pattern.compile("\\border\\s+by\\b");

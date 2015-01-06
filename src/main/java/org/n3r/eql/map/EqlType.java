@@ -44,12 +44,12 @@ public enum EqlType {
     }
 
 
-    private static Pattern FIRST_WORD = Pattern.compile("\\b(\\w+)\\b");
+    private static Pattern FIRST_WORD = Pattern.compile("(\\s*/\\*\\s*.*?\\s*\\*/)?\\s*(\\w+)\\b");
 
-    public static EqlType parsEQLType(String rawSql) {
+    public static EqlType parseSqlType(String rawSql) {
         Matcher matcher = FIRST_WORD.matcher(rawSql);
         matcher.find();
-        String firstWord = matcher.group(1).toUpperCase();
+        String firstWord = matcher.group(2).toUpperCase();
         try {
             return EqlType.valueOf(firstWord);
         } catch (IllegalArgumentException e) {

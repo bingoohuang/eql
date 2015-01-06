@@ -13,7 +13,41 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 public class OracleSensitiveFieldsParserTest {
-    String liuleiSql = "SELECT A.PSPT_NO XXX FROM TF_B_ORDER_NETIN A";
+    String liuleiSql = "SELECT * FROM ( SELECT ROW__.*, ROWNUM RN__ FROM (SELECT  N.PSPT_NO \"psptNo\",O.ORDER_NO \"orderNo\", CA.PARA_CODE2 \"orderFrom\",\n" +
+            "O.PROVINCE_CODE \"provinceCode\", O.CITY_CODE \"cityCode\",\n" +
+            "O.PAY_TYPE \"payType\", to_char(O.TOPAY_MONEY/1000,'FM9999999999990.00') \"toPayMoney\",\n" +
+            "O.REFERRER_NAME \"referrerName\", O.REFERRER_PHONE \"referrerPhone\",\n" +
+            "N.PRE_NUM \"phone\", N.CUST_NAME \"custName\",\n" +
+            "N.PSPT_TYPE_CODE \"psptTypeCode\",\n" +
+            "G.GOODS_NAME \"goodsName\",N.USER_TAG \"userTag\",\n" +
+            "G.TMPL_ID||'' \"tmplId\",\n" +
+            "(SELECT A.ATTR_VAL_NAME\n" +
+            "FROM TF_B_ORDER_GOODSINS_ATVAL A\n" +
+            "WHERE A.ATTR_CODE = 'A000023'\n" +
+            "AND A.ORDER_ID = O.ORDER_ID AND O.PARTITION_ID = A.PARTITION_ID) AS \"plan\",\n" +
+            "(SELECT LISTAGG(A.ATTR_VAL_NAME, ' ') WITHIN\n" +
+            "GROUP(\n" +
+            "ORDER BY A.ATTR_CODE)\n" +
+            "FROM TF_B_ORDER_GOODSINS_ATVAL A\n" +
+            "WHERE ATTR_CODE IN ('A000014', 'A000015', 'A000016')\n" +
+            "AND A.ORDER_ID = O.ORDER_ID AND O.PARTITION_ID = A.PARTITION_ID) AS \"terminal\",\n" +
+            "(SELECT COUNT(1)\n" +
+            "FROM TR_B_VERIFY_RST R\n" +
+            "WHERE R.VRST_STATE = 0\n" +
+            "AND R.VRST_TYPE_CODE <> 'AUTO_VERIFY_LOG'\n" +
+            "AND R.ORDER_ID = O.ORDER_ID AND O.PARTITION_ID = R.PARTITION_ID) AS \"orderState\"\n" +
+            "FROM TF_B_ORDER O\n" +
+            "LEFT JOIN TD_B_COMMPARA CA ON (CA.PARAM_ATTR = '1009' AND CA.PARAM_CODE = 'MALL_ORDER_FROM' AND CA.PARA_CODE1 = O.ORDER_FROM)\n" +
+            "LEFT JOIN TF_B_ORDER_NETIN N ON (O.ORDER_ID = N.ORDER_ID AND O.PARTITION_ID = N.PARTITION_ID )\n" +
+            "LEFT JOIN TF_B_ORDER_GOODSINS G ON (O.ORDER_ID = G.ORDER_ID AND O.PARTITION_ID = G.PARTITION_ID )\n" +
+            "LEFT JOIN TF_B_ORDER_POST P ON (O.ORDER_ID = P.ORDER_ID AND O.PARTITION_ID = P.PARTITION_ID )\n" +
+            "INNER JOIN TF_M_STAFF_BUSIAREA_RES AREAC ON(AREAC.STAFF_ID = ? AND AREAC.BUSIAREA_TYPE = '2'\n" +
+            "AND O.PROVINCE_CODE = ? AND O.CITY_CODE = AREAC.BUSIAREA_CODE)\n" +
+            "WHERE O.ORDER_STATE = 'CA'\n" +
+            "AND O.PROCESS_MERCHANT_ID = ?\n" +
+            "AND O.STAFF_ID IS NULL\n" +
+            "AND O.PROVINCE_CODE=?\n" +
+            "ORDER BY O.PAY_COMPLETE_TIME ) ROW__  WHERE ROWNUM <= ?) WHERE RN__ > ?";
 
     @Test
     public void testLiulei() {
@@ -22,7 +56,7 @@ public class OracleSensitiveFieldsParserTest {
         parser = OracleSensitiveFieldsParser.parseOracleSql(liuleiSql, liuleiSecuretFields);
 
         Assert.assertEquals(Sets.newHashSet(1), parser.getSecureResultIndices());
-        Assert.assertEquals(Sets.newHashSet("XXX"), parser.getSecureResultLabels());
+        Assert.assertEquals(Sets.newHashSet("PSPTNO"), parser.getSecureResultLabels());
     }
 
 
