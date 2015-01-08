@@ -19,8 +19,8 @@ public class EqlResourceLoaderHelper {
         return CacheBuilder.newBuilder().build(
                 new CacheLoader<EqlUniqueSqlId, Optional<EqlBlock>>() {
                     @Override
-                    public Optional<EqlBlock> load(EqlUniqueSqlId eqlUniquEQLId) throws Exception {
-                        return loadBlocks(fileCache, eqlUniquEQLId);
+                    public Optional<EqlBlock> load(EqlUniqueSqlId eqlUniqueSqlId) throws Exception {
+                        return loadBlocks(fileCache, eqlUniqueSqlId);
                     }
                 }
         );
@@ -28,13 +28,13 @@ public class EqlResourceLoaderHelper {
 
     private static Optional<EqlBlock> loadBlocks(
             Cache<String, Optional<Map<String, EqlBlock>>> fileCache,
-            EqlUniqueSqlId eqlUniquEQLId) {
+            EqlUniqueSqlId eqlUniqueSqlId) {
         Optional<Map<String, EqlBlock>> blocks;
-        blocks = fileCache.getIfPresent(eqlUniquEQLId.getSqlClassPath());
+        blocks = fileCache.getIfPresent(eqlUniqueSqlId.getSqlClassPath());
         if (!blocks.isPresent()) return Optional.absent();
 
         Map<String, EqlBlock> blockMap = blocks.get();
-        EqlBlock eqlBlock = blockMap.get(eqlUniquEQLId.getSqlId());
+        EqlBlock eqlBlock = blockMap.get(eqlUniqueSqlId.getSqlId());
         if (eqlBlock == null) return Optional.absent();
 
         eqlBlock.tryParsEQLs();
@@ -54,9 +54,9 @@ public class EqlResourceLoaderHelper {
         Map<String, EqlBlock> sqlBlocks = eqlParser.parse(sqlContent);
 
         for (EqlBlock sqlBlock : sqlBlocks.values()) {
-            EqlUniqueSqlId uniquEQLId = sqlBlock.getUniquEQLId();
-            sqlCache.put(uniquEQLId, Optional.of(sqlBlock));
-            oldSqlIds.remove(uniquEQLId.getSqlId());
+            EqlUniqueSqlId uniqueSqlId = sqlBlock.getUniquEQLId();
+            sqlCache.put(uniqueSqlId, Optional.of(sqlBlock));
+            oldSqlIds.remove(uniqueSqlId.getSqlId());
         }
 
         for (String uniqueId : oldSqlIds) {
