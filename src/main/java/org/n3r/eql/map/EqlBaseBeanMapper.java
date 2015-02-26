@@ -39,7 +39,7 @@ public class EqlBaseBeanMapper {
         }
     }
 
-    protected boolean setColumnValue(RsAware rs, Object mappedObject, int index, String columnName) throws SQLException {
+    protected boolean setColumnValue(final RsAware rs, Object mappedObject, final int index, String columnName) throws SQLException {
         String lowerCaseName = columnName.replaceAll(" ", "").replaceAll("_", "").toLowerCase();
         PropertyDescriptor pd = this.mappedProperties.get(lowerCaseName);
         if (pd != null) {
@@ -55,8 +55,17 @@ public class EqlBaseBeanMapper {
             return true;
         }
 
-        Object value = Rs.getResultSetValue(rs, index);
-        return O.setValue(mappedObject, columnName, value);
+        return O.setValue(mappedObject, columnName, new O.ValueGettable() {
+            @Override
+            public Object getValue() {
+                return Rs.getResultSetValue(rs, index);
+            }
+
+            @Override
+            public Object getValue(Class<?> returnType) {
+                return Rs.getResultSetValue(rs, index, returnType);
+            }
+        });
     }
 
 

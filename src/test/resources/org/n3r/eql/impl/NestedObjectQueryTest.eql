@@ -1,0 +1,13 @@
+-- [beforeClass]
+drop table if exists eql_coach;
+
+create table eql_coach (
+  coach_id bigint unsigned
+);
+
+insert into eql_coach values(123);
+
+-- [test1]
+select coach_id, coach_id as "coach.coachId"
+from eql_coach
+

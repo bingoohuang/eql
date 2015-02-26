@@ -154,22 +154,46 @@ public class O {
         }
     }
 
-    public static boolean setValue(Object mappedObject, String columnName, Object value) {
+    public static interface ValueGettable {
+        Object getValue();
+
+        Object getValue(Class<?> returnType);
+    }
+
+    public static class ObjectGetter implements ValueGettable {
+        private final Object value;
+
+        public ObjectGetter(Object value) {
+            this.value = value;
+        }
+
+        @Override
+        public Object getValue() {
+            return value;
+        }
+
+        @Override
+        public Object getValue(Class<?> returnType) {
+            return value;
+        }
+    }
+
+    public static boolean setValue(Object mappedObject, String columnName, ValueGettable valueGettable) {
         if (mappedObject instanceof Map) {
-            ((Map) mappedObject).put(columnName, value);
+            ((Map) mappedObject).put(columnName, valueGettable.getValue());
             return true;
         }
 
         int dotPos = columnName.indexOf('.');
         if (dotPos < 0) {
-            return setProperty(mappedObject, columnName, value);
+            return setProperty(mappedObject, columnName, valueGettable);
         }
 
         String property = columnName.substring(0, dotPos);
         Object propertyValue = createProperty(property, mappedObject);
         if (propertyValue == null) return false;
 
-        return setValue(propertyValue, columnName.substring(dotPos + 1), value);
+        return setValue(propertyValue, columnName.substring(dotPos + 1), valueGettable);
     }
 
     public static Object createProperty(String propertyName, Object hostBean) {
@@ -182,7 +206,7 @@ public class O {
 
         if (o == null) o = Reflect.on(returnType).create().get();
 
-        setProperty(hostBean, propertyName, o);
+        setProperty(hostBean, propertyName, new ObjectGetter(o));
         return o;
     }
 
@@ -207,21 +231,24 @@ public class O {
         return returnType;
     }
 
-    private static boolean setProperty(Object hostBean, String propertyName, Object propertyValue) {
+
+    private static boolean setProperty(Object hostBean, String propertyName, ValueGettable valueGettable) {
         if (hostBean instanceof Map) {
-            ((Map) hostBean).put(propertyName, propertyValue);
+            ((Map) hostBean).put(propertyName, valueGettable.getValue());
             return true;
         }
 
-        return setBeanProperty(hostBean, propertyName, propertyValue);
+        return setBeanProperty(hostBean, propertyName, valueGettable);
     }
 
-    private static boolean setBeanProperty(Object hostBean, String propertyName, Object propertyValue) {
+    private static boolean setBeanProperty(Object hostBean, String propertyName, ValueGettable valueGettable) {
         String methodName = "set" + Character.toTitleCase(propertyName.charAt(0)) + propertyName.substring(1);
         try {
             Method m = hostBean.getClass().getMethod(methodName);
             if (!m.isAccessible()) m.setAccessible(true);
-            m.invoke(hostBean, propertyValue);
+
+            Class<?> returnType = m.getReturnType();
+            m.invoke(hostBean, valueGettable.getValue(returnType));
             return true;
         } catch (Exception e) {
             //
@@ -231,7 +258,7 @@ public class O {
             Field field = hostBean.getClass().getDeclaredField(propertyName);
             if (field != null) {
                 if (!field.isAccessible()) field.setAccessible(true);
-                field.set(hostBean, propertyValue);
+                field.set(hostBean, valueGettable.getValue(field.getType()));
                 return true;
             }
         } catch (Exception e) {

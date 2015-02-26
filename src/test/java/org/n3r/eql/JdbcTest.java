@@ -1,5 +1,6 @@
 package org.n3r.eql;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.Connection;
@@ -9,16 +10,18 @@ import java.sql.SQLException;
 
 public class JdbcTest {
     @Test
-    //@Ignore
+    @Ignore
     public void test1() throws ClassNotFoundException, SQLException {
-        Class.forName("oracle.jdbc.driver.OracleDriver");
+        Class.forName("com.mysql.jdbc.Driver");
         Connection connection = DriverManager.getConnection(
-                "jdbc:oracle:thin:@127.0.0.1:1521:orcl", "orcl", "orcl");
+                "jdbc:mysql://localhost:3306/diamond?useUnicode=true&&characterEncoding=UTF-8" +
+                        "&connectTimeout=3000&socketTimeout=3000&autoReconnect=true",
+                "diamond", "diamond");
         connection.setAutoCommit(false);
         PreparedStatement ps = connection.prepareStatement(
-                "update EQL_TEST set B = 'BBB'");
-        boolean execute = ps.execute();
-        System.out.println(execute);
+                "insert into miao values(18600110022, 1, now())");
+        int rows = ps.executeUpdate();
+        System.out.println(rows);
         ps.close();
         connection.close();
     }
