@@ -144,7 +144,6 @@ public class Eql {
 
             eqlRuns = eqlBlock.createEqlRuns(eqlConfig, execContext, params, dynamics, directSqls);
             IterateOptions.checkIterateOption(eqlBlock, eqlRuns, params);
-            ;
 
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
@@ -163,8 +162,8 @@ public class Eql {
             }
 
             if (batch == null) tranCommit();
-        } catch (SQLException e) {
-            logger.error("sql exception", e);
+        } catch (Throwable e) {
+            logger.error("exception", e);
             throw new EqlExecuteException("exec sql failed["
                     + currRun.getPrintSql() + "]" + e.getMessage());
         } finally {
