@@ -113,26 +113,15 @@ public class EqlRun implements Cloneable {
             if (pos < 0) break;
 
             eval.append(evalSqlTemplate.substring(startPos, pos));
+
             if (index < size) {
                 Object boundParam = boundParams.get(index);
                 if (batchIndex >= 0) {
                     boundParam = ((Object[]) boundParam)[batchIndex];
                 }
 
-                if (boundParam == null) {
-                    eval.append("NULL");
-                } else if (boundParam instanceof Number) {
-                    eval.append(boundParam.toString());
-                } else if (boundParam instanceof java.util.Date) {
-                    String formattedDate = simpleDateFormat.format((Date) boundParam);
-                    eval.append('\'').append(formattedDate).append('\'');
-                } else if (boundParam instanceof byte[]) {
-                    String hexParam = Hex.encode((byte[]) boundParam);
-                    eval.append('\'').append(hexParam).append('\'');
-                } else {
-                    String escapedParam = S.escapeSingleQuotes(boundParam.toString());
-                    eval.append('\'').append(escapedParam).append('\'');
-                }
+                String evalBoundParam = createEvalBoundParam(simpleDateFormat, boundParam);
+                eval.append(evalBoundParam);
             } else {
                 eval.append('?');
             }
@@ -145,6 +134,15 @@ public class EqlRun implements Cloneable {
         return eval.toString();
     }
 
+    private String createEvalBoundParam(SimpleDateFormat simpleDateFormat, Object boundParam) {
+        if (boundParam == null) return "NULL";
+        if (boundParam instanceof Boolean) return (Boolean) boundParam ? "1" : "0";
+        if (boundParam instanceof Number) return boundParam.toString();
+        if (boundParam instanceof Date) return '\'' + simpleDateFormat.format((Date) boundParam) + '\'';
+        if (boundParam instanceof byte[]) return '\'' + Hex.encode((byte[]) boundParam) + '\'';
+
+        return '\'' + S.escapeSingleQuotes(boundParam.toString()) + '\'';
+    }
 
     public void setConnection(Connection connection) {
         this.connection = connection;

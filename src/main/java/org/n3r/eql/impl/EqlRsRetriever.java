@@ -1,5 +1,6 @@
 package org.n3r.eql.impl;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.n3r.eql.base.AfterPropertiesSet;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.map.*;
@@ -117,6 +118,11 @@ public class EqlRsRetriever {
         if ("long".equalsIgnoreCase(returnTypeName) || returnType == Long.class || returnType == long.class) {
             if (value instanceof Number) return ((Number) value).longValue();
             return value == null ? null : Long.parseLong(value.toString());
+        }
+
+        if ("boolean".equalsIgnoreCase(returnTypeName) || returnType == Boolean.class || returnType == boolean.class) {
+            if (value instanceof Number) return ((Number) value).shortValue() == 1;
+            return value == null ? null : Boolean.parseBoolean(value.toString());
         }
 
         if (returnType == null && returnTypeName != null) {
