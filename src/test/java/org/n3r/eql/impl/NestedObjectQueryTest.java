@@ -22,6 +22,9 @@ public class NestedObjectQueryTest {
         CoachMe coachMe = coachMes.get(0);
         assertThat(coachMe.getCoachId(), is(equalTo("123")));
         assertThat(coachMe.getCoach().getCoachId(), is(equalTo("123")));
+        assertThat(coachMe.getCoach().getCoachName(), is(equalTo("bingoo")));
+        assertThat(coachMe.getCoach().getAddr().getDetail(), is(equalTo("nanjing")));
+        assertThat(coachMe.getCoach().getAddr().getPostcode(), is(equalTo("210000")));
     }
 
     public static class CoachMe {
@@ -47,6 +50,8 @@ public class NestedObjectQueryTest {
 
     public static class Coach {
         private String coachId;
+        private String coachName;
+        private Addr addr;
 
         public String getCoachId() {
             return coachId;
@@ -54,6 +59,43 @@ public class NestedObjectQueryTest {
 
         public void setCoachId(String coachId) {
             this.coachId = coachId;
+        }
+
+        public String getCoachName() {
+            return coachName;
+        }
+
+        public void setCoachName(String coachName) {
+            this.coachName = coachName;
+        }
+
+        public Addr getAddr() {
+            return addr;
+        }
+
+        public void setAddr(Addr addr) {
+            this.addr = addr;
+        }
+    }
+
+    public static class Addr {
+        private String postcode;
+        private String detail;
+
+        public String getPostcode() {
+            return postcode;
+        }
+
+        public void setPostcode(String postcode) {
+            this.postcode = postcode;
+        }
+
+        public String getDetail() {
+            return detail;
+        }
+
+        public void setDetail(String detail) {
+            this.detail = detail;
         }
     }
 }

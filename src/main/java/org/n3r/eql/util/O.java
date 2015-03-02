@@ -18,6 +18,7 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
@@ -190,24 +191,26 @@ public class O {
         }
 
         String property = columnName.substring(0, dotPos);
-        Object propertyValue = createProperty(property, mappedObject);
+        Object propertyValue = getOrCreateProperty(property, mappedObject);
         if (propertyValue == null) return false;
 
         return setValue(propertyValue, columnName.substring(dotPos + 1), valueGettable);
     }
 
-    public static Object createProperty(String propertyName, Object hostBean) {
+    public static Object getOrCreateProperty(String propertyName, Object hostBean) {
+        Object property = getProperty(propertyName, hostBean);
+        if (property != null) return property;
+
         // There has to be a method get* matching this segment
         Class<?> returnType = getPropertyType(propertyName, hostBean);
 
-        Object o = null;
 
-        if (Map.class.isAssignableFrom(returnType)) o = Maps.newHashMap();
+        if (Map.class.isAssignableFrom(returnType)) property = Maps.newHashMap();
 
-        if (o == null) o = Reflect.on(returnType).create().get();
+        if (property == null) property = Reflect.on(returnType).create().get();
 
-        setProperty(hostBean, propertyName, new ObjectGetter(o));
-        return o;
+        setProperty(hostBean, propertyName, new ObjectGetter(property));
+        return property;
     }
 
     public static Class<?> getPropertyType(String propertyName, Object hostBean) {
@@ -231,6 +234,26 @@ public class O {
         return returnType;
     }
 
+    public static Object getProperty(String propertyName, Object hostBean) {
+        try {
+            String methodName = "get" + Character.toTitleCase(propertyName.charAt(0)) + propertyName.substring(1);
+            Method m = hostBean.getClass().getMethod(methodName);
+            return m.invoke(hostBean);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            Field field = hostBean.getClass().getDeclaredField(propertyName);
+            return field.get(hostBean);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        throw new RuntimeException("unable to get property value " + propertyName + " of bean " + hostBean);
+    }
+
+
 
     private static boolean setProperty(Object hostBean, String propertyName, ValueGettable valueGettable) {
         if (hostBean instanceof Map) {
@@ -250,8 +273,10 @@ public class O {
             Class<?> returnType = m.getReturnType();
             m.invoke(hostBean, valueGettable.getValue(returnType));
             return true;
+        } catch (NoSuchMethodException e) {
+            // ignore
         } catch (Exception e) {
-            //
+            e.printStackTrace();
         }
 
         try {
