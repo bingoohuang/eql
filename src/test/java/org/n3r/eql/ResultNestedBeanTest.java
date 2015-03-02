@@ -26,7 +26,7 @@ public class ResultNestedBeanTest {
         assertThat(result.toString(), is("OuterBean2{name='bingoohuang', bean={addr=gongjianfang}}"));
     }
 
-    static class OuterBean2 {
+    public static class OuterBean2 {
         private String name;
         private Map bean;
 
@@ -40,7 +40,7 @@ public class ResultNestedBeanTest {
     }
 
 
-    static class OuterBean1 {
+    public static class OuterBean1 {
         private String name;
         private InnerBean1 bean;
 
@@ -53,7 +53,7 @@ public class ResultNestedBeanTest {
         }
     }
 
-    static class InnerBean1 {
+    public static class InnerBean1 {
         private String addr;
 
         @Override
@@ -64,7 +64,7 @@ public class ResultNestedBeanTest {
         }
     }
 
-    static class OuterBean {
+    public static class OuterBean {
         private String name;
         private InnerBean bean;
 
@@ -93,7 +93,7 @@ public class ResultNestedBeanTest {
         }
     }
 
-    static class InnerBean {
+    public static class InnerBean {
         private String addr;
 
         public String getAddr() {

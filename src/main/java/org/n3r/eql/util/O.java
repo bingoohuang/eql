@@ -18,7 +18,6 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
@@ -204,55 +203,64 @@ public class O {
         // There has to be a method get* matching this segment
         Class<?> returnType = getPropertyType(propertyName, hostBean);
 
-
         if (Map.class.isAssignableFrom(returnType)) property = Maps.newHashMap();
 
         if (property == null) property = Reflect.on(returnType).create().get();
 
         setProperty(hostBean, propertyName, new ObjectGetter(property));
+
         return property;
     }
 
     public static Class<?> getPropertyType(String propertyName, Object hostBean) {
-        Class<?> returnType = null;
+        String methodName = "get" + Character.toTitleCase(propertyName.charAt(0)) + propertyName.substring(1);
         try {
-            String methodName = "get" + Character.toTitleCase(propertyName.charAt(0)) + propertyName.substring(1);
             Method m = hostBean.getClass().getMethod(methodName);
-            returnType = m.getReturnType();
+            m.setAccessible(true);
+            return m.getReturnType();
         } catch (NoSuchMethodException e) {
-
-        }
-
-        if (returnType == null) {
-            try {
-                Field field = hostBean.getClass().getDeclaredField(propertyName);
-                returnType = field.getType();
-            } catch (Exception e) {
-            }
-
-        }
-        return returnType;
-    }
-
-    public static Object getProperty(String propertyName, Object hostBean) {
-        try {
-            String methodName = "get" + Character.toTitleCase(propertyName.charAt(0)) + propertyName.substring(1);
-            Method m = hostBean.getClass().getMethod(methodName);
-            return m.invoke(hostBean);
+            log.debug("NoSuchMethodException invoke get method of property {} of {}", propertyName, hostBean);
+            // ignore
         } catch (Exception e) {
-            e.printStackTrace();
+            log.debug("invoke method exception", e);
+            // ignore
         }
 
         try {
             Field field = hostBean.getClass().getDeclaredField(propertyName);
+            field.setAccessible(true);
+            return field.getType();
+        } catch (Exception e) {
+            log.debug("invoke method exception", e);
+        }
+
+        throw new RuntimeException("unable to get property " + propertyName + " type of " + hostBean);
+    }
+
+    public static Object getProperty(String propertyName, Object hostBean) {
+        String methodName = "get" + Character.toTitleCase(propertyName.charAt(0)) + propertyName.substring(1);
+        try {
+            Method m = hostBean.getClass().getMethod(methodName);
+            m.setAccessible(true);
+            return m.invoke(hostBean);
+        } catch (NoSuchMethodException e) {
+            log.debug("NoSuchMethodException invoke get method of property {} of {}", propertyName, hostBean);
+            // ignore
+        } catch (Exception e) {
+            log.debug("invoke method exception", e);
+            // ignore
+        }
+
+        try {
+            Field field = hostBean.getClass().getDeclaredField(propertyName);
+            field.setAccessible(true);
             return field.get(hostBean);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.debug("invoke method exception", e);
         }
 
         throw new RuntimeException("unable to get property value " + propertyName + " of bean " + hostBean);
     }
-
 
 
     private static boolean setProperty(Object hostBean, String propertyName, ValueGettable valueGettable) {
