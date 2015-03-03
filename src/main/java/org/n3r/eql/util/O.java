@@ -17,6 +17,7 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -31,16 +32,9 @@ public class O {
     public static <T> T populate(T object, Map<String, String> map, PropertyValueFilter... propertyValueFilters) {
         Map<String, String> params = new HashMap<String, String>(map);
         for (Method method : object.getClass().getMethods()) {
-            if (!Modifier.isPublic(method.getModifiers())) continue;
-            if (!(method.getReturnType() == Void.TYPE || method.getReturnType() == void.class)) continue;
-            String methodName = method.getName();
-            if (methodName.length() <= 3) continue;
-            if (!methodName.startsWith("set")) continue;
-            if (method.getParameterTypes().length != 1) continue;
+            if (!isSetterMethod(method)) continue;
 
-            String propertyName = methodName.substring(3);
-            propertyName = Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
-
+            String propertyName = getPropertyNameFromSetter(method);
             if (!params.containsKey(propertyName)) continue;
 
             String propertyValue = params.get(propertyName);
@@ -48,28 +42,8 @@ public class O {
                 propertyValue = pvf.filter(propertyValue);
             }
 
-            Class<?> paramType = method.getParameterTypes()[0];
-            try {
-                if (paramType == String.class) {
-                    method.invoke(object, propertyValue);
-                    params.remove(propertyName);
-                } else if (paramType == Long.class || paramType == long.class) {
-                    if (propertyValue.matches("\\d+")) {
-                        method.invoke(object, Long.parseLong(propertyValue));
-                        params.remove(propertyName);
-                    }
-                } else if (paramType == Integer.class || paramType == int.class) {
-                    if (propertyValue.matches("\\d+")) {
-                        method.invoke(object, Integer.parseInt(propertyValue));
-                        params.remove(propertyName);
-                    }
-                } else if (paramType == Boolean.class || paramType == boolean.class) {
-                    method.invoke(object, Boolean.parseBoolean(propertyValue));
-                    params.remove(propertyName);
-                }
-            } catch (Exception e) {
-                log.warn("{}:{} is not used by {}", propertyName, propertyValue, e.getMessage());
-            }
+            boolean ok = populateProperty(object, method, propertyName, propertyValue);
+            if (ok) params.remove(propertyName);
         }
 
         for (Map.Entry<String, String> entry : params.entrySet()) {
@@ -77,6 +51,50 @@ public class O {
         }
 
         return object;
+    }
+
+    public static String getPropertyNameFromSetter(Method method) {
+        String propertyName = method.getName().substring(3);
+        char lower = Character.toLowerCase(propertyName.charAt(0));
+        return lower + propertyName.substring(1);
+    }
+
+    public static boolean isSetterMethod(Method method) {
+        Class<?> returnType = method.getReturnType();
+        String methodName = method.getName();
+
+        return Modifier.isPublic(method.getModifiers())
+                && (returnType == Void.TYPE || returnType == void.class)
+                && methodName.length() > 3
+                && methodName.startsWith("set")
+                && method.getParameterTypes().length == 1;
+    }
+
+    private static <T> boolean populateProperty(T object, Method method, String propertyName, String propertyValue) {
+        Class<?> paramType = method.getParameterTypes()[0];
+        try {
+            if (paramType == String.class) {
+                method.invoke(object, propertyValue);
+                return true;
+            } else if (paramType == Long.class || paramType == long.class) {
+                if (propertyValue.matches("\\d+")) {
+                    method.invoke(object, Long.parseLong(propertyValue));
+                    return true;
+                }
+            } else if (paramType == Integer.class || paramType == int.class) {
+                if (propertyValue.matches("\\d+")) {
+                    method.invoke(object, Integer.parseInt(propertyValue));
+                    return true;
+                }
+            } else if (paramType == Boolean.class || paramType == boolean.class) {
+                method.invoke(object, Boolean.parseBoolean(propertyValue));
+                return true;
+            }
+        } catch (Exception e) {
+            log.warn("{}:{} is not used by {}", propertyName, propertyValue, e.getMessage());
+        }
+
+        return false;
     }
 
     public static <T> T createObject(Class<T> clazz, Spec spec) {
@@ -128,7 +146,7 @@ public class O {
         if (setter == null) return false;
 
         try {
-            if (!setter.isAccessible()) setter.setAccessible(true);
+            setAccessibleTrue(setter);
             setter.invoke(object, value);
             return true;
         } catch (Exception e) {
@@ -185,15 +203,14 @@ public class O {
         }
 
         int dotPos = columnName.indexOf('.');
-        if (dotPos < 0) {
-            return setProperty(mappedObject, columnName, valueGettable);
-        }
+        if (dotPos < 0) return setProperty(mappedObject, columnName, valueGettable);
 
         String property = columnName.substring(0, dotPos);
         Object propertyValue = getOrCreateProperty(property, mappedObject);
         if (propertyValue == null) return false;
 
-        return setValue(propertyValue, columnName.substring(dotPos + 1), valueGettable);
+        String nestProperty = columnName.substring(dotPos + 1);
+        return setValue(propertyValue, nestProperty, valueGettable);
     }
 
     public static Object getOrCreateProperty(String propertyName, Object hostBean) {
@@ -213,10 +230,9 @@ public class O {
     }
 
     public static Class<?> getPropertyType(String propertyName, Object hostBean) {
-        String methodName = "get" + Character.toTitleCase(propertyName.charAt(0)) + propertyName.substring(1);
+        String methodName = getGetMethodName(propertyName);
         try {
-            Method m = hostBean.getClass().getMethod(methodName);
-            m.setAccessible(true);
+            Method m = getAccessibleMethod(hostBean, methodName);
             return m.getReturnType();
         } catch (NoSuchMethodException e) {
             log.debug("NoSuchMethodException invoke get method of property {} of {}", propertyName, hostBean);
@@ -227,8 +243,7 @@ public class O {
         }
 
         try {
-            Field field = hostBean.getClass().getDeclaredField(propertyName);
-            field.setAccessible(true);
+            Field field = getAccessibleField(hostBean, propertyName);
             return field.getType();
         } catch (Exception e) {
             log.debug("invoke method exception", e);
@@ -237,11 +252,11 @@ public class O {
         throw new RuntimeException("unable to get property " + propertyName + " type of " + hostBean);
     }
 
+
     public static Object getProperty(String propertyName, Object hostBean) {
-        String methodName = "get" + Character.toTitleCase(propertyName.charAt(0)) + propertyName.substring(1);
+        String methodName = getGetMethodName(propertyName);
         try {
-            Method m = hostBean.getClass().getMethod(methodName);
-            m.setAccessible(true);
+            Method m = getAccessibleMethod(hostBean, methodName);
             return m.invoke(hostBean);
         } catch (NoSuchMethodException e) {
             log.debug("NoSuchMethodException invoke get method of property {} of {}", propertyName, hostBean);
@@ -252,8 +267,7 @@ public class O {
         }
 
         try {
-            Field field = hostBean.getClass().getDeclaredField(propertyName);
-            field.setAccessible(true);
+            Field field = getAccessibleField(hostBean, propertyName);
             return field.get(hostBean);
         } catch (Exception e) {
             log.debug("invoke method exception", e);
@@ -261,7 +275,6 @@ public class O {
 
         throw new RuntimeException("unable to get property value " + propertyName + " of bean " + hostBean);
     }
-
 
     private static boolean setProperty(Object hostBean, String propertyName, ValueGettable valueGettable) {
         if (hostBean instanceof Map) {
@@ -273,30 +286,53 @@ public class O {
     }
 
     private static boolean setBeanProperty(Object hostBean, String propertyName, ValueGettable valueGettable) {
-        String methodName = "set" + Character.toTitleCase(propertyName.charAt(0)) + propertyName.substring(1);
+        String methodName = getSetMethodName(propertyName);
         try {
-            Method m = hostBean.getClass().getMethod(methodName);
-            if (!m.isAccessible()) m.setAccessible(true);
-
-            Class<?> returnType = m.getReturnType();
-            m.invoke(hostBean, valueGettable.getValue(returnType));
+            Method m = getAccessibleMethod(hostBean, methodName);
+            m.invoke(hostBean, valueGettable.getValue(m.getReturnType()));
             return true;
         } catch (NoSuchMethodException e) {
             // ignore
         } catch (Exception e) {
-            e.printStackTrace();
+            log.debug("invoke set method exception", e);
         }
 
         try {
-            Field field = hostBean.getClass().getDeclaredField(propertyName);
-            if (field != null) {
-                if (!field.isAccessible()) field.setAccessible(true);
-                field.set(hostBean, valueGettable.getValue(field.getType()));
-                return true;
-            }
+            Field field = getAccessibleField(hostBean, propertyName);
+            field.set(hostBean, valueGettable.getValue(field.getType()));
+            return true;
+        } catch (NoSuchFieldException e) {
+            // ignore
         } catch (Exception e) {
+            log.debug("invoke set field exception", e);
         }
 
         return false;
+    }
+
+    public static String getGetMethodName(String propertyName) {
+        char upper = Character.toTitleCase(propertyName.charAt(0));
+        return "get" + upper + propertyName.substring(1);
+    }
+
+    public static String getSetMethodName(String propertyName) {
+        char upper = Character.toTitleCase(propertyName.charAt(0));
+        return "set" + upper + propertyName.substring(1);
+    }
+
+    public static void setAccessibleTrue(AccessibleObject m) {
+        if (!m.isAccessible()) m.setAccessible(true);
+    }
+
+    public static Method getAccessibleMethod(Object hostBean, String methodName) throws NoSuchMethodException {
+        Method m = hostBean.getClass().getMethod(methodName);
+        setAccessibleTrue(m);
+        return m;
+    }
+
+    public static Field getAccessibleField(Object hostBean, String propertyName) throws NoSuchFieldException {
+        Field field = hostBean.getClass().getDeclaredField(propertyName);
+        setAccessibleTrue(field);
+        return field;
     }
 }
