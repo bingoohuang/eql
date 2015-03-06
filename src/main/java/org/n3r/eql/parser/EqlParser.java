@@ -7,6 +7,8 @@ import org.n3r.eql.base.DynamicLanguageDriver;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.impl.DefaultDynamicLanguageDriver;
 import org.n3r.eql.settings.EqlFileGlobalSettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ public class EqlParser {
     private EqlBlock block = null;
     private EqlResourceLoader eqlResourceLoader;
     private boolean sqlParseDelay;
+    Logger log = LoggerFactory.getLogger(EqlParser.class);
 
     public EqlParser(EqlResourceLoader eqlResourceLoader, String sqlClassPath) {
         this.eqlResourceLoader = eqlResourceLoader;
@@ -101,9 +104,12 @@ public class EqlParser {
 
         if (block == null) return true;
 
-        String includEQLId = matcher.group(2);
-        EqlBlock eqlBlock = blocks.get(includEQLId);
-        if (eqlBlock == null) throw new RuntimeException(cleanLine + " not found");
+        String includeEqlId = matcher.group(2);
+        EqlBlock eqlBlock = blocks.get(includeEqlId);
+        if (eqlBlock == null) {
+            log.error("include eql id {} not found in {}", includeEqlId, sqlClassPath);
+            throw new RuntimeException(cleanLine + " not found");
+        }
         sqlLines.addAll(eqlBlock.getSqlLines());
 
         String ref = matcher.group(1);
@@ -149,7 +155,8 @@ public class EqlParser {
     private void importSqlBlocks(String cleanLine, Map<String, EqlBlock> temp) {
         for (EqlBlock eqlBlock : temp.values()) {
             if (blocks.containsKey(eqlBlock.getSqlId())) {
-                throw new RuntimeException(eqlBlock.getSqlId() + " deplicated when "
+                log.error("{} duplicated when {} in {}", eqlBlock.getSqlId(), cleanLine, sqlClassPath);
+                throw new RuntimeException(eqlBlock.getSqlId() + " duplicated when "
                         + cleanLine + " in " + sqlClassPath);
             }
 
@@ -159,7 +166,8 @@ public class EqlParser {
 
     private void addBlock(EqlBlock eqlBlock) {
         if (blocks.containsKey(eqlBlock.getSqlId()) && !eqlBlock.isOverride()) {
-            throw new RuntimeException(eqlBlock.getSqlId() + " deplicated in " + sqlClassPath);
+            log.error("{} duplicated in {}", eqlBlock.getSqlId(), sqlClassPath);
+            throw new RuntimeException(eqlBlock.getSqlId() + " duplicated in " + sqlClassPath);
         }
 
         blocks.put(eqlBlock.getSqlId(), eqlBlock);
@@ -189,5 +197,4 @@ public class EqlParser {
 
         return true;
     }
-
 }
