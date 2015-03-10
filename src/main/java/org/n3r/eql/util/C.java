@@ -17,13 +17,12 @@ public class C {
 
         // Remark: when running on IBM jdk (eg. IBM JDK 1.6),
         // the first stackTraceElement will be getStackTraceImpl with
-        // lineNo -2 (non-positive), which add one more stack trace deep than ORACLE/SUN jdk.
-        int adjusted = stackTraceElements[0].getLineNumber() > 0 ? 0 : 1;
+        // lineNo -2 (native method), which add one more stack trace deep than ORACLE/SUN jdk.
+        int adjusted = stackTraceElements[0].isNativeMethod() ? 1 : 0;
 
         String callerClassName = stackTraceElements[num + adjusted].getClassName();
         return callerClassName.replace('.', '/') + ".eql";
     }
-
 
     /**
      * Load a class given its name. BL: We wan't to use a known ClassLoader--hopefully the heirarchy is set correctly.
