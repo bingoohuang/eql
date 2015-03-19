@@ -7,13 +7,22 @@ import org.n3r.eql.util.O;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
 
 public class EqlDruidConnection extends AbstractEqlConnection {
     DruidDataSource dataSource;
 
     @Override
     public void initialize(EqlConfig eqlConfig) {
-        dataSource = O.populate(new DruidDataSource(), eqlConfig.params());
+        Map<String, String> params = eqlConfig.params();
+        compatibleWithUserToUsername(params);
+
+        dataSource = O.populate(new DruidDataSource(), params);
+    }
+
+    private void compatibleWithUserToUsername(Map<String, String> params) {
+        if (params.containsKey("username")) return;
+        if (params.containsKey("user")) params.put("username", params.get("user"));
     }
 
     @Override
