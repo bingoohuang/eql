@@ -77,6 +77,11 @@ public class EqlJdbcTran implements EqlTran {
         return eqlConnection.getDriverName();
     }
 
+    @Override
+    public String getJdbcUrl() {
+        return eqlConnection.getJdbcUrl();
+    }
+
     /**
      * Oracle JDBC will auto commit when close without explicit commit/rollback.
      */

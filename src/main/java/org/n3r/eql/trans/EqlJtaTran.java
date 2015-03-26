@@ -51,4 +51,9 @@ public class EqlJtaTran implements EqlTran {
         return eqlConnection.getDriverName();
     }
 
+    @Override
+    public String getJdbcUrl() {
+        return eqlConnection.getJdbcUrl();
+    }
+
 }

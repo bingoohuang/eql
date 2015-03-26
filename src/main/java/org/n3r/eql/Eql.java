@@ -94,7 +94,8 @@ public class Eql {
     }
 
     private void createDbDialect() {
-        dbDialect = DbDialect.parseDbType((internalTran != null ? internalTran : externalTran).getDriverName());
+        EqlTran eqlTran = internalTran != null ? internalTran : externalTran;
+        dbDialect = DbDialect.parseDbType(eqlTran.getDriverName(), eqlTran.getJdbcUrl());
         execContext.put("_databaseId", dbDialect.getDatabaseId());
     }
 
@@ -327,9 +328,15 @@ public class Eql {
 
     private int executeTotalRowsSql() throws SQLException {
         EqlRun temp = currRun;
+
+        String returnTypeName = currRun.getEqlBlock().getReturnTypeName();
+
         currRun = dbDialect.createTotalSql(currRun);
+        currRun.getEqlBlock().setReturnTypeName("int");
         Object totalRows = execDml();
+
         currRun = temp;
+        currRun.getEqlBlock().setReturnTypeName(returnTypeName);
 
         if (totalRows instanceof Number) return ((Number) totalRows).intValue();
 
@@ -395,7 +402,8 @@ public class Eql {
                     if (fetchSize > 0) rs.setFetchSize(fetchSize);
 
                     ResultSet wrapRs = CodeDescs.codeDescWrap(currRun, eqlBlock, eqlConfig, sqlClassPath, rs);
-                    return rsRetriever.convert(wrapRs, currRun);
+                    Object convertedValue = rsRetriever.convert(wrapRs, currRun);
+                    return convertedValue;
                 }
 
                 if (currRun.getSqlType().isProcedure())

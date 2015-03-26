@@ -32,6 +32,11 @@ public class EqlSimpleConnection extends AbstractEqlConnection {
     }
 
     @Override
+    public String getJdbcUrl() {
+        return dataSource.getJdbcUrl();
+    }
+
+    @Override
     public void initialize(EqlConfig eqlConfig) {
         String driver = eqlConfig.getStr("driver");
         String url = eqlConfig.getStr("url");

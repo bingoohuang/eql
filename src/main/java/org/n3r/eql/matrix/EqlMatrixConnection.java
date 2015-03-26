@@ -147,4 +147,9 @@ public class EqlMatrixConnection implements EqlConnection {
     public String getDriverName() {
         return url;
     }
+
+    @Override
+    public String getJdbcUrl() {
+        return url;
+    }
 }

@@ -71,4 +71,9 @@ public class EqlSecretFieldsConnectionProxy implements EqlConnection {
     public String getDriverName() {
         return eqlConnection.getDriverName();
     }
+
+    @Override
+    public String getJdbcUrl() {
+        return eqlConnection.getJdbcUrl();
+    }
 }

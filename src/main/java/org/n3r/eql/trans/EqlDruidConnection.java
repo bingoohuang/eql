@@ -43,4 +43,9 @@ public class EqlDruidConnection extends AbstractEqlConnection {
     public String getDriverName() {
         return dataSource.getDriverClassName();
     }
+
+    @Override
+    public String getJdbcUrl() {
+        return dataSource.getUrl();
+    }
 }

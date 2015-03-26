@@ -45,6 +45,20 @@ public class EqlJndiConnection extends AbstractEqlConnection {
     }
 
     @Override
+    public String getJdbcUrl() {
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            return connection.getMetaData().getURL();
+        } catch (SQLException e) {
+            throw new EqlExecuteException(e);
+        } finally {
+            Closes.closeQuietly(connection);
+        }
+    }
+
+    @Override
     public void initialize(EqlConfig eqlConfig) {
         String jndiName = eqlConfig.getStr("jndiName");
         String initial = eqlConfig.getStr("java.naming.factory.initial");

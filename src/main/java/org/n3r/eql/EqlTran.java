@@ -17,4 +17,6 @@ public interface EqlTran extends Closeable {
     Connection getConn(EqlConfig eqlConfig, EqlRun eqlRun);
 
     String getDriverName();
+
+    String getJdbcUrl();
 }

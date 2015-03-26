@@ -34,5 +34,10 @@ public class EqlC3p0Connection extends AbstractEqlConnection {
         return cpds.getDriverClass();
     }
 
+    @Override
+    public String getJdbcUrl() {
+        return cpds.getJdbcUrl();
+    }
+
 
 }

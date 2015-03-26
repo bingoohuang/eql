@@ -15,4 +15,6 @@ public interface EqlConnection{
     void destroy();
 
     String getDriverName();
+
+    String getJdbcUrl();
 }

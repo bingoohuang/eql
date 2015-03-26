@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.regex.Pattern;
 
 public class DbDialect {
+    private final String jdbcUrl;
     private String driverName;
     private String databaseId;
 
@@ -17,19 +18,21 @@ public class DbDialect {
         try {
             DatabaseMetaData metaData = connection.getMetaData();
             String driverName = metaData.getDriverName();
+            String jdbcUrl = metaData.getURL();
 
-            return new DbDialect(driverName);
+            return new DbDialect(driverName, jdbcUrl);
         } catch (SQLException ex) {
             throw new EqlException(ex);
         }
     }
 
-    public static DbDialect parseDbType(String driverName) {
-        return new DbDialect(driverName);
+    public static DbDialect parseDbType(String driverName, String jdbcUrl) {
+        return new DbDialect(driverName, jdbcUrl);
     }
 
-    public DbDialect(String driverName) {
+    public DbDialect(String driverName, String jdbcUrl) {
         this.driverName = driverName;
+        this.jdbcUrl = jdbcUrl;
         databaseId = tryParseDatabaseId();
     }
 
@@ -47,10 +50,12 @@ public class DbDialect {
 
 
     private String tryParseDatabaseId() {
-        if (S.containsIgnoreCase(driverName, "oracle")) return "oracle";
-        if (S.containsIgnoreCase(driverName, "mysql")) return "mysql";
-        if (S.containsIgnoreCase(driverName, "h2")) return "h2";
-        if (S.containsIgnoreCase(driverName, "db2")) return "db2";
+        String dirverOrUrl = driverName;
+        if (dirverOrUrl == null) dirverOrUrl = jdbcUrl;
+        if (S.containsIgnoreCase(dirverOrUrl, "oracle")) return "oracle";
+        if (S.containsIgnoreCase(dirverOrUrl, "mysql")) return "mysql";
+        if (S.containsIgnoreCase(dirverOrUrl, "h2")) return "h2";
+        if (S.containsIgnoreCase(dirverOrUrl, "db2")) return "db2";
 
         return driverName;
     }
@@ -100,7 +105,6 @@ public class DbDialect {
         totalEqlRun.setRunSql(createTotalSql(totalEqlRun.getRunSql()));
 
         totalEqlRun.setWillReturnOnlyOneRow(true);
-        totalEqlRun.getEqlBlock().setReturnTypeName("int");
 
         return totalEqlRun;
     }

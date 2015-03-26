@@ -32,7 +32,11 @@ public class EqlRsRetriever {
         if (!rs.next()) return null;
 
         boolean singleColumn = rs.getMetaData().getColumnCount() == 1;
-        if (singleColumn) return convertSingleValue(Rs.getResultSetValue(rs, 1), rs);
+        if (singleColumn) {
+            Object resultSetValue = Rs.getResultSetValue(rs, 1);
+            Object singleValue = convertSingleValue(resultSetValue, rs);
+            return singleValue;
+        }
 
         EqlRowMapper rowMapper = getRowMapper(rs.getMetaData());
         return rowBeanCreate(rowMapper, singleColumn, rs, 1);
