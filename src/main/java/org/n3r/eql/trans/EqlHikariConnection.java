@@ -1,6 +1,7 @@
 package org.n3r.eql.trans;
 
-import com.alibaba.druid.pool.DruidDataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.util.EqlUtils;
@@ -10,17 +11,19 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 
-public class EqlDruidConnection extends AbstractEqlConnection {
-    DruidDataSource dataSource;
+public class EqlHikariConnection extends AbstractEqlConnection {
+    HikariDataSource dataSource;
 
     @Override
     public void initialize(EqlConfig eqlConfig) {
         Map<String, String> params = eqlConfig.params();
         EqlUtils.compatibleWithUserToUsername(params);
 
-        dataSource = O.populate(new DruidDataSource(), params);
-    }
+        HikariConfig config = new HikariConfig();
+        O.populate(config, params);
 
+        dataSource = new HikariDataSource(config);
+    }
 
     @Override
     public Connection getConnection(String dbName) {
@@ -38,11 +41,11 @@ public class EqlDruidConnection extends AbstractEqlConnection {
 
     @Override
     public String getDriverName() {
-        return dataSource.getDriverClassName();
+        return EqlUtils.getDriverNameFromConnection(dataSource);
     }
 
     @Override
     public String getJdbcUrl() {
-        return dataSource.getUrl();
+        return dataSource.getJdbcUrl();
     }
 }

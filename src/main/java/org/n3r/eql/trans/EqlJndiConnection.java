@@ -2,8 +2,7 @@ package org.n3r.eql.trans;
 
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlConfigException;
-import org.n3r.eql.ex.EqlExecuteException;
-import org.n3r.eql.util.Closes;
+import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.util.S;
 
 import javax.naming.InitialContext;
@@ -32,30 +31,12 @@ public class EqlJndiConnection extends AbstractEqlConnection {
 
     @Override
     public String getDriverName() {
-        Connection connection = null;
-
-        try {
-            connection = dataSource.getConnection();
-            return connection.getMetaData().getDriverName();
-        } catch (SQLException e) {
-            throw new EqlExecuteException(e);
-        } finally {
-            Closes.closeQuietly(connection);
-        }
+        return EqlUtils.getDriverNameFromConnection(dataSource);
     }
 
     @Override
     public String getJdbcUrl() {
-        Connection connection = null;
-
-        try {
-            connection = dataSource.getConnection();
-            return connection.getMetaData().getURL();
-        } catch (SQLException e) {
-            throw new EqlExecuteException(e);
-        } finally {
-            Closes.closeQuietly(connection);
-        }
+        return EqlUtils.getJdbcUrlFromConnection(dataSource);
     }
 
     @Override

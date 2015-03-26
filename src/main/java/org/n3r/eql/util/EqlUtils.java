@@ -4,16 +4,49 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.config.EqlConfig;
+import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
 public class EqlUtils {
     static Logger logger = LoggerFactory.getLogger(EqlUtils.class);
+
+    public static void compatibleWithUserToUsername(Map<String, String> params) {
+        if (params.containsKey("username")) return;
+        if (params.containsKey("user")) params.put("username", params.get("user"));
+    }
+
+    public static String getDriverNameFromConnection(DataSource dataSource) {
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            return connection.getMetaData().getDriverName();
+        } catch (SQLException e) {
+            throw new EqlExecuteException(e);
+        } finally {
+            Closes.closeQuietly(connection);
+        }
+    }
+
+    public static String getJdbcUrlFromConnection(DataSource dataSource) {
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            return connection.getMetaData().getURL();
+        } catch (SQLException e) {
+            throw new EqlExecuteException(e);
+        } finally {
+            Closes.closeQuietly(connection);
+        }
+    }
 
     public static Map<String, Object> newExecContext(Object[] params, Object[] dynamics) {
         Map<String, Object> executionContext = Maps.newHashMap();
