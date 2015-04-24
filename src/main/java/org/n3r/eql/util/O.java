@@ -5,6 +5,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
+import org.n3r.eql.ex.EqlConfigException;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.joor.ReflectException;
@@ -97,6 +98,14 @@ public class O {
         return false;
     }
 
+    public static <T> T createObject(Class<T> clazz) {
+        try {
+            return Reflect.on(clazz).create().get();
+        } catch (Exception e) {
+            throw new EqlExecuteException(e);
+        }
+    }
+
     public static <T> T createObject(Class<T> clazz, Spec spec) {
         Object object;
         try {
@@ -171,6 +180,8 @@ public class O {
             throw new EqlExecuteException(e);
         }
     }
+
+
 
     public static interface ValueGettable {
         Object getValue();

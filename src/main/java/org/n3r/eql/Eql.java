@@ -75,6 +75,10 @@ public class Eql {
         init(eqlConfig, stackDeep);
     }
 
+    public Eql me() { // just help for asm when working with Dql
+        return this;
+    }
+
     private void init(EqlConfig eqlConfig, int stackDeep) {
         this.eqlConfig = eqlConfig instanceof EqlConfigDecorator
                 ? (EqlConfigDecorator) eqlConfig

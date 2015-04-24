@@ -1,0 +1,26 @@
+-- [queryOne]
+select 1
+
+-- [queryThree]
+select 3
+
+-- [queryById]
+select ##
+
+-- [queryByMap]
+select #a#
+
+-- [queryBean]
+select ## as a
+
+-- [queryBeans]
+select ## as a
+
+-- [queryMoreBeans]
+select 'u' as a
+union all
+select 'x' as a
+union all
+select 'y' as a
+union all
+select 'z' as a

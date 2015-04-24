@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.n3r.eql.eqler.EmployeeMapper">
+
+
+    <select id="getEmployeeName" parameterType="long" resultType="org.n3r.eql.eqler.Employee">
+        SELECT empid, first_name firstName,last_name lastName
+        FROM employee
+        WHERE empid=#{empid}
+    </select>
+
+    <insert id="insertEmployee" parameterType="org.n3r.eql.eqler.Employee">
+        INSERT INTO employee (empid,first_name,last_name)
+        VALUES (#{empid},#{firstName},#{lastName})
+    </insert>
+
+</mapper>
