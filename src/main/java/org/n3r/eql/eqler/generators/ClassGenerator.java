@@ -26,7 +26,7 @@ public class ClassGenerator<T> {
     }
 
     private Class<? extends T> defineClass(byte[] bytes) {
-        return (Class<? extends T>) new EqlerClassLoader().defineClass(implName, bytes);
+        return (Class<? extends T>) new EqlerClassLoader(eqlerClass.getClassLoader()).defineClass(implName, bytes);
     }
 
     private byte[] createEqlImplClassBytes() {

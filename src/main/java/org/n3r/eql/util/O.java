@@ -98,14 +98,6 @@ public class O {
         return false;
     }
 
-    public static <T> T createObject(Class<T> clazz) {
-        try {
-            return Reflect.on(clazz).create().get();
-        } catch (Exception e) {
-            throw new EqlExecuteException(e);
-        }
-    }
-
     public static <T> T createObject(Class<T> clazz, Spec spec) {
         Object object;
         try {
