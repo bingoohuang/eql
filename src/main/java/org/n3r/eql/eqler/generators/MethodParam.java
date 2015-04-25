@@ -4,12 +4,12 @@ public class MethodParam {
 
     private final int paramIndex;
     private final Class<?> paramType;
-    private final EqlPageHandler eqlPageHandler;
+    private final boolean normal;
 
-    public MethodParam(int paramIndex, Class<?> paramType, EqlPageHandler eqlPageHandler) {
+    public MethodParam(int paramIndex, Class<?> paramType, boolean normal) {
         this.paramIndex = paramIndex;
         this.paramType = paramType;
-        this.eqlPageHandler = eqlPageHandler;
+        this.normal = normal;
     }
 
     public Class<?> getParamType() {
@@ -22,6 +22,6 @@ public class MethodParam {
 
 
     public boolean isNormal() {
-        return eqlPageHandler == null;
+        return normal;
     }
 }

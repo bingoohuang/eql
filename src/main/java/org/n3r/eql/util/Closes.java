@@ -42,7 +42,7 @@ public class Closes {
 
         try {
             eqlTran.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             // Ignore
         }
     }

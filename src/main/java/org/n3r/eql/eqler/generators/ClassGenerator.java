@@ -2,6 +2,7 @@ package org.n3r.eql.eqler.generators;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 
 import java.lang.reflect.Method;
 
@@ -10,10 +11,12 @@ import static org.objectweb.asm.Opcodes.*;
 public class ClassGenerator<T> {
     private final Class<T> eqlerClass;
     private final String implName;
+    private final ClassWriter classWriter;
 
     public ClassGenerator(Class<T> eqlerClass) {
         this.eqlerClass = eqlerClass;
         this.implName = eqlerClass.getName() + "Impl";
+        this.classWriter = createClassWriter();
     }
 
 
@@ -23,43 +26,38 @@ public class ClassGenerator<T> {
     }
 
     private Class<? extends T> defineClass(byte[] bytes) {
-        return (Class<? extends T>) new OwnClassLoader().defineClass(implName, bytes);
+        return (Class<? extends T>) new EqlerClassLoader().defineClass(implName, bytes);
     }
-
 
     private byte[] createEqlImplClassBytes() {
-        ClassWriter cw = createClass(implName);
+        constructor();
 
-        constructor(cw);
-
-        for (Method method : eqlerClass.getDeclaredMethods()) {
-            new MethodGenerator(cw, method, eqlerClass).generate();
+        for (Method method : eqlerClass.getMethods()) {
+            if (TranableMethodGenerator.isEqlTranableMethod(method)) {
+                new TranableMethodGenerator(classWriter, method, eqlerClass).generate();
+            } else {
+                new MethodGenerator(classWriter, method, eqlerClass).generate();
+            }
         }
 
-        return createBytes(cw);
+        return createBytes();
     }
 
-    private byte[] createBytes(ClassWriter cw) {
-        cw.visitEnd();
-        return cw.toByteArray();
+    private byte[] createBytes() {
+        classWriter.visitEnd();
+        return classWriter.toByteArray();
     }
 
-    private class OwnClassLoader extends ClassLoader {
-        public Class<?> defineClass(String name, byte[] b) {
-            return defineClass(name, b, 0, b.length);
-        }
-    }
-
-    private ClassWriter createClass(String implName) {
+    private ClassWriter createClassWriter() {
         final String implSourceName = implName.replace('.', '/');
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, implSourceName, null, "java/lang/Object",
-                new String[]{"org/n3r/eql/eqler/MyEqler"});
+        String[] interfaces = {Type.getInternalName(eqlerClass)};
+        cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, implSourceName, null, "java/lang/Object", interfaces);
         return cw;
     }
 
-    private void constructor(ClassWriter cw) {
-        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+    private void constructor() {
+        MethodVisitor mv = classWriter.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0);
         mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
@@ -67,5 +65,4 @@ public class ClassGenerator<T> {
         mv.visitMaxs(1, 1);
         mv.visitEnd();
     }
-
 }

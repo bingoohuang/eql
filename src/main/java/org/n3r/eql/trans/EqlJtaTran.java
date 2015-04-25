@@ -17,7 +17,7 @@ public class EqlJtaTran implements EqlTran {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
     }
 
     @Override

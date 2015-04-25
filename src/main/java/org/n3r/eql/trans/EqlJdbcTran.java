@@ -86,7 +86,7 @@ public class EqlJdbcTran implements EqlTran {
      * Oracle JDBC will auto commit when close without explicit commit/rollback.
      */
     @Override
-    public void close() throws IOException {
+    public void close() {
         for (Connection connection : connections.values()) {
             Closes.closeQuietly(connection);
         }
