@@ -442,7 +442,7 @@ public class Eql {
 
     protected void initSqlId(String sqlId, int level) {
         this.sqlClassPath = Strings.isNullOrEmpty(sqlClassPath)
-                ? C.getSqlClassPath(level) : sqlClassPath;
+                ? C.getSqlClassPath(level, getEqlExtension()) : sqlClassPath;
 
         eqlBlock = eqlConfig.getSqlResourceLoader()
                 .loadEqlBlock(this.sqlClassPath, sqlId);
@@ -450,8 +450,13 @@ public class Eql {
         rsRetriever.setEqlBlock(eqlBlock);
     }
 
+    private String getEqlExtension() {
+        String eqlExtension = eqlConfig.getStr("eql.extension");
+        return eqlExtension == null ? "eql" : eqlExtension;
+    }
+
     public Eql useSqlFile(Class<?> sqlBoundClass) {
-        sqlClassPath = sqlBoundClass.getName().replace('.', '/') + ".eql";
+        sqlClassPath = sqlBoundClass.getName().replace('.', '/') + "." + getEqlExtension();
         return this;
     }
 

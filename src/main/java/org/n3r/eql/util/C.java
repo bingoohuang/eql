@@ -12,7 +12,7 @@ import java.net.URL;
 import java.util.List;
 
 public class C {
-    public static String getSqlClassPath(int num) {
+    public static String getSqlClassPath(int num, String extension) {
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
 
         // Remark: when running on IBM jdk (eg. IBM JDK 1.6),
@@ -21,7 +21,7 @@ public class C {
         int adjusted = stackTraceElements[0].isNativeMethod() ? 1 : 0;
 
         String callerClassName = stackTraceElements[num + adjusted].getClassName();
-        return callerClassName.replace('.', '/') + ".eql";
+        return callerClassName.replace('.', '/') + "." + extension;
     }
 
     /**

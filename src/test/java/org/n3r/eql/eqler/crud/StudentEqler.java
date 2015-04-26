@@ -8,7 +8,7 @@ import org.n3r.eql.eqler.annotations.SqlId;
 import java.util.List;
 import java.util.Map;
 
-@EqlConfig("mysql")
+@EqlConfig("me")
 public interface StudentEqler {
     void prepareData();
 
