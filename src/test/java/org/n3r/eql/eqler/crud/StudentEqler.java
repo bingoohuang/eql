@@ -1,6 +1,7 @@
 package org.n3r.eql.eqler.crud;
 
 import org.n3r.eql.eqler.annotations.EqlConfig;
+import org.n3r.eql.eqler.annotations.NamedParam;
 import org.n3r.eql.eqler.annotations.Sql;
 import org.n3r.eql.eqler.annotations.SqlId;
 
@@ -15,6 +16,9 @@ public interface StudentEqler {
 
     @Sql("insert into eql_student values(#studentId#, #name#, #age#)")
     int addStudent(Student student);
+
+    @Sql("insert into eql_student values(#a#, #b#, #c#)")
+    int addStudentAnotherWay(@NamedParam("a") int studentId, @NamedParam("b") String name, @NamedParam("c") int age);
 
     @Sql("select * from eql_student")
     List<Student> queryAllStudents();
