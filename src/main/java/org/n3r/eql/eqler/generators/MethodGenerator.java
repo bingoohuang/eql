@@ -286,11 +286,11 @@ public class MethodGenerator<T> {
         } else {
             java.lang.reflect.Type genericReturnType = method.getGenericReturnType();
 
-            if (genericReturnType instanceof ParameterizedType) {
+            boolean isCollectionGeneric = genericReturnType instanceof ParameterizedType
+                    && Collection.class.isAssignableFrom(returnTypeClass);
+            if (isCollectionGeneric) {
                 ParameterizedType parameterizedType = (ParameterizedType) genericReturnType;
                 returnTypeClass = (Class) parameterizedType.getActualTypeArguments()[0];
-            } else {
-                returnTypeClass = (Class) genericReturnType;
             }
 
             Type returnType = Type.getType(returnTypeClass);

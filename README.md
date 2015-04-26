@@ -871,6 +871,86 @@ public void testAnnotation() {
 }
 ```
 
+# Eqler
+In order to simplify the eql api usage, here eqler is introduced.
+Eqler is an interface wherein the methods is used to execute sql and process results.
+An Eqler instance is created by EqlerFactory.
+The following are examples:
+
+``` java
+package org.n3r.eql.eqler.crud;
+
+import org.n3r.eql.eqler.annotations.EqlConfig;
+import org.n3r.eql.eqler.annotations.Sql;
+import org.n3r.eql.eqler.annotations.SqlId;
+
+import java.util.List;
+import java.util.Map;
+
+@EqlConfig("mysql")
+public interface StudentEqler {
+    void prepareData();
+
+    int addStudent(int studentId, String name, int age);
+
+    @Sql("insert into eql_student values(#studentId#, #name#, #age#)")
+    int addStudent(Student student);
+
+    @Sql("select * from eql_student")
+    List<Student> queryAllStudents();
+
+    String queryStudentName(int studentId);
+
+    @SqlId("queryStudent")
+    Map<String, Object> queryStudentMap(int studentId);
+
+    Student queryStudent(int studentId);
+}
+```
+
+```sql
+--  org/n3r/eql/eqler/crud/StudentEqler.eql
+
+-- [prepareData]
+drop table if exists eql_student;
+create table eql_student(student_id int, name varchar(10), age int);
+
+-- [addStudent]
+insert into eql_student
+values(##, ##, ##)
+
+-- [queryStudentName]
+select name from eql_student where student_id = ##
+
+-- [queryStudent]
+select student_id, name, age from eql_student where student_id = ##
+```
+
+```java
+@Test
+public void test() {
+    StudentEqler eqler = EqlerFactory.getEqler(StudentEqler.class);
+    eqler.prepareData();
+
+    eqler.addStudent(1, "bingoo", 123);
+    eqler.addStudent(new Student(2, "huang", 124));
+
+    List<Student> students = eqler.queryAllStudents();
+    assertThat(students.toString(), is(equalTo(
+            "[Student{studentId=1, name='bingoo', age=123}, Student{studentId=2, name='huang', age=124}]"
+    )));
+
+    Student student1 = eqler.queryStudent(1);
+    assertThat(student1.toString(), is(equalTo("Student{studentId=1, name='bingoo', age=123}")));
+
+    Map<String, Object> student2 = eqler.queryStudentMap(2);
+    assertThat(student2.toString(), is(equalTo("{age=124, name=huang, student_id=2}")));
+
+    String studentName = eqler.queryStudentName(1);
+    assertThat(studentName, is(equalTo("bingoo")));
+}
+```
+
 # TODO
 + Inline comment such as `/* iff ... */` is parsed by regular expression, and this method will not ignore `/* ... */` in the literal string such as `'literal string /* if xxx */'`.
 
