@@ -21,13 +21,13 @@ import java.util.List;
 public class CodeDescs {
     public static ResultSet codeDescWrap(EqlRun currEqlRun, EqlBlock eqlBlock,
                                          EqlConfigDecorator eqlConfig,
-                                         String sqlClassPath, ResultSet rs) {
+                                         String sqlClassPath, ResultSet rs, String tagSqlId) {
         List<CodeDesc> descs = eqlBlock.getCodeDescs();
         if (descs == null) return rs;
 
         if (!existsReturnDescColumns(descs, rs)) return rs;
 
-        return new CodeDescResultSetHandler(currEqlRun, eqlConfig, sqlClassPath, rs, descs).createProxy();
+        return new CodeDescResultSetHandler(currEqlRun, eqlConfig, sqlClassPath, rs, descs, tagSqlId).createProxy();
     }
 
     private static boolean existsReturnDescColumns(List<CodeDesc> descs, ResultSet rs) {
@@ -81,14 +81,16 @@ public class CodeDescs {
     private static void check(EqlBlock eqlBlock, boolean expr) {
         if (expr) return;
 
-        throw new EqlConfigException(eqlBlock.getUniquEQLIdStr() + "'s desc format is invalid");
+        throw new EqlConfigException(eqlBlock.getUniqueSqlIdStr() + "'s desc format is invalid");
     }
 
 
-    public static String map(final EqlRun currEqlRun, final EqlConfigDecorator eqlConfig,
+    public static String map(final EqlRun currEqlRun,
+                             final EqlConfigDecorator eqlConfig,
                              final String sqlClassPath,
                              final CodeDesc codeDesc,
-                             final String code) {
+                             final String code,
+                             String tagSqlId) {
         String desc = CodeDescSettings.map(codeDesc, code);
         if (desc != null) return desc;
 
@@ -97,7 +99,7 @@ public class CodeDescs {
 
 
         DefaultCodeDescMapper mapper = CodeDescCache.getCachedMapper(sqlClassPath, codeDesc,
-                currEqlRun, eqlConfig, eqlBlock);
+                currEqlRun, eqlConfig, eqlBlock, tagSqlId);
 
         return mapper == null ? null : mapper.map(code);
     }

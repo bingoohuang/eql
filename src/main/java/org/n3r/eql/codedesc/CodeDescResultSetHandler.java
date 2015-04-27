@@ -24,13 +24,15 @@ public class CodeDescResultSetHandler implements InvocationHandler {
     final EqlRun currEqlRun;
     final ResultSet resultSet;
     final Map<String, Integer> codeIndex = new HashMap<String, Integer>();
+    private String tagSqlId;
 
-    public CodeDescResultSetHandler(EqlRun currEqlRun, EqlConfigDecorator eqlConfig, String sqlClassPath, ResultSet resultSet, List<CodeDesc> codeDescs) {
+    public CodeDescResultSetHandler(EqlRun currEqlRun, EqlConfigDecorator eqlConfig, String sqlClassPath, ResultSet resultSet, List<CodeDesc> codeDescs, String tagSqlId) {
         this.currEqlRun = currEqlRun;
         this.eqlConfig = eqlConfig;
         this.sqlClassPath = sqlClassPath;
         this.resultSet = resultSet;
         this.codeDescs = codeDescs;
+        this.tagSqlId = tagSqlId;
 
         createCodeIndex();
     }
@@ -82,7 +84,7 @@ public class CodeDescResultSetHandler implements InvocationHandler {
         if (codeDesc == null) return result;
 
         String code = resultSet.getString(codeIndex.get(codeDesc.getColumnName()));
-        return CodeDescs.map(currEqlRun, eqlConfig, sqlClassPath, codeDesc, code);
+        return CodeDescs.map(currEqlRun, eqlConfig, sqlClassPath, codeDesc, code, tagSqlId);
     }
 
     private CodeDesc findCodeDesc(String columnName) {

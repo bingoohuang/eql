@@ -22,6 +22,7 @@ public class ESelectStmt implements Closeable, EStmt {
     private Logger logger;
     private Object[] params;
     private int fetchSize;
+    private String sqlClassPath;
 
     public void executeQuery() {
         executeQuery(params);
@@ -34,7 +35,7 @@ public class ESelectStmt implements Closeable, EStmt {
             eqlRun.setParams(params);
             new EqlParamsBinder().prepareBindParams(false, eqlRun);
 
-            eqlRun.bindParams(preparedStatement);
+            eqlRun.bindParams(preparedStatement, sqlClassPath);
             resultSet = preparedStatement.executeQuery();
             if (fetchSize > 0) resultSet.setFetchSize(fetchSize);
         } catch (SQLException e) {
@@ -110,5 +111,10 @@ public class ESelectStmt implements Closeable, EStmt {
 
     public void setFetchSize(int fetchSize) {
         this.fetchSize = fetchSize;
+    }
+
+    @Override
+    public void setSqlClassPath(String sqlClassPath) {
+        this.sqlClassPath = sqlClassPath;
     }
 }

@@ -36,7 +36,8 @@ public class CodeDescCache {
                                                         CodeDesc codeDesc,
                                                         EqlRun currEqlRun,
                                                         EqlConfigDecorator eqlConfig,
-                                                        EqlBlock eqlBlock) {
+                                                        EqlBlock eqlBlock,
+                                                        String tagSqlId) {
 
         EqlUniqueSqlId uniquEQLId = new EqlUniqueSqlId(sqlClassPath, codeDesc.getDescLabel());
 
@@ -52,7 +53,7 @@ public class CodeDescCache {
         }
 
         Optional<DefaultCodeDescMapper> mapperOptional = getOrCreateMapper(currEqlRun, eqlConfig, codeDesc,
-                eqlBlock, subCache, eqlCacheKey);
+                eqlBlock, subCache, eqlCacheKey, tagSqlId);
 
         return mapperOptional.orNull();
     }
@@ -69,12 +70,14 @@ public class CodeDescCache {
                                                                      final CodeDesc codeDesc,
                                                                      final EqlBlock eqlBlock,
                                                                      Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>> subCache,
-                                                                     EqlCacheKey eqlCacheKey) {
+                                                                     final EqlCacheKey eqlCacheKey,
+                                                                     final String tagSqlId) {
         try {
             return subCache.get(eqlCacheKey, new Callable<Optional<DefaultCodeDescMapper>>() {
                 @Override
                 public Optional<DefaultCodeDescMapper> call() throws Exception {
-                    DefaultCodeDescMapper mapper = createCodeDescMapper(eqlBlock, currEqlRun, eqlConfig, codeDesc);
+                    DefaultCodeDescMapper mapper = createCodeDescMapper(eqlBlock, currEqlRun, eqlConfig, codeDesc,
+                            eqlCacheKey.getUniquEQLId().getSqlClassPath(), tagSqlId);
                     return Optional.fromNullable(mapper);
                 }
             });
@@ -104,11 +107,11 @@ public class CodeDescCache {
     private static DefaultCodeDescMapper createCodeDescMapper(EqlBlock eqlBlock,
                                                               EqlRun currEqlRun,
                                                               EqlConfigDecorator eqlConfig,
-                                                              CodeDesc codeDesc) {
+                                                              CodeDesc codeDesc, String sqlClassPath, String tagSqlId) {
         // try to load code desc mapping by sqlid
         try {
             Map<String, Object> executionContext = EqlUtils.newExecContext(codeDesc.getParams(), null);
-            List<EqlRun> eqlRuns = eqlBlock.createEqlRunsByEqls(eqlConfig, executionContext, codeDesc.getParams(), null);
+            List<EqlRun> eqlRuns = eqlBlock.createEqlRunsByEqls(tagSqlId, eqlConfig, executionContext, codeDesc.getParams(), null);
             if (eqlRuns.size() != 1) throw new EqlExecuteException("only one select sql supported ");
 
             EqlRun eqlRun = eqlRuns.get(0);
@@ -120,8 +123,8 @@ public class CodeDescCache {
                 new EqlParamsBinder().prepareBindParams(eqlBlock.hasIterateOption(), eqlRun);
 
                 eqlRun.setConnection(currEqlRun.getConnection());
-                ps = EqlUtils.preparEQL(eqlConfig, eqlRun, codeDesc.getDescLabel());
-                eqlRun.bindParams(ps);
+                ps = EqlUtils.prepareSQL(sqlClassPath, eqlConfig, eqlRun, codeDesc.getDescLabel(), tagSqlId);
+                eqlRun.bindParams(ps, sqlClassPath);
                 rs = ps.executeQuery();
                 rs.setFetchSize(100);
 

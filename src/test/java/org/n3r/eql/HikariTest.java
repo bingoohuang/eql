@@ -54,10 +54,10 @@ public class HikariTest {
         new Eql("hikari").id("createTestTable").params(new Timestamp(System.currentTimeMillis())).execute();
 
         List<Map<String, String>> ret = new Eql("hikari").select("getBeanList").execute();
-        System.out.println(ret);
+//        System.out.println(ret);
 
         List<String> strs = new Eql("hikari").select("getStringList").execute();
-        System.out.println(strs);
+//        System.out.println(strs);
 
 
         Integer effectedRows = new Eql("hikari").update("updateBean").params(1, "A1A1").execute();

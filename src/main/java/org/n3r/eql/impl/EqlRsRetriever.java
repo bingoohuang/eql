@@ -167,4 +167,12 @@ public class EqlRsRetriever {
     public void resetMaxRows() {
         this.maxRows = DEFAULT_MAXROWS;
     }
+
+    public Class<?> getReturnType() {
+        return returnType;
+    }
+
+    public String getReturnTypeName() {
+        return returnTypeName;
+    }
 }

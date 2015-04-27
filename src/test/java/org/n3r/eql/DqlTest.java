@@ -45,7 +45,7 @@ public class DqlTest {
         {
             try {
                 result = new Dql().selectFirst("demo").execute();
-                System.out.println(result);
+//                System.out.println(result);
                 // TimeUnit.SECONDS.sleep(10);
             } catch (EqlExecuteException e) {
                 e.printStackTrace();

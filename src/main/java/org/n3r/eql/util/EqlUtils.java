@@ -84,8 +84,10 @@ public class EqlUtils {
         return returnSql;
     }
 
-    public static PreparedStatement preparEQL(EqlConfig eqlConfig, EqlRun eqlRun, String sqlId) throws SQLException {
-        logger.debug("prepare sql for [{}]: {} ", sqlId, eqlRun.getPrintSql());
+    public static PreparedStatement prepareSQL(String sqlClassPath, EqlConfig eqlConfig, EqlRun eqlRun, String sqlId, String tagSqlId) throws SQLException {
+        Logger sqlLogger = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "prepare");
+
+        sqlLogger.debug(eqlRun.getPrintSql());
         Connection conn = eqlRun.getConnection();
         String sql = eqlRun.getRunSql();
         boolean procedure = eqlRun.getSqlType().isProcedure();
@@ -96,13 +98,17 @@ public class EqlUtils {
         return ps;
     }
 
-    public static void setQueryTimeout(EqlConfig eqlConfig, Statement stmt) throws SQLException {
-        String queryTimeoutSeconds = eqlConfig.getStr("queryTimeoutSeconds");
-        int queryTimeout = -1;
-        if (queryTimeoutSeconds != null && queryTimeoutSeconds.matches("\\d+")) {
-            queryTimeout = Integer.parseInt(queryTimeoutSeconds);
-        }
+    public static int getConfigInt(EqlConfig eqlConfig, String key, int defaultValue) {
+        String configValue = eqlConfig.getStr(key);
+        if (S.isBlank(configValue)) return defaultValue;
 
+        if (configValue.matches("\\d+")) return Integer.parseInt(configValue);
+        return defaultValue;
+    }
+
+
+    public static void setQueryTimeout(EqlConfig eqlConfig, Statement stmt) throws SQLException {
+        int queryTimeout = getConfigInt(eqlConfig, "query.timeout.seconds", 60);
         if (queryTimeout <= 0) queryTimeout = 60;
 
         stmt.setQueryTimeout(queryTimeout);

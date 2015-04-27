@@ -303,16 +303,23 @@ public class MethodGenerator<T> {
 
     private void id() {
         Sql sqlAnn = method.getAnnotation(Sql.class);
-        if (sqlAnn != null) return;
-
-        SqlId sqlId = method.getAnnotation(SqlId.class);
-        mv.visitLdcInsn(sqlId == null ? method.getName() : sqlId.value());
-        mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "id", "(Ljava/lang/String;)Lorg/n3r/eql/Eql;", false);
+        if (sqlAnn != null) {
+            mv.visitLdcInsn(method.getName() );
+            mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "tagSqlId", "(Ljava/lang/String;)Lorg/n3r/eql/Eql;", false);;
+        } else {
+            SqlId sqlId = method.getAnnotation(SqlId.class);
+            mv.visitLdcInsn(sqlId == null ? method.getName() : sqlId.value());
+            mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "id", "(Ljava/lang/String;)Lorg/n3r/eql/Eql;", false);
+        }
     }
 
     private <T> void useSqlFile() {
         Sql sqlAnn = method.getAnnotation(Sql.class);
-        if (sqlAnn != null) return;
+        if (sqlAnn != null) {
+            mv.visitLdcInsn(Type.getType(eqlerClass));
+            mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "useSqlFile", "(Ljava/lang/Class;)Lorg/n3r/eql/Eql;", false);
+            return;
+        }
 
         UseSqlFile useSqlFile = method.getAnnotation(UseSqlFile.class);
         if (useSqlFile == null) useSqlFile = classUseSqlFile;

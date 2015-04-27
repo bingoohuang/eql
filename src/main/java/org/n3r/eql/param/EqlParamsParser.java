@@ -36,7 +36,7 @@ public class EqlParamsParser {
 
     public static void parseParams(EqlRun eqlRun, String sqlStr) {
         EqlBlock eqlBlock = eqlRun.getEqlBlock();
-        EqlUniqueSqlId uniquEQLId = eqlBlock != null ? eqlBlock.getUniquEQLId() : null;
+        EqlUniqueSqlId uniquEQLId = eqlBlock != null ? eqlBlock.getUniqueSqlId() : null;
         EqlUniqueSqlTemplate sqlTemplate = new EqlUniqueSqlTemplate(uniquEQLId, sqlStr);
 
         EqlParamsParserResult result = cache.getUnchecked(sqlTemplate);

@@ -17,6 +17,7 @@ public class EUpdateStmt implements Closeable, EStmt {
     private Logger logger;
     private EqlTran eqlTran;
     private Object[] params;
+    private String sqlClassPath;
 
     @Override
     public void close() {
@@ -30,7 +31,7 @@ public class EUpdateStmt implements Closeable, EStmt {
     public int update(Object... params) {
         eqlRun.setParams(params);
         new EqlParamsBinder().prepareBindParams(false, eqlRun);
-        eqlRun.bindParams(preparedStatement);
+        eqlRun.bindParams(preparedStatement, sqlClassPath);
         int ret;
         try {
             ret = preparedStatement.executeUpdate();
@@ -83,6 +84,11 @@ public class EUpdateStmt implements Closeable, EStmt {
     @Override
     public Object[] getParams() {
         return params;
+    }
+
+    @Override
+    public void setSqlClassPath(String sqlClassPath) {
+        this.sqlClassPath = sqlClassPath;
     }
 
     @Override

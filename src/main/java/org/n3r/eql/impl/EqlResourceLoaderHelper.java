@@ -37,7 +37,7 @@ public class EqlResourceLoaderHelper {
         EqlBlock eqlBlock = blockMap.get(eqlUniqueSqlId.getSqlId());
         if (eqlBlock == null) return Optional.absent();
 
-        eqlBlock.tryParsEQLs();
+        eqlBlock.tryParseSqls();
 
         return Optional.of(eqlBlock);
     }
@@ -54,7 +54,7 @@ public class EqlResourceLoaderHelper {
         Map<String, EqlBlock> sqlBlocks = eqlParser.parse(sqlContent);
 
         for (EqlBlock sqlBlock : sqlBlocks.values()) {
-            EqlUniqueSqlId uniqueSqlId = sqlBlock.getUniquEQLId();
+            EqlUniqueSqlId uniqueSqlId = sqlBlock.getUniqueSqlId();
             sqlCache.put(uniqueSqlId, Optional.of(sqlBlock));
             oldSqlIds.remove(uniqueSqlId.getSqlId());
         }

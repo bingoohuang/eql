@@ -9,5 +9,7 @@ public class EqlerApp {
         SpService spEqler = context.getBean(SpService.class);
 
         System.out.println(spEqler.queryOne());
+        System.out.println(spEqler.queryLower());
+        System.out.println(spEqler.queryLowers());
     }
 }

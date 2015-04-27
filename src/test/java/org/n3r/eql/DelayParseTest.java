@@ -13,7 +13,7 @@ public class DelayParseTest {
             new Eql().id("badTest2").execute();
             Assert.fail();
         } catch (Exception ex) {
-            System.out.println(ex.getMessage());
+            ex.printStackTrace();
         }
     }
 

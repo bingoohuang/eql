@@ -49,6 +49,7 @@ public class Eql {
     protected Map<String, Object> execContext;
     private String defaultSqlId;
     private boolean cached = true;
+    private String tagSqlId; // for eqler log convenience
 
     public Eql() {
         this(Eql.STACKTRACE_DEEP_FIVE);
@@ -76,6 +77,11 @@ public class Eql {
     }
 
     public Eql me() { // just help for asm when working with Dql
+        return this;
+    }
+
+    public Eql tagSqlId(String tagSqlId) {
+        this.tagSqlId = tagSqlId;
         return this;
     }
 
@@ -120,7 +126,7 @@ public class Eql {
 
         if (directSqls.length > 0) eqlBlock = new EqlBlock();
 
-        List<EqlRun> runs = eqlBlock.createEqlRuns(eqlConfig,
+        List<EqlRun> runs = eqlBlock.createEqlRuns(tagSqlId, eqlConfig,
                 execContext, params, dynamics, directSqls);
 
         if (logger.isDebugEnabled()) {
@@ -147,9 +153,10 @@ public class Eql {
 
             if (directSqls.length > 0) eqlBlock = new EqlBlock();
 
-            eqlRuns = eqlBlock.createEqlRuns(eqlConfig, execContext, params, dynamics, directSqls);
+            eqlRuns = eqlBlock.createEqlRuns(tagSqlId, eqlConfig, execContext, params, dynamics, directSqls);
             IterateOptions.checkIterateOption(eqlBlock, eqlRuns, params);
 
+            prepareBatch();
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
                 if (S.isBlank(currRun.getRunSql())) continue;
@@ -177,6 +184,11 @@ public class Eql {
         }
 
         return (T) ret;
+    }
+
+    private void prepareBatch() {
+        if (batch == null) return;
+        batch.prepare(sqlClassPath, eqlConfig, getSqlId(), tagSqlId);
     }
 
     private void trySetCache(String[] directSqls) {
@@ -241,7 +253,7 @@ public class Eql {
         execContext = EqlUtils.newExecContext(params, dynamics);
         tranStart();
 
-        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(eqlConfig, execContext, params, dynamics);
+        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(tagSqlId, eqlConfig, execContext, params, dynamics);
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one select sql supported");
 
@@ -263,7 +275,7 @@ public class Eql {
         tranStart();
         createConn();
 
-        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(eqlConfig, execContext, params, dynamics);
+        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(tagSqlId, eqlConfig, execContext, params, dynamics);
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one update sql supported in this method");
 
@@ -278,7 +290,10 @@ public class Eql {
     }
 
     protected void checkPreconditions(String... directSqls) {
-        if (eqlBlock != null || directSqls.length > 0) return;
+        if (eqlBlock != null || directSqls.length > 0) {
+            initSqlClassPath(STACKTRACE_DEEP_FIVE);
+            return;
+        }
 
         if (S.isBlank(defaultSqlId)) throw new EqlExecuteException("No sqlid defined!");
 
@@ -331,16 +346,23 @@ public class Eql {
     }
 
     private int executeTotalRowsSql() throws SQLException {
+        String blockReturnTypeName = currRun.getEqlBlock().getReturnTypeName();
+        String returnTypeName = rsRetriever.getReturnTypeName();
+        Class<?> returnType = rsRetriever.getReturnType();
+
         EqlRun temp = currRun;
-
-        String returnTypeName = currRun.getEqlBlock().getReturnTypeName();
-
         currRun = dbDialect.createTotalSql(currRun);
+
         currRun.getEqlBlock().setReturnTypeName("int");
+        rsRetriever.setReturnType(null);
+        rsRetriever.setReturnTypeName("int");
+
         Object totalRows = execDml();
 
         currRun = temp;
-        currRun.getEqlBlock().setReturnTypeName(returnTypeName);
+        currRun.getEqlBlock().setReturnTypeName(blockReturnTypeName);
+        rsRetriever.setReturnTypeName(returnTypeName);
+        rsRetriever.setReturnType(returnType);
 
         if (totalRows instanceof Number) return ((Number) totalRows).intValue();
 
@@ -350,13 +372,13 @@ public class Eql {
     private Object execDml() throws SQLException {
         Object execRet = batch != null ? execDmlInBatch() : execDmlNoBatch();
 
-        Logs.logResult(execRet, getSqlId());
+        Logs.logResult(eqlConfig, sqlClassPath, execRet, getSqlId(), tagSqlId);
 
         return execRet;
     }
 
     private Object execDmlInBatch() throws SQLException {
-        return batch.addBatch(eqlConfig, currRun, getSqlId());
+        return batch.addBatch(currRun);
     }
 
     private void prepareStmt(EStmt stmt) {
@@ -366,6 +388,7 @@ public class Eql {
 
             stmt.setPreparedStatment(ps);
             stmt.setEqlRun(currRun);
+            stmt.setSqlClassPath(sqlClassPath);
             stmt.setLogger(logger);
             stmt.params(params);
             stmt.setEqlTran(externalTran != null ? externalTran : internalTran);
@@ -387,25 +410,25 @@ public class Eql {
                 if (params[0] instanceof Iterable) {
                     Iterator<Object> iterator = ((Iterable<Object>) params[0]).iterator();
                     for (int i = 0; iterator.hasNext(); ++i, iterator.next()) {
-                        currRun.bindBatchParams(ps, i);
+                        currRun.bindBatchParams(ps, i, sqlClassPath);
                         rowCount += ps.executeUpdate();
                     }
                 } else if (params[0] != null && params[0].getClass().isArray()){
                     Object[] arr = (Object[]) params[0];
                     for (int i = 0, ii = arr.length; i < ii; ++i) {
-                        currRun.bindBatchParams(ps, i);
+                        currRun.bindBatchParams(ps, i, sqlClassPath);
                         rowCount += ps.executeUpdate();
                     }
                 }
                 return rowCount;
             } else {
-                currRun.bindParams(ps);
+                currRun.bindParams(ps, sqlClassPath);
 
                 if (currRun.getSqlType() == EqlType.SELECT) {
                     rs = ps.executeQuery();
                     if (fetchSize > 0) rs.setFetchSize(fetchSize);
 
-                    ResultSet wrapRs = CodeDescs.codeDescWrap(currRun, eqlBlock, eqlConfig, sqlClassPath, rs);
+                    ResultSet wrapRs = CodeDescs.codeDescWrap(currRun, eqlBlock, eqlConfig, sqlClassPath, rs, tagSqlId);
                     Object convertedValue = rsRetriever.convert(wrapRs, currRun);
                     return convertedValue;
                 }
@@ -423,7 +446,7 @@ public class Eql {
 
     private PreparedStatement prepareSql() throws SQLException {
         createConn();
-        return EqlUtils.preparEQL(eqlConfig, currRun, getSqlId());
+        return EqlUtils.prepareSQL(sqlClassPath, eqlConfig, currRun, getSqlId(), tagSqlId);
     }
 
     public Eql returnType(Class<?> returnType) {
@@ -440,12 +463,15 @@ public class Eql {
         initSqlId(sqlId, STACKTRACE_DEEP_FIVE);
     }
 
-    protected void initSqlId(String sqlId, int level) {
-        this.sqlClassPath = Strings.isNullOrEmpty(sqlClassPath)
+    private void initSqlClassPath(int level) {
+        sqlClassPath = Strings.isNullOrEmpty(sqlClassPath)
                 ? C.getSqlClassPath(level, getEqlExtension()) : sqlClassPath;
+    }
 
-        eqlBlock = eqlConfig.getSqlResourceLoader()
-                .loadEqlBlock(this.sqlClassPath, sqlId);
+    protected void initSqlId(String sqlId, int level) {
+        initSqlClassPath(level + 1);
+
+        eqlBlock = eqlConfig.getSqlResourceLoader().loadEqlBlock(sqlClassPath, sqlId);
 
         rsRetriever.setEqlBlock(eqlBlock);
     }

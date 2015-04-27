@@ -25,7 +25,7 @@ public class FreemarkerDynamicLanguageDriver implements DynamicLanguageDriver {
         StringTemplateLoader stringLoader = new StringTemplateLoader();
         ftlConfig.setTemplateLoader(stringLoader);
 
-        String uniquEQLIdStr = block.getUniquEQLIdStr();
+        String uniquEQLIdStr = block.getUniqueSqlIdStr();
         stringLoader.putTemplate(uniquEQLIdStr, template);
         Template temp;
         try {

@@ -49,7 +49,7 @@ public class EqlBlock {
     }
 
     public EqlBlock() {
-        this.uniquEQLId = new EqlUniqueSqlId("<DirectSql>", "<Auto>");
+        this.uniquEQLId = new EqlUniqueSqlId("<DirectSql>", "auto");
     }
 
     private void initSomeOptions() {
@@ -76,21 +76,21 @@ public class EqlBlock {
         return sqls;
     }
 
-    public List<EqlRun> createEqlRuns(EqlConfigDecorator eqlConfig, Map<String, Object> executionContext,
+    public List<EqlRun> createEqlRuns(String tagSqlId, EqlConfigDecorator eqlConfig, Map<String, Object> executionContext,
                                       Object[] params, Object[] dynamics, String[] directSqls) {
         return directSqls.length == 0
-                ? createEqlRunsByEqls(eqlConfig, executionContext, params, dynamics)
-                : creatEQLSubsByDirectSqls(eqlConfig, executionContext, params, dynamics, directSqls);
+                ? createEqlRunsByEqls(tagSqlId, eqlConfig, executionContext, params, dynamics)
+                : createEqlRunsByDirectSqls(tagSqlId, eqlConfig, executionContext, params, dynamics, directSqls);
     }
 
-    public List<EqlRun> createEqlRunsByEqls(EqlConfigDecorator eqlConfig, Map<String, Object> executionContext,
+    public List<EqlRun> createEqlRunsByEqls(String tagSqlId, EqlConfigDecorator eqlConfig, Map<String, Object> executionContext,
                                             Object[] params, Object[] dynamics) {
         Object paramBean = O.createSingleBean(params);
 
         List<EqlRun> eqlRuns = Lists.newArrayList();
         EqlRun lastSelectSql = null;
         for (Sql sql : sqls) {
-            EqlRun eqlRun = newEqlRun(eqlConfig, executionContext, params, dynamics, paramBean);
+            EqlRun eqlRun = newEqlRun(tagSqlId, eqlConfig, executionContext, params, dynamics, paramBean);
 
             String sqlStr = sql.evalSql(eqlRun);
             sqlStr = EqlUtils.trimLastUnusedPart(sqlStr);
@@ -113,14 +113,16 @@ public class EqlBlock {
         new DynamicReplacer().replaceDynamics(eqlRun);
     }
 
-    public List<EqlRun> creatEQLSubsByDirectSqls(EqlConfigDecorator eqlConfig, Map<String, Object> executionContext,
+    public List<EqlRun> createEqlRunsByDirectSqls(String tagSqlId, EqlConfigDecorator eqlConfig, Map<String, Object> executionContext,
                                                   Object[] params, Object[] dynamics, String[] sqls) {
         Object paramBean = O.createSingleBean(params);
 
         List<EqlRun> eqlRuns = Lists.newArrayList();
         EqlRun lastSelectSql = null;
+        int sqlNo = 0;
         for (String sql : sqls) {
-            EqlRun eqlRun = newEqlRun(eqlConfig, executionContext, params, dynamics, paramBean);
+            String seqTagSqlId =  sqls.length == 1 ? tagSqlId : (tagSqlId + "." + (++sqlNo));
+            EqlRun eqlRun = newEqlRun(seqTagSqlId, eqlConfig, executionContext, params, dynamics, paramBean);
 
             eqlRuns.add(eqlRun);
             addEqlRun(eqlRun, sql);
@@ -134,11 +136,12 @@ public class EqlBlock {
     }
 
 
-    private EqlRun newEqlRun(EqlConfigDecorator eqlConfig, Map<String, Object> executionContext, Object[] params,
+    private EqlRun newEqlRun(String tagSqlId, EqlConfigDecorator eqlConfig, Map<String, Object> executionContext, Object[] params,
                              Object[] dynamics, Object paramBean) {
         EqlRun eqlRun = new EqlRun();
 
         eqlRun.setEqlConfig(eqlConfig);
+        eqlRun.setTagSqlId(tagSqlId);
         eqlRun.setExecutionContext(executionContext);
         eqlRun.setParams(params);
         eqlRun.setDynamics(dynamics);
@@ -175,19 +178,19 @@ public class EqlBlock {
         return split;
     }
 
-    public void tryParsEQLs() {
+    public void tryParseSqls() {
         for (Sql sql : sqls) {
             if (sql instanceof DelaySql) {
-                ((DelaySql) sql).parsEQL();
+                ((DelaySql) sql).parseSql();
             }
         }
     }
 
-    public EqlUniqueSqlId getUniquEQLId() {
+    public EqlUniqueSqlId getUniqueSqlId() {
         return uniquEQLId;
     }
 
-    public String getUniquEQLIdStr() {
+    public String getUniqueSqlIdStr() {
         return uniquEQLId.getSqlClassPath() + ":" + uniquEQLId.getSqlId();
     }
 

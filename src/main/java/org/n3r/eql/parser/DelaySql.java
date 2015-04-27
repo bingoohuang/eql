@@ -18,7 +18,7 @@ public class DelaySql implements Sql {
         this.onEQLLines = onEQLLines;
     }
 
-    public void parsEQL() {
+    public void parseSql() {
         sql = dynamicLanguageDriver.parse(block, onEQLLines);
     }
 

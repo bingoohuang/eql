@@ -8,12 +8,8 @@ import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.EqlParamsParser;
 import org.n3r.eql.param.PlaceholderType;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.util.Hex;
-import org.n3r.eql.util.P;
-import org.n3r.eql.util.Pair;
-import org.n3r.eql.util.S;
+import org.n3r.eql.util.*;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -33,6 +29,7 @@ public class EqlRun implements Cloneable {
     private String evalSqlTemplate;
     private EqlDynamic evalEqlDynamic;
     private boolean iterateOption;
+    private String tagSqlId;
 
     public void addRealParam(int index, Object value) {
         realParams.add(Pair.of(index, value));
@@ -48,9 +45,8 @@ public class EqlRun implements Cloneable {
         this.boundParams = boundParams;
     }
 
-    Logger logger = LoggerFactory.getLogger(EqlRun.class);
 
-    public void bindParams(PreparedStatement ps) {
+    public void bindParams(PreparedStatement ps, String sqlClassPath) {
         try {
             for (Pair<Integer, Object> param : realParams) {
                 ps.setObject(param._1, param._2);
@@ -62,15 +58,18 @@ public class EqlRun implements Cloneable {
             throw new EqlExecuteException(e);
         }
 
+        String sqlId = getSqlId();
+        Logger logger = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "params");
         if (boundParams != null && boundParams.size() > 0 && logger.isDebugEnabled()) {
-            String sqlId = getSqlId();
-            logger.debug("params for [{}]: {}", sqlId, boundParams.toString());
+            logger.debug(boundParams.toString());
             this.evalSql = parseEvalSql(-1);
-            logger.debug("eval sql for [{}]: {}", sqlId, this.evalSql);
+
+            Logger evalLogger = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "eval");
+            evalLogger.debug(this.evalSql);
         }
     }
 
-    public void bindBatchParams(PreparedStatement ps, int index) {
+    public void bindBatchParams(PreparedStatement ps, int index, String sqlClassPath) {
         try {
             for (Pair<Integer, Object> param : realParams) {
                 ps.setObject(param._1, ((Object[]) param._2)[index]);
@@ -79,11 +78,13 @@ public class EqlRun implements Cloneable {
             throw new EqlExecuteException(e);
         }
 
+        String sqlId = getSqlId();
+        Logger logger = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "params");
         if (boundParams != null && boundParams.size() > 0 && logger.isDebugEnabled()) {
-            String sqlId = getSqlId();
-            logger.debug("params for [{}]: {}", sqlId, batchParamsString(boundParams, index));
+            logger.debug(batchParamsString(boundParams, index));
             this.evalSql = parseEvalSql(index);
-            logger.debug("eval sql for [{}]: {}", sqlId, this.evalSql);
+            Logger evalLogger = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "eval");
+            evalLogger.debug(this.evalSql);
         }
     }
 
@@ -249,7 +250,8 @@ public class EqlRun implements Cloneable {
     }
 
     public String getSqlId() {
-        return eqlBlock != null ? eqlBlock.getSqlId() : "<AUTO>";
+        if (S.isNotBlank(tagSqlId)) return tagSqlId;
+        return eqlBlock != null ? eqlBlock.getSqlId() : "auto";
     }
 
     public void setPlaceHolders(EqlParamPlaceholder[] placeHolders) {
@@ -383,5 +385,14 @@ public class EqlRun implements Cloneable {
 
     public String getEvalSql() {
         return evalSql;
+    }
+
+
+    public void setTagSqlId(String tagSqlId) {
+        this.tagSqlId = tagSqlId;
+    }
+
+    public String getTagSqlId() {
+        return tagSqlId;
     }
 }

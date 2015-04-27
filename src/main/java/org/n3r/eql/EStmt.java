@@ -20,4 +20,5 @@ public interface EStmt {
 
     Object[] getParams();
 
+    void setSqlClassPath(String sqlClassPath);
 }
