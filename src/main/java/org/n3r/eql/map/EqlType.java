@@ -39,6 +39,10 @@ public enum EqlType {
         return false;
     }
 
+    public boolean isSelect() {
+        return this == SELECT;
+    }
+
     public boolean isProcedure() {
         return O.in(this, CALL, DECLARE, BEGIN);
     }

@@ -156,6 +156,8 @@ public class Eql {
             eqlRuns = eqlBlock.createEqlRuns(tagSqlId, eqlConfig, execContext, params, dynamics, directSqls);
             IterateOptions.checkIterateOption(eqlBlock, eqlRuns, params);
 
+            boolean isAllSelect = checkAllSelect(eqlRuns);
+
             prepareBatch();
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
@@ -173,7 +175,7 @@ public class Eql {
                 trySetCache(directSqls);
             }
 
-            if (batch == null) tranCommit();
+            if (batch == null && !isAllSelect) tranCommit();
         } catch (Throwable e) {
             logger.error("exception", e);
             throw new EqlExecuteException("exec sql failed["
@@ -184,6 +186,13 @@ public class Eql {
         }
 
         return (T) ret;
+    }
+
+    private boolean checkAllSelect(List<EqlRun> eqlRuns) {
+        for (EqlRun eqlRun : eqlRuns) {
+            if (!eqlRun.getSqlType().isSelect()) return false;
+        }
+        return true;
     }
 
     private void prepareBatch() {
@@ -258,7 +267,7 @@ public class Eql {
             throw new EqlExecuteException("only one select sql supported");
 
         currRun = sqlSubs.get(0);
-        if (currRun.getSqlType() != EqlType.SELECT)
+        if (!currRun.getSqlType().isSelect())
             throw new EqlExecuteException("only one select sql supported");
 
         ESelectStmt selectStmt = new ESelectStmt();
@@ -413,7 +422,7 @@ public class Eql {
                         currRun.bindBatchParams(ps, i, sqlClassPath);
                         rowCount += ps.executeUpdate();
                     }
-                } else if (params[0] != null && params[0].getClass().isArray()){
+                } else if (params[0] != null && params[0].getClass().isArray()) {
                     Object[] arr = (Object[]) params[0];
                     for (int i = 0, ii = arr.length; i < ii; ++i) {
                         currRun.bindBatchParams(ps, i, sqlClassPath);
