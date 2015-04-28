@@ -147,6 +147,7 @@ public class Eql {
 
         execContext = EqlUtils.newExecContext(params, dynamics);
         Object ret = null;
+        boolean isAllSelect = false;
         try {
             tranStart();
             createDbDialect();
@@ -156,7 +157,7 @@ public class Eql {
             eqlRuns = eqlBlock.createEqlRuns(tagSqlId, eqlConfig, execContext, params, dynamics, directSqls);
             IterateOptions.checkIterateOption(eqlBlock, eqlRuns, params);
 
-            boolean isAllSelect = checkAllSelect(eqlRuns);
+            isAllSelect = checkAllSelect(eqlRuns);
 
             prepareBatch();
             for (EqlRun eqlRun : eqlRuns) {
@@ -175,8 +176,9 @@ public class Eql {
                 trySetCache(directSqls);
             }
 
-            if (batch == null && !isAllSelect) tranCommit();
+            if (!isAllSelect) tranCommit();
         } catch (Throwable e) {
+            if (!isAllSelect) tranRollback();
             logger.error("exception", e);
             throw new EqlExecuteException("exec sql failed["
                     + currRun.getPrintSql() + "]" + e.getMessage());
@@ -566,6 +568,13 @@ public class Eql {
         internalTran.commit();
     }
 
+    protected void tranRollback() {
+        if (batch != null) return;
+        if (externalTran != null) return;
+
+        internalTran.rollback();
+    }
+
     private void tranClose() {
         if (internalTran != null) Closes.closeQuietly(internalTran);
 
@@ -635,7 +644,7 @@ public class Eql {
         return this;
     }
 
-    public Eql setFetchSize(int fetchSize) {
+    public Eql fetchSize(int fetchSize) {
         this.fetchSize = fetchSize;
         return this;
     }
