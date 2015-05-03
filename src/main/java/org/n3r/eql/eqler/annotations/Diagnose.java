@@ -3,8 +3,7 @@ package org.n3r.eql.eqler.annotations;
 import java.lang.annotation.*;
 
 @Documented
-@Target({ElementType.PARAMETER})
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface NamedParam {
-    String value();
+public @interface Diagnose {
 }

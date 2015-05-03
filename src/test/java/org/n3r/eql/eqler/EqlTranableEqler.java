@@ -1,10 +1,10 @@
 package org.n3r.eql.eqler;
 
 import org.n3r.eql.EqlTranable;
-import org.n3r.eql.eqler.annotations.EqlConfig;
+import org.n3r.eql.eqler.annotations.EqlerConfig;
 import org.n3r.eql.eqler.annotations.Sql;
 
-@EqlConfig("mysql")
+@EqlerConfig("mysql")
 public interface EqlTranableEqler extends EqlTranable {
     @Sql({
             "drop table if exists tran_batch_eqler",

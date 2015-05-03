@@ -1,14 +1,14 @@
 package org.n3r.eql.eqler.spring;
 
 import org.n3r.eql.EqlPage;
-import org.n3r.eql.eqler.annotations.EqlConfig;
+import org.n3r.eql.eqler.annotations.EqlerConfig;
 import org.n3r.eql.eqler.annotations.Eqler;
 import org.n3r.eql.eqler.annotations.Sql;
 
 import java.util.List;
 
 @Eqler
-@EqlConfig("mysql")
+@EqlerConfig("mysql")
 public interface SpEqler {
     int queryOne();
 

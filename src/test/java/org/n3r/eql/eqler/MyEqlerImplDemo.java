@@ -4,7 +4,6 @@ import com.google.common.collect.Maps;
 import org.n3r.eql.Eql;
 import org.n3r.eql.EqlPage;
 import org.n3r.eql.diamond.Dql;
-import org.n3r.eql.eqler.annotations.NamedParam;
 import org.objectweb.asm.*;
 
 import java.io.IOException;

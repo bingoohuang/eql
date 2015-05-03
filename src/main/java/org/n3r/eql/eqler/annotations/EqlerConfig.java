@@ -7,7 +7,7 @@ import java.lang.annotation.*;
 @Documented
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface EqlConfig {
+public @interface EqlerConfig {
     Class<? extends Eql> eql() default Eql.class;
     String value() default  "DEFAULT";
 }

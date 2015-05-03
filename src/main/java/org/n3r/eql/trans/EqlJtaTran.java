@@ -4,7 +4,6 @@ import org.n3r.eql.EqlTran;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.map.EqlRun;
 
-import java.io.IOException;
 import java.sql.Connection;
 
 public class EqlJtaTran implements EqlTran {

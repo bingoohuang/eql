@@ -1,6 +1,6 @@
 package org.n3r.eql.eqler.generators;
 
-import org.n3r.eql.eqler.annotations.EqlConfig;
+import org.n3r.eql.eqler.annotations.EqlerConfig;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -13,16 +13,16 @@ import static org.objectweb.asm.Opcodes.*;
 public class TranableMethodGenerator<T> {
     private final String methodName;
     private final String eqlClassName;
-    private final EqlConfig eqlConfig;
+    private final EqlerConfig eqlerConfig;
     private final ClassWriter cw;
 
     public TranableMethodGenerator(ClassWriter classWriter, Method method, Class<T> eqlerClass) {
         this.methodName = method.getName();
         this.cw = classWriter;
 
-        EqlConfig eqlConfig = method.getAnnotation(EqlConfig.class);
-        this.eqlConfig = eqlConfig != null ? eqlConfig : eqlerClass.getAnnotation(EqlConfig.class);
-        this.eqlClassName = eqlConfig != null ? Type.getInternalName(eqlConfig.eql()) : "org/n3r/eql/Eql";
+        EqlerConfig eqlerConfig = method.getAnnotation(EqlerConfig.class);
+        this.eqlerConfig = eqlerConfig != null ? eqlerConfig : eqlerClass.getAnnotation(EqlerConfig.class);
+        this.eqlClassName = eqlerConfig != null ? Type.getInternalName(eqlerConfig.eql()) : "org/n3r/eql/Eql";
     }
 
     public void generate() {
@@ -70,7 +70,7 @@ public class TranableMethodGenerator<T> {
     private void newEql(MethodVisitor mv) {
         mv.visitTypeInsn(NEW, eqlClassName);
         mv.visitInsn(DUP);
-        mv.visitLdcInsn(eqlConfig != null ? eqlConfig.value() : "DEFAULT");
+        mv.visitLdcInsn(eqlerConfig != null ? eqlerConfig.value() : "DEFAULT");
         mv.visitMethodInsn(INVOKESPECIAL, eqlClassName, "<init>", "(Ljava/lang/String;)V", false);
         mv.visitMethodInsn(INVOKEVIRTUAL, eqlClassName, "me", "()Lorg/n3r/eql/Eql;", false);
     }

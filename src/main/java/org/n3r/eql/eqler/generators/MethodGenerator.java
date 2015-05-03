@@ -1,12 +1,7 @@
 package org.n3r.eql.eqler.generators;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-import org.n3r.eql.EqlPage;
-import org.n3r.eql.EqlTran;
 import org.n3r.eql.EqlTranable;
 import org.n3r.eql.eqler.annotations.*;
-import org.n3r.eql.impl.EqlBatch;
 import org.n3r.eql.util.S;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
@@ -16,42 +11,44 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
-import java.util.List;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.objectweb.asm.Opcodes.*;
 
 public class MethodGenerator<T> {
+    public static final String EQL = "org/n3r/eql/Eql";
     private final Method method;
     private final MethodVisitor mv;
     private final Class<T> eqlerClass;
-    private final EqlConfig eqlConfig;
+    private final EqlerConfig eqlerConfig;
     private final UseSqlFile classUseSqlFile;
     private final String eqlClassName;
-    private List<MethodParam> methodParams;
-    private boolean useNamedParams;
-    private int varCount;
-    private int normalParamCount;
+    private final MethodAllParam methodAllParam;
+
 
     public MethodGenerator(ClassWriter classWriter, Method method, Class<T> eqlerClass) {
         this.method = method;
         this.eqlerClass = eqlerClass;
-        EqlConfig eqlConfig = method.getAnnotation(EqlConfig.class);
-        this.eqlConfig = eqlConfig != null ? eqlConfig : eqlerClass.getAnnotation(EqlConfig.class);
-        this.eqlClassName = this.eqlConfig != null ? Type.getInternalName(this.eqlConfig.eql()) : "org/n3r/eql/Eql";
+        EqlerConfig eqlerConfig = method.getAnnotation(EqlerConfig.class);
+        this.eqlerConfig = eqlerConfig != null ? eqlerConfig : eqlerClass.getAnnotation(EqlerConfig.class);
+        this.eqlClassName = this.eqlerConfig != null ? Type.getInternalName(this.eqlerConfig.eql()) : EQL;
         this.classUseSqlFile = eqlerClass.getAnnotation(UseSqlFile.class);
         this.mv = classWriter.visitMethod(ACC_PUBLIC, method.getName(), Type.getMethodDescriptor(method), null, null);
-        parseParams(method.getParameterTypes());
+        this.methodAllParam = parseParams(method);
     }
 
     public void generate() {
         start();
 
         prepareNamedParams();
+        prepareNamedDynamics();
+
         newEql();
         useTran();
         useBatch();
         useSqlFile();
         params();
+        dynamics();
         id();
         returnType();
         limit();
@@ -62,69 +59,65 @@ public class MethodGenerator<T> {
     }
 
     private void useBatch() {
-        Optional<MethodParam> useBatchParam = findMethodParam(EqlBatch.class);
-        if (!useBatchParam.isPresent()) return;
+        MethodParam eqlBatch = methodAllParam.getEqlBatch();
+        if (eqlBatch == null) return;
 
-        mv.visitVarInsn(ALOAD, useBatchParam.get().getParamIndex() + 1);
-        mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "useBatch", "(Lorg/n3r/eql/impl/EqlBatch;)Lorg/n3r/eql/Eql;", false);
-    }
-
-    private Optional<MethodParam> findMethodParam(Class<?> paramType) {
-        for (MethodParam methodParam : methodParams) {
-            if (methodParam.getParamType() == paramType) {
-                return Optional.of(methodParam);
-            }
-        }
-        return Optional.absent();
+        mv.visitVarInsn(ALOAD, eqlBatch.getParamIndex() + 1);
+        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useBatch", "(Lorg/n3r/eql/impl/EqlBatch;)Lorg/n3r/eql/Eql;", false);
     }
 
     private void useTran() {
-        Optional<MethodParam> useTranParam = findMethodParam(EqlTran.class);
-        if (useTranParam.isPresent()) {
-            mv.visitVarInsn(ALOAD, useTranParam.get().getParamIndex() + 1);
-            mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "useTran", "(Lorg/n3r/eql/EqlTran;)Lorg/n3r/eql/Eql;", false);
+        MethodParam eqlTran = methodAllParam.getEqlTran();
+        if (eqlTran != null) {
+            mv.visitVarInsn(ALOAD, eqlTran.getParamIndex() + 1);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useTran", "(Lorg/n3r/eql/EqlTran;)Lorg/n3r/eql/Eql;", false);
         } else if (EqlTranable.class.isAssignableFrom(eqlerClass)) {
             mv.visitMethodInsn(INVOKESTATIC, "org/n3r/eql/trans/EqlTranThreadLocal", "get", "()Lorg/n3r/eql/EqlTran;", false);
-            mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "useTran", "(Lorg/n3r/eql/EqlTran;)Lorg/n3r/eql/Eql;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useTran", "(Lorg/n3r/eql/EqlTran;)Lorg/n3r/eql/Eql;", false);
         }
     }
 
     private void prepareNamedParams() {
-        List<NamedParamDefine> namedParams = parseNameParams(method.getParameterTypes());
-        if (namedParams.isEmpty()) return;
-
-        this.useNamedParams = true;
+        if (methodAllParam.getNamedParamsCount() == 0) return;
 
         mv.visitMethodInsn(INVOKESTATIC, "com/google/common/collect/Maps", "newHashMap", "()Ljava/util/HashMap;", false);
 
-        this.varCount = 1 /* this */ + 1 /* hashmap */ + method.getParameterTypes().length;
-        mv.visitVarInsn(ASTORE, varCount);
+        mv.visitVarInsn(ASTORE, methodAllParam.getAsmLocalVarNamedParamIndex());
 
-        for (int i = 0, incrs = 0; i < namedParams.size(); ++i) {
-            NamedParamDefine paramDefine = namedParams.get(i);
-            mv.visitVarInsn(ALOAD, varCount);
-            mv.visitLdcInsn(paramDefine.getParamName());
+        for (int i = 0, incrs = 0; i < methodAllParam.getMethodParamsCount(); ++i) {
+            MethodParam methodParam = methodAllParam.getMethodParam(i);
+            Param param = methodParam.getParam();
+            if (param == null) continue;
 
-            incrs += visitVar(i + 1 + incrs, Type.getType(paramDefine.getParamType()));
+            mv.visitVarInsn(ALOAD, methodAllParam.getAsmLocalVarNamedParamIndex());
+            mv.visitLdcInsn(param.value());
+
+            incrs += visitVar(i + 1 + incrs, Type.getType(methodParam.getParamType()));
             mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", true);
             mv.visitInsn(POP);
         }
     }
 
-    private List<NamedParamDefine> parseNameParams(Class<?>[] parameterTypes) {
-        Annotation[][] parameterAnnsArr = method.getParameterAnnotations();
-        List<NamedParamDefine> namedParams = Lists.newArrayList();
-        for (int i = 0; i < parameterAnnsArr.length; ++i) {
-            Annotation[] parameterAnns = parameterAnnsArr[i];
-            PARAM_ANN:
-            for (Annotation parameterAnn : parameterAnns) {
-                if (parameterAnn instanceof NamedParam) {
-                    namedParams.add(new NamedParamDefine(i, parameterTypes[i], (NamedParam) parameterAnn));
-                    break PARAM_ANN;
-                }
-            }
+    private void prepareNamedDynamics() {
+        if (methodAllParam.getNamedDynamicCount() == 0) return;
+
+        mv.visitMethodInsn(INVOKESTATIC, "com/google/common/collect/Maps", "newHashMap", "()Ljava/util/HashMap;", false);
+
+        mv.visitVarInsn(ASTORE, methodAllParam.getAsmLocalVarNamedDynamicIndex());
+
+        for (int i = 0, incrs = 0; i < methodAllParam.getMethodParamsCount(); ++i) {
+            MethodParam methodParam = methodAllParam.getMethodParam(i);
+            Dynamic dynamic = methodParam.getDynamic();
+            if (dynamic == null) continue;
+            if (isBlank(dynamic.name())) continue;
+
+            mv.visitVarInsn(ALOAD,  methodAllParam.getAsmLocalVarNamedDynamicIndex());
+            mv.visitLdcInsn(dynamic.name());
+
+            incrs += visitVar(i + 1 + incrs, Type.getType(methodParam.getParamType()));
+            mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", true);
+            mv.visitInsn(POP);
         }
-        return namedParams;
     }
 
     private int visitVar(int i, Type tp) {
@@ -173,8 +166,15 @@ public class MethodGenerator<T> {
     private void newEql() {
         mv.visitTypeInsn(NEW, eqlClassName);
         mv.visitInsn(DUP);
-        mv.visitLdcInsn(eqlConfig != null ? eqlConfig.value() : "DEFAULT");
-        mv.visitMethodInsn(INVOKESPECIAL, eqlClassName, "<init>", "(Ljava/lang/String;)V", false);
+        MethodParam eqlConfig = methodAllParam.getEqlConfig();
+        if (eqlConfig == null) {
+            mv.visitLdcInsn(eqlerConfig != null ? eqlerConfig.value() : "DEFAULT");
+            mv.visitMethodInsn(INVOKESPECIAL, eqlClassName, "<init>", "(Ljava/lang/String;)V", false);
+        } else {
+            mv.visitVarInsn(ALOAD, eqlConfig.getParamIndex() + 1);
+            mv.visitMethodInsn(INVOKESPECIAL, eqlClassName, "<init>", "(Lorg/n3r/eql/config/EqlConfig;)V", false);
+        }
+
         mv.visitMethodInsn(INVOKEVIRTUAL, eqlClassName, "me", "()Lorg/n3r/eql/Eql;", false);
     }
 
@@ -240,24 +240,22 @@ public class MethodGenerator<T> {
             }
         }
 
-        mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "execute", "([Ljava/lang/String;)Ljava/lang/Object;", false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "execute", "([Ljava/lang/String;)Ljava/lang/Object;", false);
     }
 
     private void limit() {
         Class<?> returnType = method.getReturnType();
         if (Collection.class.isAssignableFrom(returnType)) {
-            for (MethodParam methodParam : methodParams) {
-                if (methodParam.getParamType() == EqlPage.class) {
-                    mv.visitVarInsn(ALOAD, methodParam.getParamIndex() + 1);
-                    mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "limit",
-                            "(Lorg/n3r/eql/EqlPage;)Lorg/n3r/eql/Eql;", false);
-                    break;
-                }
+            MethodParam eqlPage = methodAllParam.getEqlPage();
+            if (eqlPage != null) {
+                mv.visitVarInsn(ALOAD, eqlPage.getParamIndex() + 1);
+                mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "limit",
+                        "(Lorg/n3r/eql/EqlPage;)Lorg/n3r/eql/Eql;", false);
             }
 
         } else {
             mv.visitInsn(ICONST_1);
-            mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "limit", "(I)Lorg/n3r/eql/Eql;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "limit", "(I)Lorg/n3r/eql/Eql;", false);
         }
     }
 
@@ -297,19 +295,20 @@ public class MethodGenerator<T> {
             mv.visitLdcInsn(returnType);
         }
 
-        mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "returnType",
+        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType",
                 "(Ljava/lang/Class;)Lorg/n3r/eql/Eql;", false);
     }
 
     private void id() {
         Sql sqlAnn = method.getAnnotation(Sql.class);
         if (sqlAnn != null) {
-            mv.visitLdcInsn(method.getName() );
-            mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "tagSqlId", "(Ljava/lang/String;)Lorg/n3r/eql/Eql;", false);;
+            mv.visitLdcInsn(method.getName());
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "tagSqlId", "(Ljava/lang/String;)Lorg/n3r/eql/Eql;", false);
+            ;
         } else {
             SqlId sqlId = method.getAnnotation(SqlId.class);
             mv.visitLdcInsn(sqlId == null ? method.getName() : sqlId.value());
-            mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "id", "(Ljava/lang/String;)Lorg/n3r/eql/Eql;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "id", "(Ljava/lang/String;)Lorg/n3r/eql/Eql;", false);
         }
     }
 
@@ -317,7 +316,7 @@ public class MethodGenerator<T> {
         Sql sqlAnn = method.getAnnotation(Sql.class);
         if (sqlAnn != null) {
             mv.visitLdcInsn(Type.getType(eqlerClass));
-            mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "useSqlFile", "(Ljava/lang/Class;)Lorg/n3r/eql/Eql;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useSqlFile", "(Ljava/lang/Class;)Lorg/n3r/eql/Eql;", false);
             return;
         }
 
@@ -326,41 +325,41 @@ public class MethodGenerator<T> {
         if (useSqlFile != null) {
             if (S.isNotBlank(useSqlFile.value())) {
                 mv.visitLdcInsn(useSqlFile.value());
-                mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "useSqlFile", "(Ljava/lang/String;)Lorg/n3r/eql/Eql;", false);
+                mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useSqlFile", "(Ljava/lang/String;)Lorg/n3r/eql/Eql;", false);
             } else if (useSqlFile.clazz() != Void.class) {
                 mv.visitLdcInsn(Type.getType(useSqlFile.clazz()));
-                mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "useSqlFile", "(Ljava/lang/Class;)Lorg/n3r/eql/Eql;", false);
+                mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useSqlFile", "(Ljava/lang/Class;)Lorg/n3r/eql/Eql;", false);
             } else {
                 throw new RuntimeException("Bad @UseSqlFile usage!");
             }
         } else {
             mv.visitLdcInsn(Type.getType(eqlerClass));
-            mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "useSqlFile", "(Ljava/lang/Class;)Lorg/n3r/eql/Eql;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useSqlFile", "(Ljava/lang/Class;)Lorg/n3r/eql/Eql;", false);
         }
     }
 
     private void params() {
-        if (useNamedParams) {
+        if (methodAllParam.getNamedParamsCount() > 0) {
             visitIntInsn(1);
             mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
             mv.visitInsn(DUP);
             mv.visitInsn(ICONST_0);
-            mv.visitVarInsn(ALOAD, varCount);
+            mv.visitVarInsn(ALOAD,  methodAllParam.getAsmLocalVarNamedParamIndex());
             mv.visitInsn(AASTORE);
-            mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "params", "([Ljava/lang/Object;)Lorg/n3r/eql/Eql;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "params", "([Ljava/lang/Object;)Lorg/n3r/eql/Eql;", false);
             return;
         }
 
-        if (normalParamCount == 0) return;
+        if (methodAllParam.getSeqParamsCount() == 0) return;
 
-        visitIntInsn(normalParamCount);
+        visitIntInsn(methodAllParam.getSeqParamsCount());
 
         mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
 
         int index = 0;
-        for (int i = 0, incrs = 0; i < method.getParameterTypes().length; ++i) {
-            MethodParam methodParam = methodParams.get(i);
-            if (!methodParam.isNormal()) continue;
+        for (int i = 0, incrs = 0; i < methodAllParam.getMethodParamsCount(); ++i) {
+            MethodParam methodParam = methodAllParam.getMethodParam(i);
+            if (methodParam.getSeqParamIndex() < 0) continue;
 
             mv.visitInsn(DUP);
             visitIntInsn(index++);
@@ -368,21 +367,62 @@ public class MethodGenerator<T> {
             mv.visitInsn(AASTORE);
         }
 
-        mv.visitMethodInsn(INVOKEVIRTUAL, "org/n3r/eql/Eql", "params", "([Ljava/lang/Object;)Lorg/n3r/eql/Eql;", false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "params", "([Ljava/lang/Object;)Lorg/n3r/eql/Eql;", false);
     }
 
-    private void parseParams(Class<?>[] parameterTypes) {
-        this.methodParams = Lists.newArrayList();
-        for (int i = 0; i < parameterTypes.length; ++i) {
-            Class<?> pt = parameterTypes[i];
-            if (EqlPage.class == pt || EqlTran.class == pt || EqlBatch.class == pt) {
-                methodParams.add(new MethodParam(i, pt, false));
-            } else {
-                methodParams.add(new MethodParam(i, pt, true));
-                ++normalParamCount;
-            }
+
+    private void dynamics() {
+        if (methodAllParam.getNamedDynamicCount() > 0) {
+            visitIntInsn(1);
+            mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
+            mv.visitInsn(DUP);
+            mv.visitInsn(ICONST_0);
+            mv.visitVarInsn(ALOAD,  methodAllParam.getAsmLocalVarNamedDynamicIndex());
+            mv.visitInsn(AASTORE);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "dynamics", "([Ljava/lang/Object;)Lorg/n3r/eql/Eql;", false);
+            return;
         }
+
+        if (methodAllParam.getSeqDynamicsCount() == 0) return;
+
+        visitIntInsn(methodAllParam.getSeqDynamicsCount());
+
+        mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
+
+        int index = 0;
+        for (int i = 0, incrs = 0; i < methodAllParam.getMethodParamsCount(); ++i) {
+            MethodParam methodParam = methodAllParam.getMethodParam(i);
+            if (methodParam.getSeqDynamicIndex() < 0) continue;
+
+            mv.visitInsn(DUP);
+            visitIntInsn(index++);
+            incrs += visitVar(i + 1 + incrs, Type.getType(methodParam.getParamType()));
+            mv.visitInsn(AASTORE);
+        }
+
+        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "dynamics", "([Ljava/lang/Object;)Lorg/n3r/eql/Eql;", false);
+
     }
+
+    private MethodAllParam parseParams(Method method) {
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        Annotation[][] paramAnnotations = method.getParameterAnnotations();
+        MethodAllParam methodAllParam = new MethodAllParam();
+
+        for (int i = 0; i < parameterTypes.length; ++i) {
+            MethodParam methodParam = new MethodParam();
+            methodAllParam.addMethodParam(methodParam);
+
+            methodParam.setParamIndex(i);
+            methodParam.setParamType(parameterTypes[i]);
+            methodParam.setParamAnnotations(paramAnnotations[i]);
+        }
+
+        methodAllParam.compute();
+
+        return methodAllParam;
+    }
+
 
     private void visitIntInsn(int i) {
         if (i <= 5) mv.visitInsn(ICONST_0 + i);

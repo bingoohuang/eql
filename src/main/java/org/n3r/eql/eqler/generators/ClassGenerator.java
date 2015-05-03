@@ -1,9 +1,12 @@
 package org.n3r.eql.eqler.generators;
 
+import org.n3r.eql.eqler.annotations.Diagnose;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Method;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -22,7 +25,26 @@ public class ClassGenerator<T> {
 
     public Class<? extends T> generate() {
         byte[] bytes = createEqlImplClassBytes();
+
+        diagnose(bytes);
+
         return defineClass(bytes);
+    }
+
+    private void diagnose(byte[] bytes) {
+        if (eqlerClass.isAnnotationPresent(Diagnose.class)) {
+            writeClassFile4Diagnose(bytes, eqlerClass.getSimpleName() + "Impl.class");
+        }
+    }
+
+    private void writeClassFile4Diagnose(byte[] bytes, String fileName) {
+        try {
+            FileOutputStream fos = new FileOutputStream(fileName);
+            fos.write(bytes);
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private Class<? extends T> defineClass(byte[] bytes) {

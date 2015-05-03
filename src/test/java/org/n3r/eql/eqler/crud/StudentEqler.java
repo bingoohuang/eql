@@ -1,14 +1,14 @@
 package org.n3r.eql.eqler.crud;
 
-import org.n3r.eql.eqler.annotations.EqlConfig;
-import org.n3r.eql.eqler.annotations.NamedParam;
+import org.n3r.eql.eqler.annotations.EqlerConfig;
+import org.n3r.eql.eqler.annotations.Param;
 import org.n3r.eql.eqler.annotations.Sql;
 import org.n3r.eql.eqler.annotations.SqlId;
 
 import java.util.List;
 import java.util.Map;
 
-@EqlConfig("me")
+@EqlerConfig("me")
 public interface StudentEqler {
     void prepareData();
 
@@ -18,7 +18,7 @@ public interface StudentEqler {
     int addStudent(Student student);
 
     @Sql("insert into eql_student values(#a#, #b#, #c#)")
-    int addStudentAnotherWay(@NamedParam("a") int studentId, @NamedParam("b") String name, @NamedParam("c") int age);
+    int addStudentAnotherWay(@Param("a") int studentId, @Param("b") String name, @Param("c") int age);
 
     @Sql("select * from eql_student")
     List<Student> queryAllStudents();

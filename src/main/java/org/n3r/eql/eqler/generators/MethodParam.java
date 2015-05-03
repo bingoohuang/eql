@@ -1,15 +1,45 @@
 package org.n3r.eql.eqler.generators;
 
+import org.n3r.eql.eqler.annotations.Dynamic;
+import org.n3r.eql.eqler.annotations.Param;
+
+import java.lang.annotation.Annotation;
+
 public class MethodParam {
+    private int paramIndex;
+    private Class<?> paramType;
+    private Param param;
+    private Dynamic dynamic;
+    private int seqParamIndex = -1;
+    private int seqDynamicIndex = -1;
+    private Annotation[] paramAnnotations;
 
-    private final int paramIndex;
-    private final Class<?> paramType;
-    private final boolean normal;
+    public Annotation[] getParamAnnotations() {
+        return paramAnnotations;
+    }
 
-    public MethodParam(int paramIndex, Class<?> paramType, boolean normal) {
+    public Param getParam() {
+        return param;
+    }
+
+    private void setParam(Param param) {
+        this.param = param;
+    }
+
+    public Dynamic getDynamic() {
+        return dynamic;
+    }
+
+    private void setDynamic(Dynamic dynamic) {
+        this.dynamic = dynamic;
+    }
+
+    public void setParamIndex(int paramIndex) {
         this.paramIndex = paramIndex;
+    }
+
+    public void setParamType(Class<?> paramType) {
         this.paramType = paramType;
-        this.normal = normal;
     }
 
     public Class<?> getParamType() {
@@ -20,8 +50,33 @@ public class MethodParam {
         return paramIndex;
     }
 
+    public int getSeqParamIndex() {
+        return seqParamIndex;
+    }
 
-    public boolean isNormal() {
-        return normal;
+    public int getSeqDynamicIndex() {
+        return seqDynamicIndex;
+    }
+
+    public void setSeqParamIndex(int seqParamIndex) {
+        this.seqParamIndex = seqParamIndex;
+    }
+
+    public void setSeqDynamicIndex(int seqDynamicIndex) {
+        this.seqDynamicIndex = seqDynamicIndex;
+    }
+
+    public void setParamAnnotations(Annotation[] paramAnnotations) {
+        this.paramAnnotations = paramAnnotations;
+        setParam(findAnnotation(paramAnnotations, Param.class));
+        setDynamic(findAnnotation(paramAnnotations, Dynamic.class));
+    }
+
+    private <T extends Annotation> T findAnnotation(Annotation[] paramAnnotations, Class<T> annotationType) {
+        for (Annotation paramAnnotation : paramAnnotations) {
+            if (annotationType.isInstance(paramAnnotation)) return (T) paramAnnotation;
+        }
+
+        return null;
     }
 }
