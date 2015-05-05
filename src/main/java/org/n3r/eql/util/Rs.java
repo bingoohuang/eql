@@ -7,11 +7,14 @@ import java.math.BigDecimal;
 import java.sql.*;
 
 public class Rs {
-
-    public static String lookupColumnName(ResultSetMetaData resultSetMetaData, int columnIndex) throws SQLException {
-        String name = resultSetMetaData.getColumnLabel(columnIndex);
-        if (name == null || name.length() < 1) name = resultSetMetaData.getColumnName(columnIndex);
-        return name;
+    public static String lookupColumnName(ResultSetMetaData resultSetMetaData, int columnIndex) {
+        try {
+            String name = resultSetMetaData.getColumnLabel(columnIndex);
+            if (name == null || name.length() < 1) name = resultSetMetaData.getColumnName(columnIndex);
+            return name;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static Object getResultSetValue(RsAware rs, int index) {
