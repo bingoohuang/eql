@@ -2,11 +2,11 @@
 <configuration>
     <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] tenantId=%X{tenantId} %-5level %logger %msg%n</pattern>
         </encoder>
     </appender>
 
-    <root level="WARN">
+    <root level="DEBUG">
         <appender-ref ref="Console"/>
     </root>
 
