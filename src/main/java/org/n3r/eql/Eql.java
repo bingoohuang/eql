@@ -180,8 +180,8 @@ public class Eql {
         } catch (Throwable e) {
             if (!isAllSelect) tranRollback();
             logger.error("exception", e);
-            throw new EqlExecuteException("exec sql failed["
-                    + currRun.getPrintSql() + "]" + e.getMessage());
+            if (currRun != null) throw new EqlExecuteException("exec sql failed[" + currRun.getPrintSql() + "]" + e.getMessage());
+            else throw new EqlExecuteException(e);
         } finally {
             resetState();
             close();
@@ -572,7 +572,7 @@ public class Eql {
         if (batch != null) return;
         if (externalTran != null) return;
 
-        internalTran.rollback();
+        if(internalTran != null) internalTran.rollback();
     }
 
     private void tranClose() {
