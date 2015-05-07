@@ -7,32 +7,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class EqlTransactionManager {
+    static ThreadLocal<Map<EqlConfig, EqlTran>> eqlTranLocal = new ThreadLocal<Map<EqlConfig, EqlTran>>();
 
-    private static final String USE_LOCAL_TRANSACTION = "useThreadLocalTransaction";
+    public static EqlTran getTran(EqlConfig eqlConfig) {
+        return eqlTranLocal.get().get(eqlConfig);
+    }
 
-    static ThreadLocal<Map<Object, Object>> eqlTranLocal = new ThreadLocal<Map<Object, Object>>() {
-        @Override
-        protected Map<Object, Object> initialValue() {
-            Map<Object, Object> tranLocalMap = new HashMap<Object, Object>();
-            tranLocalMap.put(USE_LOCAL_TRANSACTION, false);
-            return tranLocalMap;
-        }
-    };
+    public static void setTran(EqlConfig eqlConfig, EqlTran eqlTran) {
+        Map<EqlConfig, EqlTran> eqlTranMap = eqlTranLocal.get();
+        if (eqlTranMap == null) throw new RuntimeException("transaction not started");
 
+        EqlTran oldEqlTran = eqlTranMap.get(eqlConfig);
+        if (oldEqlTran != null) throw new RuntimeException("transaction already exists");
 
-    public static void set(EqlConfig eqlConfig, EqlTran eqlTran) {
-        Map<Object, Object> eqlTranMap = eqlTranLocal.get();
-        if (eqlTranMap.get(eqlConfig) != null) return;
         eqlTranMap.put(eqlConfig, eqlTran);
     }
 
-    public static boolean checkLocalTranEnabled() {
-        return (Boolean) eqlTranLocal.get().get(USE_LOCAL_TRANSACTION);
+    public static boolean isEqlTransactionEnabled() {
+        return eqlTranLocal.get() != null;
     }
 
-    public static EqlTran getTran(EqlConfig eqlConfig) {
-        return (EqlTran) eqlTranLocal.get().get(eqlConfig);
-    }
 
     public static void commit() {
         for (Object localValue : eqlTranLocal.get().values()) {
@@ -48,13 +42,16 @@ public class EqlTransactionManager {
         }
     }
 
+    public static void start() {
+        Map<EqlConfig, EqlTran> map = eqlTranLocal.get();
+        if (map != null) throw new RuntimeException("already started");
+
+        eqlTranLocal.set(new HashMap<EqlConfig, EqlTran>());
+    }
 
     public static void clear() {
         eqlTranLocal.remove();
     }
 
-    public static void start() {
-        eqlTranLocal.get().put(USE_LOCAL_TRANSACTION, true);
-    }
 
 }

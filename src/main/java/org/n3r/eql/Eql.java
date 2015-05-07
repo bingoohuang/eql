@@ -557,12 +557,12 @@ public class Eql {
         if (batch != null) return;
         if (externalTran != null) return;
         if (internalTran != null) return;
-        if (EqlTransactionManager.checkLocalTranEnabled()) {
+        if (EqlTransactionManager.isEqlTransactionEnabled()) {
             externalTran = EqlTransactionManager.getTran(eqlConfig);
             if (externalTran != null) return;
 
             externalTran = newTran(eqlConfig);
-            EqlTransactionManager.set(eqlConfig, externalTran);
+            EqlTransactionManager.setTran(eqlConfig, externalTran);
             return;
         }
 

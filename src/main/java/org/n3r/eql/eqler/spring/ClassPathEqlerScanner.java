@@ -1,14 +1,19 @@
 package org.n3r.eql.eqler.spring;
 
 import org.n3r.eql.eqler.annotations.Eqler;
+import org.n3r.eql.eqler.annotations.EqlerConfig;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
+import org.springframework.core.type.classreading.MetadataReader;
+import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.core.type.filter.TypeFilter;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -23,7 +28,14 @@ public class ClassPathEqlerScanner extends ClassPathBeanDefinitionScanner {
      * those annotated with the annotationClass
      */
     public void registerFilters() {
+        addExcludeFilter(new TypeFilter() {
+            @Override
+            public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory) throws IOException {
+                return !metadataReader.getClassMetadata().isInterface();
+            }
+        });
         addIncludeFilter(new AnnotationTypeFilter(Eqler.class));
+        addIncludeFilter(new AnnotationTypeFilter(EqlerConfig.class));
     }
 
     /**

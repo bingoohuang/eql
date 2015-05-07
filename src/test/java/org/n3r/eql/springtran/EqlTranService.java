@@ -1,46 +1,42 @@
-package org.n3r.eql.springtran.service;
+package org.n3r.eql.springtran;
 
-import org.n3r.eql.springtran.dao.TestDao;
+import org.n3r.eql.springtran.EqlTranEqler;
 import org.n3r.eql.trans.spring.annotation.EqlTranactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * Created by liolay on 15-5-5.
- */
+
 @Service
-public class TestService {
+public class EqlTranService {
     @Autowired
-    private TestDao testDao;
+    private EqlTranEqler eqlTranEqler;
 
     @EqlTranactional
     public void addWithTranError() {
-        testDao.addOneRecord("a");
-        testDao.addOneRecord("b");
+        eqlTranEqler.addOneRecord("a");
+        eqlTranEqler.addOneRecord("b");
         int i = 1 / 0;
-
     }
 
     @EqlTranactional
     public void addWithTranSuccess() {
-        testDao.addOneRecord("a");
-        testDao.addOneRecord("b");
+        eqlTranEqler.addOneRecord("a");
+        eqlTranEqler.addOneRecord("b");
 
     }
 
     public void addWithoutTran() {
-        testDao.addOneRecord("a");
-        testDao.addOneRecord("b");
+        eqlTranEqler.addOneRecord("a");
+        eqlTranEqler.addOneRecord("b");
         int i = 1 / 0;
     }
 
     public int queryDataCount() {
-        return testDao.queryRecordCounts();
+        return eqlTranEqler.queryRecordCounts();
     }
 
     public void prepareData() {
-        testDao.prepareData();
+        eqlTranEqler.prepareData();
     }
-
 
 }

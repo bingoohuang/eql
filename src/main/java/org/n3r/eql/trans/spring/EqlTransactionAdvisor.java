@@ -9,9 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Method;
 
-/**
- * Created by liolay on 15-5-7.
- */
 public class EqlTransactionAdvisor extends AbstractPointcutAdvisor {
     final StaticMethodMatcherPointcut pointcut = new StaticMethodMatcherPointcut() {
 
