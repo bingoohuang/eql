@@ -13,9 +13,7 @@ public @interface EqlerScan {
 
     /**
      * Alias for the {@link #basePackages()} attribute. Allows for more concise
-     * annotation declarations e.g.:
-     * {@code @EnableMyBatisMapperScanner("org.my.pkg")} instead of {@code
-     * @EnableMyBatisMapperScanner(basePackages= "org.my.pkg"})}.
+     * annotation declarations.
      */
     String[] value() default {};
 
