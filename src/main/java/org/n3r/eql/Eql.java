@@ -15,6 +15,7 @@ import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.map.EqlType;
 import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
+import org.n3r.eql.trans.spring.EqlTransactionManager;
 import org.n3r.eql.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -556,6 +557,14 @@ public class Eql {
         if (batch != null) return;
         if (externalTran != null) return;
         if (internalTran != null) return;
+        if (EqlTransactionManager.checkLocalTranEnabled()) {
+            externalTran = EqlTransactionManager.getTran(eqlConfig);
+            if (externalTran != null) return;
+
+            externalTran = newTran(eqlConfig);
+            EqlTransactionManager.set(eqlConfig, externalTran);
+            return;
+        }
 
         internalTran = newTran(eqlConfig);
         internalTran.start();
