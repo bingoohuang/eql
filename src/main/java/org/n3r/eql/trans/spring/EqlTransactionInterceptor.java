@@ -15,7 +15,7 @@ public class EqlTransactionInterceptor implements MethodInterceptor {
             EqlTransactionManager.rollback();
             throw throwable;
         } finally {
-            EqlTransactionManager.clear();
+            EqlTransactionManager.end();
         }
     }
 }

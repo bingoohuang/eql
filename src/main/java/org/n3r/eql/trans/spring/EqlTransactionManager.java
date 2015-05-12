@@ -29,16 +29,14 @@ public class EqlTransactionManager {
 
 
     public static void commit() {
-        for (Object localValue : eqlTranLocal.get().values()) {
-            if (!(localValue instanceof EqlTran)) continue;
-            ((EqlTran) localValue).commit();
+        for (EqlTran eqlTran : eqlTranLocal.get().values()) {
+            eqlTran.commit();
         }
     }
 
     public static void rollback() {
-        for (Object localValue : eqlTranLocal.get().values()) {
-            if (!(localValue instanceof EqlTran)) continue;
-            ((EqlTran) localValue).rollback();
+        for (EqlTran eqlTran : eqlTranLocal.get().values()) {
+            eqlTran.rollback();
         }
     }
 
@@ -49,9 +47,11 @@ public class EqlTransactionManager {
         eqlTranLocal.set(new HashMap<EqlConfig, EqlTran>());
     }
 
-    public static void clear() {
+    public static void end() {
+        for (EqlTran eqlTran : eqlTranLocal.get().values()) {
+            eqlTran.close();
+        }
+
         eqlTranLocal.remove();
     }
-
-
 }
