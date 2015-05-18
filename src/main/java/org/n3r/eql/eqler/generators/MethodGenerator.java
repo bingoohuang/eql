@@ -2,6 +2,7 @@ package org.n3r.eql.eqler.generators;
 
 import org.n3r.eql.EqlTranable;
 import org.n3r.eql.eqler.annotations.*;
+import org.n3r.eql.pojo.annotations.EqlId;
 import org.n3r.eql.util.S;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
@@ -304,21 +305,21 @@ public class MethodGenerator<T> {
         if (sqlAnn != null) {
             mv.visitLdcInsn(method.getName());
             mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "tagSqlId", "(Ljava/lang/String;)Lorg/n3r/eql/Eql;", false);
-            ;
         } else {
             SqlId sqlId = method.getAnnotation(SqlId.class);
-            mv.visitLdcInsn(sqlId == null ? method.getName() : sqlId.value());
+            MethodParam paramEqlId = methodAllParam.getParamEqlId();
+            if (paramEqlId == null) {
+                mv.visitLdcInsn(sqlId == null ? method.getName() : sqlId.value());
+            } else {
+                mv.visitVarInsn(ALOAD, paramEqlId.getParamIndex() + 1);
+            }
             mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "id", "(Ljava/lang/String;)Lorg/n3r/eql/Eql;", false);
         }
     }
 
     private <T> void useSqlFile() {
         Sql sqlAnn = method.getAnnotation(Sql.class);
-        if (sqlAnn != null) {
-            mv.visitLdcInsn(Type.getType(eqlerClass));
-            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useSqlFile", "(Ljava/lang/Class;)Lorg/n3r/eql/Eql;", false);
-            return;
-        }
+        if (sqlAnn != null) return;
 
         UseSqlFile useSqlFile = method.getAnnotation(UseSqlFile.class);
         if (useSqlFile == null) useSqlFile = classUseSqlFile;
@@ -357,7 +358,7 @@ public class MethodGenerator<T> {
         mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
 
         int index = 0;
-        for (int i = 0, incrs = 0; i < methodAllParam.getMethodParamsCount(); ++i) {
+        for (int i = 0, incrs = 0; i < methodAllParam.getParamsSize(); ++i) {
             MethodParam methodParam = methodAllParam.getMethodParam(i);
             if (methodParam.getSeqParamIndex() < 0) continue;
 
@@ -390,7 +391,7 @@ public class MethodGenerator<T> {
         mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
 
         int index = 0;
-        for (int i = 0, incrs = 0; i < methodAllParam.getMethodParamsCount(); ++i) {
+        for (int i = 0, incrs = 0; i < methodAllParam.getParamsSize(); ++i) {
             MethodParam methodParam = methodAllParam.getMethodParam(i);
             if (methodParam.getSeqDynamicIndex() < 0) continue;
 
@@ -418,6 +419,7 @@ public class MethodGenerator<T> {
             methodParam.setParamAnnotations(paramAnnotations[i]);
         }
 
+        methodAllParam.setMethodEqlId(method.getAnnotation(EqlId.class));
         methodAllParam.compute();
 
         return methodAllParam;

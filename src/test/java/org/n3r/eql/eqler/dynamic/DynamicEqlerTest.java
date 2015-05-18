@@ -30,10 +30,18 @@ public class DynamicEqlerTest {
 
     @Test
     public void echoNamed() {
-        Map<String, String> echo = eqler.echoNamed("bingoo", "huang");
+        Map<String, String> echo = eqler.echoNamed("bingoo", "huang", "echoNamed");
         assertThat(echo.size(), is(2));
         assertThat(echo.get("hello"), is(equalTo("bingoo")));
         assertThat(echo.get("world"), is(equalTo("huang")));
+    }
+
+    @Test
+    public void echoNamedWithSqlId() {
+        Map<String, String> echo = eqler.echoNamedWithSqlId("bingoo", "huang", "echoNamed");
+        assertThat(echo.size(), is(2));
+        assertThat(echo.get("hello1"), is(equalTo("bingoo")));
+        assertThat(echo.get("world1"), is(equalTo("huang")));
     }
 
     @Test

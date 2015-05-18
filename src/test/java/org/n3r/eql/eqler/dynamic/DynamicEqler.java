@@ -15,7 +15,9 @@ public interface DynamicEqler {
     Map<String, String> echoShared(@Dynamic(sole = false) String hello, String world);
 
     @Sql("select '$hello$' as hello, #world# as world")
-    Map<String, String> echoNamed(@Dynamic(name = "hello") String hello, @Param("world") String world);
+    Map<String, String> echoNamed(@Dynamic(name = "hello") String hello, @Param("world") String world, @SqlId String id);
+
+    Map<String, String> echoNamedWithSqlId(@Dynamic(name = "hello") String hello, @Param("world") String world, @SqlId String id);
 
     @Sql("select '$hello$' as hello, #hello# as shared, #world# as world")
     Map<String, String> echoShareNamed( @Param("hello")

@@ -20,8 +20,9 @@ public class Rs {
     public static Object getResultSetValue(RsAware rs, int index) {
         try {
             Object obj = rs.getObject(index);
-            String className = null;
-            if (obj != null) className = obj.getClass().getName();
+            if (obj == null) return null;
+
+            String className = obj.getClass().getName();
             if (obj instanceof Blob) obj = rs.getBytes(index);
             else if (obj instanceof Clob) obj = rs.getString(index);
             else if (className != null &&

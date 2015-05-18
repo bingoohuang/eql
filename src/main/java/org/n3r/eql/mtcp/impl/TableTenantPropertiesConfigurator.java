@@ -2,6 +2,7 @@ package org.n3r.eql.mtcp.impl;
 
 import com.google.common.collect.Maps;
 import org.n3r.eql.Eql;
+import org.n3r.eql.diamond.Dql;
 import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.mtcp.TenantPropertiesConfigurator;
 import org.n3r.eql.mtcp.utils.Mtcps;
@@ -30,8 +31,10 @@ public class TableTenantPropertiesConfigurator implements TenantPropertiesConfig
     public void applyParams(String[] params) {
         String eqlConfigName = params[0];
         String tenantPropsTable = params[1];
+        boolean dql = params.length >= 3 && "Dql".equalsIgnoreCase(params[2]);
 
-        new Eql(eqlConfigName).returnType(new EqlRowMapper() {
+        Eql eql = dql ? new Dql(eqlConfigName) : new Eql(eqlConfigName);
+        eql.returnType(new EqlRowMapper() {
             @Override
             public Object mapRow(ResultSet rs, int rowNum, boolean isSingleColumn) throws SQLException {
                 Map<String, String> tenantProperties = Maps.newHashMap();

@@ -4,6 +4,7 @@ import org.n3r.eql.Eql;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.eqler.annotations.Dynamic;
 import org.n3r.eql.eqler.annotations.Param;
+import org.n3r.eql.eqler.annotations.SqlId;
 
 import java.util.Map;
 
@@ -18,8 +19,12 @@ public class DynamicEqlerDemo implements DynamicEqler {
         return null;
     }
 
+    public Map<String, String> echoNamed(@Dynamic(name = "hello") String hello, @Param("world") String world, @SqlId String id) {
+        return new Eql().id(id).execute();
+    }
+
     @Override
-    public Map<String, String> echoNamed(@Dynamic(name = "hello") String hello, @Param("world") String world) {
+    public Map<String, String> echoNamedWithSqlId(@Dynamic(name = "hello") String hello, @Param("world") String world, @SqlId String id) {
         return null;
     }
 

@@ -1,12 +1,13 @@
 package org.n3r.eql.eqler;
 
 import org.n3r.eql.EqlTran;
+import org.n3r.eql.eqler.annotations.Diagnose;
 import org.n3r.eql.eqler.annotations.EqlerConfig;
 import org.n3r.eql.eqler.annotations.Eqler;
 import org.n3r.eql.eqler.annotations.Sql;
 import org.n3r.eql.impl.EqlBatch;
 
-@Eqler
+@Diagnose
 @EqlerConfig("mysql")
 public interface TranBatchEqler {
     @Sql({

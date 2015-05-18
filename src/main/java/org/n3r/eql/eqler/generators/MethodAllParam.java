@@ -6,7 +6,9 @@ import org.n3r.eql.EqlTran;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.eqler.annotations.Dynamic;
 import org.n3r.eql.eqler.annotations.Param;
+import org.n3r.eql.eqler.annotations.SqlId;
 import org.n3r.eql.impl.EqlBatch;
+import org.n3r.eql.pojo.annotations.EqlId;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -19,27 +21,27 @@ public class MethodAllParam {
     private int seqDynamicsCount;
     private int namedParamsCount;
     private int namedDynamicCount;
+    private MethodParam paramEqlId;
     private MethodParam eqlTran;
     private MethodParam eqlBatch;
     private MethodParam eqlPage;
     private MethodParam eqlConfig;
-    private int methodParamsCount;
+    private int methodParamsCount = 0;
 
     private int asmLocalVarNamedParamIndex = -1;
     private int asmLocalVarNamedDynamicIndex = -1;
+    private EqlId methodEqlId;
 
     public void compute() {
         for (MethodParam methodParam : methodParams) {
             computeMethodParam(methodParam);
         }
 
-        methodParamsCount = methodParams.size();
-
         if (seqParamsCount > 0 && namedParamsCount > 0)
-            throw new RuntimeException("@NamedParam should be used to annotate parameters all or none");
+            throw new RuntimeException("@Param should be used to annotate parameters all or none");
 
         if (seqDynamicsCount > 0 && namedDynamicCount > 0)
-            throw new RuntimeException("@DynamicParam(name=\"sth.\" should be used to annotate dynamics all or none");
+            throw new RuntimeException("@Dynamic(name=\"sth.\" should be used to annotate dynamics all or none");
 
         if (namedParamsCount > 0) {
             asmLocalVarNamedParamIndex = 1 /* this */ + methodParamsCount + 1 /* named param hashmap */;
@@ -87,17 +89,21 @@ public class MethodAllParam {
     }
 
     private void computeMethodParam(MethodParam methodParam) {
-        MethodParam eqlTranNew = parseNonAnnotationsMethodType(methodParam, EqlTran.class, eqlTran);
+        MethodParam eqlTranNew = parseNonAnnotationsMethodParam(methodParam, EqlTran.class, eqlTran);
         if (eqlTranNew != null) { eqlTran = eqlTranNew; return; }
 
-        MethodParam eqlBatchNew = parseNonAnnotationsMethodType(methodParam, EqlBatch.class, eqlBatch);
+        MethodParam eqlBatchNew = parseNonAnnotationsMethodParam(methodParam, EqlBatch.class, eqlBatch);
         if (eqlBatchNew != null) { eqlBatch = eqlBatchNew; return; }
 
-        MethodParam eqlPageNew = parseNonAnnotationsMethodType(methodParam, EqlPage.class, eqlPage);
+        MethodParam eqlPageNew = parseNonAnnotationsMethodParam(methodParam, EqlPage.class, eqlPage);
         if (eqlPageNew != null) { eqlPage = eqlPageNew; return; }
 
-        MethodParam eqlConfigNew = parseNonAnnotationsMethodType(methodParam, EqlConfig.class, eqlConfig);
+        MethodParam eqlConfigNew = parseNonAnnotationsMethodParam(methodParam, EqlConfig.class, eqlConfig);
         if (eqlConfigNew != null) { eqlConfig = eqlConfigNew; return; }
+
+        if (isSqlIdAnnotated(methodParam)) return;
+
+        ++methodParamsCount;
 
         Param param = methodParam.getParam();
         if (param != null) methodParam.setSeqParamIndex(namedParamsCount++);
@@ -118,7 +124,18 @@ public class MethodAllParam {
         }
     }
 
-    private MethodParam parseNonAnnotationsMethodType(MethodParam methodParam, Class<?> type, MethodParam lastMethodParam) {
+    private boolean isSqlIdAnnotated(MethodParam methodParam) {
+        SqlId paramEqlIdThis = methodParam.getSqlId();
+        if (paramEqlIdThis == null) return false;
+
+        if (methodEqlId != null || paramEqlId != null) throw new RuntimeException("more than one @EqlId defined");
+        if (methodParam.getParamType() != String.class) throw new RuntimeException("bad @EqlId parameter type, required String");
+
+        paramEqlId = methodParam;
+        return true;
+    }
+
+    private MethodParam parseNonAnnotationsMethodParam(MethodParam methodParam, Class<?> type, MethodParam lastMethodParam) {
         if (type.isAssignableFrom(methodParam.getParamType())) {
             checkNull(lastMethodParam, "only one " + type +  " parameter supported");
             checkNonAnnotations(methodParam);
@@ -141,9 +158,6 @@ public class MethodAllParam {
         throw new RuntimeException(msg);
     }
 
-    public List<MethodParam> getMethodParams() {
-        return methodParams;
-    }
 
     public void addMethodParam(MethodParam methodParam) {
         this.methodParams.add(methodParam);
@@ -153,19 +167,24 @@ public class MethodAllParam {
         return seqParamsCount;
     }
 
-    public void setSeqParamsCount(int seqParamsCount) {
-        this.seqParamsCount = seqParamsCount;
-    }
 
     public int getSeqDynamicsCount() {
         return seqDynamicsCount;
     }
 
-    public void setSeqDynamicsCount(int seqDynamicsCount) {
-        this.seqDynamicsCount = seqDynamicsCount;
-    }
-
     public MethodParam getMethodParam(int index) {
         return methodParams.get(index);
+    }
+
+    public void setMethodEqlId(EqlId methodEqlId) {
+        this.methodEqlId = methodEqlId;
+    }
+
+    public MethodParam getParamEqlId() {
+        return paramEqlId;
+    }
+
+    public int getParamsSize() {
+        return methodParams.size();
     }
 }

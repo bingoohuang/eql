@@ -2,6 +2,8 @@ package org.n3r.eql.eqler.generators;
 
 import org.n3r.eql.eqler.annotations.Dynamic;
 import org.n3r.eql.eqler.annotations.Param;
+import org.n3r.eql.eqler.annotations.SqlId;
+import org.n3r.eql.pojo.annotations.EqlId;
 
 import java.lang.annotation.Annotation;
 
@@ -10,6 +12,7 @@ public class MethodParam {
     private Class<?> paramType;
     private Param param;
     private Dynamic dynamic;
+    private SqlId sqlId;
     private int seqParamIndex = -1;
     private int seqDynamicIndex = -1;
     private Annotation[] paramAnnotations;
@@ -70,6 +73,7 @@ public class MethodParam {
         this.paramAnnotations = paramAnnotations;
         setParam(findAnnotation(paramAnnotations, Param.class));
         setDynamic(findAnnotation(paramAnnotations, Dynamic.class));
+        setSqlId(findAnnotation(paramAnnotations, SqlId.class));
     }
 
     private <T extends Annotation> T findAnnotation(Annotation[] paramAnnotations, Class<T> annotationType) {
@@ -78,5 +82,13 @@ public class MethodParam {
         }
 
         return null;
+    }
+
+    public void setSqlId(SqlId sqlId) {
+        this.sqlId = sqlId;
+    }
+
+    public SqlId getSqlId() {
+        return sqlId;
     }
 }
