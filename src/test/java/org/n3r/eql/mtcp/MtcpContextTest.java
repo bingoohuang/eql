@@ -12,7 +12,7 @@ public class MtcpContextTest {
 
         assertThat(MtcpContext.getTenantId(), is(equalTo("T001")));
 
-        MtcpContext.clearTenantId();
+        MtcpContext.clear();
         assertThat(MtcpContext.getTenantId(), is(nullValue()));
     }
 }
