@@ -2,9 +2,6 @@ package org.n3r.eql.parser;
 
 import com.google.common.collect.Maps;
 import org.junit.Test;
-import org.n3r.eql.base.DynamicLanguageDriver;
-import org.n3r.eql.base.EqlResourceLoader;
-import org.n3r.eql.impl.FileEqlResourceLoader;
 import org.n3r.eql.map.EqlRun;
 
 import java.util.ArrayList;

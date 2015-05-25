@@ -24,13 +24,13 @@ insert into diamond.mtcp values(3);
 drop table if exists mtcp_props;
 
 create table mtcp_props(
-  tenant_id varchar(32),
-  host varchar(32),
-  port varchar(32),
-  dbtype varchar(32),
-  dbname varchar(100),
-  username varchar(32),
-  password varchar(32),
+  tenant_id varchar(32) not null,
+  host varchar(32) not null,
+  port varchar(32) not null,
+  dbtype varchar(32) not null,
+  dbname varchar(100) not null,
+  username varchar(32) not null,
+  password varchar(32) not null,
   primary key(tenant_id));
 
 insert into mtcp_props(tenant_id, host, port, dbtype, dbname, username, password)

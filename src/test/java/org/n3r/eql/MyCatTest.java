@@ -4,7 +4,6 @@ import com.google.common.collect.Maps;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.n3r.eql.util.C;
-import org.n3r.eql.util.EqlUtils;
 
 import java.util.List;
 import java.util.Map;

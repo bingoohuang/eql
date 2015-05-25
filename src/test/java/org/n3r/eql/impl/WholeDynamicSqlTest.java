@@ -4,9 +4,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.n3r.eql.Eql;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 
 public class WholeDynamicSqlTest {

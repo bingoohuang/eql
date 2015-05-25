@@ -1,6 +1,5 @@
 package org.n3r.eql.springtran;
 
-import org.n3r.eql.springtran.EqlTranEqler;
 import org.n3r.eql.trans.spring.annotation.EqlTranactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

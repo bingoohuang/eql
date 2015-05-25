@@ -1,12 +1,12 @@
 package org.n3r.eql.hive;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.n3r.eql.Eql;
 import org.n3r.eql.map.EqlRowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import org.junit.Ignore;
 
 public class HiveTest {
     @Test

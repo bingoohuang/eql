@@ -1,7 +1,5 @@
 package org.n3r.eql.eqler;
 
-import java.util.Date;
-
 public class Employee {
     private long empid;
     private String firstName;

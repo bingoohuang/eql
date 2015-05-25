@@ -5,7 +5,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
-import org.n3r.eql.ex.EqlConfigException;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.joor.ReflectException;

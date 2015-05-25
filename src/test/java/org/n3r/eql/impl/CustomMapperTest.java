@@ -3,7 +3,6 @@ package org.n3r.eql.impl;
 import org.junit.Before;
 import org.junit.Test;
 import org.n3r.eql.Eql;
-import org.n3r.eql.map.EqlRowMapper;
 
 import java.util.Map;
 

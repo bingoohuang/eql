@@ -3,7 +3,6 @@ package org.n3r.eql.parser;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.EqlUtils;
 
-import java.util.Collection;
 import java.util.Iterator;
 
 public class InPart implements EqlPart {

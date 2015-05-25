@@ -1,6 +1,5 @@
 package org.n3r.eql.impl;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.n3r.eql.base.AfterPropertiesSet;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.map.*;

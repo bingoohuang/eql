@@ -34,7 +34,7 @@ public class MatrixSqlParser {
         if (visitor != null) {
             visitor.ruleSet = ruleSet;
             stmt.accept(visitor);
-            if (visitor.sqlFieldIndexes.length > 0) {
+            if (visitor.sqlFieldIndexes != null && visitor.sqlFieldIndexes.length > 0) {
                 return new DefaultMatrixSqlParseResult(ruleSet, visitor.sqlFieldIndexes);
             }
         }

@@ -3,7 +3,6 @@ package org.n3r.eql.eqler.generators;
 import org.n3r.eql.eqler.annotations.Dynamic;
 import org.n3r.eql.eqler.annotations.Param;
 import org.n3r.eql.eqler.annotations.SqlId;
-import org.n3r.eql.pojo.annotations.EqlId;
 
 import java.lang.annotation.Annotation;
 

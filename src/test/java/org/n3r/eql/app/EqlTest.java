@@ -1,12 +1,12 @@
 package org.n3r.eql.app;
 
 
+import org.junit.Test;
+import org.n3r.eql.Eql;
+
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
-
-import org.junit.Test;
-import org.n3r.eql.Eql;
 
 public class EqlTest {
 

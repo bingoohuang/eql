@@ -1,9 +1,9 @@
 package org.n3r.eql.map;
 
-import java.util.List;
-
 import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.PlaceholderType;
+
+import java.util.List;
 
 public class EqlDynamic {
     private List<String> sqlPieces;

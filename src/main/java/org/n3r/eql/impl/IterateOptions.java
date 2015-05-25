@@ -4,7 +4,6 @@ import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.parser.EqlBlock;
 
-import java.util.Collection;
 import java.util.List;
 
 public class IterateOptions {

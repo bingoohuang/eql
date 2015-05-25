@@ -127,16 +127,20 @@ public class Eql {
 
         if (directSqls.length > 0) eqlBlock = new EqlBlock();
 
-        List<EqlRun> runs = eqlBlock.createEqlRuns(tagSqlId, eqlConfig,
-                execContext, params, dynamics, directSqls);
+        eqlRuns = eqlBlock.createEqlRuns(tagSqlId, eqlConfig, execContext, params, dynamics, directSqls);
 
-        if (logger.isDebugEnabled()) {
-            for (EqlRun run : runs) {
-                logger.debug(run.getPrintSql());
-            }
+        IterateOptions.checkIterateOption(eqlBlock, eqlRuns, params);
+
+        for (EqlRun eqlRun : eqlRuns) {
+            currRun = eqlRun;
+            if (S.isBlank(currRun.getRunSql())) continue;
+
+            new EqlParamsBinder().prepareBindParams(eqlBlock.hasIterateOption(), currRun);
+
+            currRun.bindParamsForEvaluation(sqlClassPath);
         }
 
-        return runs;
+        return eqlRuns;
     }
 
     @SuppressWarnings("unchecked")

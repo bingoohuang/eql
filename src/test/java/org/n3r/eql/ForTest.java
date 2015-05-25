@@ -4,9 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.n3r.eql.diamond.Dql;
 import org.n3r.eql.map.EqlRun;
 
 import java.sql.Timestamp;

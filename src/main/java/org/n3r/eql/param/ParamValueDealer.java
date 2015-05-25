@@ -4,7 +4,6 @@ import org.n3r.eql.util.S;
 
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.List;
 
 public class ParamValueDealer {
     private EqlParamPlaceholder placeHolder;

@@ -2,3 +2,12 @@
 select 'x' from EQL_TEST
 -- iff _1 != 'none'
 where 'some' = ##
+
+
+-- [test2]
+select 'x' from EQL_TEST
+where 'some' = ##
+
+-- [test3]
+select 'x' from EQL_TEST
+

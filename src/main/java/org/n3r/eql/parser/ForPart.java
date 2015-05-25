@@ -1,11 +1,9 @@
 package org.n3r.eql.parser;
 
-import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.util.S;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;

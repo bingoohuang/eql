@@ -45,6 +45,9 @@ public class EqlRun implements Cloneable {
         this.boundParams = boundParams;
     }
 
+    public void bindParamsForEvaluation(String sqlClassPath) {
+        createEvalSql(-1, sqlClassPath, eqlConfig, tagSqlId, boundParams.toString());
+    }
 
     public void bindParams(PreparedStatement ps, String sqlClassPath) {
         try {
@@ -58,15 +61,7 @@ public class EqlRun implements Cloneable {
             throw new EqlExecuteException(e);
         }
 
-        String sqlId = getSqlId();
-        Logger logger = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "params");
-        if (boundParams != null && boundParams.size() > 0 && logger.isDebugEnabled()) {
-            logger.debug(boundParams.toString());
-            this.evalSql = parseEvalSql(-1);
-
-            Logger evalLogger = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "eval");
-            evalLogger.debug(this.evalSql);
-        }
+        createEvalSql(-1, sqlClassPath, eqlConfig, tagSqlId, boundParams.toString());
     }
 
     public void bindBatchParams(PreparedStatement ps, int index, String sqlClassPath) {
@@ -78,13 +73,24 @@ public class EqlRun implements Cloneable {
             throw new EqlExecuteException(e);
         }
 
-        String sqlId = getSqlId();
-        Logger logger = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "params");
-        if (boundParams != null && boundParams.size() > 0 && logger.isDebugEnabled()) {
-            logger.debug(batchParamsString(boundParams, index));
-            this.evalSql = parseEvalSql(index);
-            Logger evalLogger = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "eval");
-            evalLogger.debug(this.evalSql);
+        createEvalSql(index, sqlClassPath, eqlConfig, tagSqlId, batchParamsString(boundParams, index));
+    }
+
+    private void createEvalSql(int index, String sqlClassPath, EqlConfigDecorator eqlConfig,
+                               String tagSqlId, String msg) {
+        if (boundParams != null && boundParams.size() > 0) {
+            Logger logger = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "params");
+            logger.debug(msg);
+        }
+
+        if (boundParams != null && boundParams.size() > 0) {
+            Logger evalLogger = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "eval");
+            if (evalLogger.isDebugEnabled()) {
+                this.evalSql = parseEvalSql(index);
+                evalLogger.debug(this.evalSql);
+            }
+        } else {
+            this.evalSql = evalSqlTemplate;
         }
     }
 
