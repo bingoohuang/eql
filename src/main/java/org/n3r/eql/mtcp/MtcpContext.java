@@ -24,9 +24,13 @@ public class MtcpContext {
     }
 
     public static void clear() {
-        MDC.remove(tenantIdLocal.get());
-        MDC.remove(tenantCodeLocal.get());
+        String tenantId = getTenantId();
+        if (tenantId != null) MDC.remove(tenantId);
         tenantIdLocal.remove();
+
+
+        String tenantCode = tenantCodeLocal.get();
+        if (tenantCode != null) MDC.remove(tenantCode);
         tenantCodeLocal.remove();
     }
 }
