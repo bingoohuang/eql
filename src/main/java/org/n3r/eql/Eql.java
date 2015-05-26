@@ -133,6 +133,8 @@ public class Eql {
 
         for (EqlRun eqlRun : eqlRuns) {
             currRun = eqlRun;
+            currRun.setForEvaluate(true);
+
             if (S.isBlank(currRun.getRunSql())) continue;
 
             new EqlParamsBinder().prepareBindParams(eqlBlock.hasIterateOption(), currRun);

@@ -30,6 +30,7 @@ public class EqlRun implements Cloneable {
     private EqlDynamic evalEqlDynamic;
     private boolean iterateOption;
     private String tagSqlId;
+    private boolean forEvaluate;
 
     public void addRealParam(int index, Object value) {
         realParams.add(Pair.of(index, value));
@@ -78,17 +79,17 @@ public class EqlRun implements Cloneable {
 
     private void createEvalSql(int index, String sqlClassPath, EqlConfigDecorator eqlConfig,
                                String tagSqlId, String msg) {
-        if (boundParams != null && boundParams.size() > 0) {
+        boolean hasBoundParams = boundParams != null && boundParams.size() > 0;
+
+        if (hasBoundParams) {
             Logger logger = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "params");
             logger.debug(msg);
         }
 
-        if (boundParams != null && boundParams.size() > 0) {
+        if (hasBoundParams) {
             Logger evalLogger = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "eval");
-            if (evalLogger.isDebugEnabled()) {
-                this.evalSql = parseEvalSql(index);
-                evalLogger.debug(this.evalSql);
-            }
+            if (isForEvaluate() || evalLogger.isDebugEnabled()) this.evalSql = parseEvalSql(index);
+            evalLogger.debug(this.evalSql);
         } else {
             this.evalSql = evalSqlTemplate;
         }
@@ -400,5 +401,13 @@ public class EqlRun implements Cloneable {
 
     public String getTagSqlId() {
         return tagSqlId;
+    }
+
+    public void setForEvaluate(boolean forEvaluate) {
+        this.forEvaluate = forEvaluate;
+    }
+
+    public boolean isForEvaluate() {
+        return forEvaluate;
     }
 }

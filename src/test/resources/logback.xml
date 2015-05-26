@@ -14,5 +14,9 @@
         <appender-ref ref="Console"/>
     </logger>
 
+    <logger name="eql.org.n3r.eql.SimpleInDynamicCondition" level="INFO" additivity="false">
+        <appender-ref ref="Console"/>
+    </logger>
+
 </configuration>
 
