@@ -51,6 +51,12 @@ public class EqlerScannerRegistrar implements ImportBeanDefinitionRegistrar, Res
         for (Class<?> clazz : annoAttrs.getClassArray("basePackageClasses")) {
             basePackages.add(ClassUtils.getPackageName(clazz));
         }
+
+        if (basePackages.isEmpty()) {
+            String className = importingClassMetadata.getClassName();
+            basePackages.add(ClassUtils.getPackageName(className));
+        }
+
         scanner.registerFilters();
         scanner.doScan(StringUtils.toStringArray(basePackages));
     }
