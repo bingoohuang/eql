@@ -4,9 +4,12 @@ import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.expr.*;
 import com.alibaba.druid.sql.ast.statement.*;
-import com.alibaba.druid.sql.dialect.oracle.ast.stmt.*;
-import com.alibaba.druid.sql.dialect.oracle.parser.OracleStatementParser;
-import com.alibaba.druid.sql.dialect.oracle.visitor.OracleASTVisitorAdapter;
+import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlDeleteStatement;
+import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlInsertStatement;
+import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlReplaceStatement;
+import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlUpdateStatement;
+import com.alibaba.druid.sql.dialect.mysql.parser.MySqlStatementParser;
+import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlASTVisitorAdapter;
 import com.alibaba.druid.sql.parser.ParserException;
 import com.alibaba.druid.sql.parser.SQLStatementParser;
 import com.google.common.base.Objects;
@@ -24,8 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
-    private final Logger log = LoggerFactory.getLogger(OracleSensitiveFieldsParser.class);
+public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
+    private final Logger log = LoggerFactory.getLogger(MySqlSensitiveFieldsParser.class);
 
     private final Map<String, Object> aliasTablesMap = Maps.newHashMap();
     private final Set<Integer> secureBindIndices = Sets.newHashSet();
@@ -39,7 +42,7 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     private int variantIndex = 0;
     private final String sql;
 
-    private OracleASTVisitorAdapter adapter = new OracleASTVisitorAdapter() {
+    private MySqlASTVisitorAdapter adapter = new MySqlASTVisitorAdapter() {
 
         @Override
         public boolean visit(SQLVariantRefExpr x) {
@@ -68,25 +71,25 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     // TIPS PART FORMAT: /*** bind(1,2,3) result(1) ***/
     private static Pattern encryptHint = Pattern.compile("\\s*/\\*{3}\\s*(.*?)\\s*\\*{3}/");
 
-    private static OracleSensitiveFieldsParser tryParseHint(String sql, Set<String> secureFields) {
-        OracleSensitiveFieldsParser fieldsParser = null;
+    private static MySqlSensitiveFieldsParser tryParseHint(String sql, Set<String> secureFields) {
+        MySqlSensitiveFieldsParser fieldsParser = null;
 
         Matcher matcher = encryptHint.matcher(sql);
         if (matcher.find() && matcher.start() == 0) {
             String convertedSql = sql.substring(matcher.end());
             String hint = matcher.group(1);
-            fieldsParser = new OracleSensitiveFieldsParser(secureFields, convertedSql);
+            fieldsParser = new MySqlSensitiveFieldsParser(secureFields, convertedSql);
             fieldsParser.parseHint(hint);
         }
 
         return fieldsParser;
     }
 
-    public static OracleSensitiveFieldsParser parseSql(String sql, Set<String> secureFields) {
-        OracleSensitiveFieldsParser fieldsParser = tryParseHint(sql, secureFields);
+    public static MySqlSensitiveFieldsParser parseSql(String sql, Set<String> secureFields) {
+        MySqlSensitiveFieldsParser fieldsParser = tryParseHint(sql, secureFields);
         if (fieldsParser == null) {
             SQLStatement sqlStatement = parseSql(sql);
-            fieldsParser = new OracleSensitiveFieldsParser(secureFields, sql);
+            fieldsParser = new MySqlSensitiveFieldsParser(secureFields, sql);
             fieldsParser = parseStatement(fieldsParser, sqlStatement);
         }
 
@@ -96,21 +99,19 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     }
 
 
-    private static OracleSensitiveFieldsParser parseStatement(OracleSensitiveFieldsParser parser, SQLStatement sqlStatement) {
+    private static MySqlSensitiveFieldsParser parseStatement(MySqlSensitiveFieldsParser parser, SQLStatement sqlStatement) {
         if (sqlStatement instanceof SQLSelectStatement) {
             parser.parseSelectQuery(((SQLSelectStatement) sqlStatement).getSelect().getQuery());
-        } else if (sqlStatement instanceof OracleDeleteStatement) {
-            parser.parseDelete((OracleDeleteStatement) sqlStatement);
-        } else if (sqlStatement instanceof OracleInsertStatement) {
-            parser.parseInsert((OracleInsertStatement) sqlStatement);
-        } else if (sqlStatement instanceof OracleUpdateStatement) {
-            parser.parseUpdate((OracleUpdateStatement) sqlStatement);
-        } else if (sqlStatement instanceof OracleMergeStatement) {
-            parser.parseMerge((OracleMergeStatement) sqlStatement);
+        } else if (sqlStatement instanceof MySqlDeleteStatement) {
+            parser.parseDelete((MySqlDeleteStatement) sqlStatement);
+        } else if (sqlStatement instanceof MySqlInsertStatement) {
+            parser.parseInsert((MySqlInsertStatement) sqlStatement);
+        } else if (sqlStatement instanceof MySqlReplaceStatement) {
+            parser.parseReplace((MySqlReplaceStatement) sqlStatement);
+        } else if (sqlStatement instanceof MySqlUpdateStatement) {
+            parser.parseUpdate((MySqlUpdateStatement) sqlStatement);
         } else if (sqlStatement instanceof SQLCallStatement) {
             parser.parseCall((SQLCallStatement) sqlStatement);
-        } else if (sqlStatement instanceof OracleMultiInsertStatement) {
-            parser.parseMultiInsert((OracleMultiInsertStatement) sqlStatement);
         }
 
         return parser;
@@ -125,7 +126,7 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     }
 
     private static SQLStatement parseSql(String sql) {
-        SQLStatementParser parser = new OracleStatementParser(sql);
+        SQLStatementParser parser = new MySqlStatementParser(sql);
         List<SQLStatement> stmtList;
         try {
             stmtList = parser.parseStatementList();
@@ -142,7 +143,7 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     private static Splitter indexSplitter = Splitter.on(',').omitEmptyStrings().trimResults();
 
 
-    private OracleSensitiveFieldsParser(Set<String> secureFields, String sql) {
+    private MySqlSensitiveFieldsParser(Set<String> secureFields, String sql) {
         this.secureFields = secureFields;
         this.sql = sql;
     }
@@ -190,7 +191,7 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
         }
     }
 
-    private void parseDelete(OracleDeleteStatement deleteStatement) {
+    private void parseDelete(MySqlDeleteStatement deleteStatement) {
         SQLExprTableSource tableSource = (SQLExprTableSource) deleteStatement.getTableSource();
         if (tableSource.getExpr() instanceof SQLIdentifierExpr)
             addTableAlias(tableSource, (SQLIdentifierExpr) tableSource.getExpr());
@@ -218,31 +219,12 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
         }
     }
 
-    private void parseMerge(OracleMergeStatement mergeStatement) {
-        if (mergeStatement.getInto() instanceof SQLIdentifierExpr) {
-            SQLIdentifierExpr expr = (SQLIdentifierExpr) mergeStatement.getInto();
-            addTableAlias(mergeStatement.getAlias(), expr);
+    private void parseUpdate(MySqlUpdateStatement updateStatement) {
+        SQLTableSource tableSource = updateStatement.getTableSource();
+        if (tableSource instanceof SQLExprTableSource) {
+            SQLExprTableSource ets = (SQLExprTableSource) tableSource;
+            addTableAlias(ets.getAlias(), (SQLIdentifierExpr) ets.getExpr());
         }
-
-        mergeStatement.getOn().accept(adapter);
-
-        OracleMergeStatement.MergeUpdateClause updateClause = mergeStatement.getUpdateClause();
-        if (updateClause != null) {
-            List<SQLUpdateSetItem> items = updateClause.getItems();
-            walkUpdateItems(items);
-        }
-
-        OracleMergeStatement.MergeInsertClause insertClause = mergeStatement.getInsertClause();
-        if (insertClause != null) {
-            List<Integer> secureFieldsIndices = walkInsertColumns(insertClause.getColumns());
-            walkInsertValues(secureFieldsIndices, insertClause.getValues());
-        }
-    }
-
-    private void parseUpdate(OracleUpdateStatement updateStatement) {
-        OracleSelectTableReference tableSource = (OracleSelectTableReference) updateStatement.getTableSource();
-        if (tableSource.getExpr() instanceof SQLIdentifierExpr)
-            addTableAlias(tableSource, (SQLIdentifierExpr) tableSource.getExpr());
 
         List<SQLUpdateSetItem> items = updateStatement.getItems();
         SQLUpdateSetItem item0 = items.get(0);
@@ -316,7 +298,7 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     // only check one situation of right ? like: A.PCARD_CODE = upper(?)
     private void checkOnlyOneAsk(SQLExpr right) {
         final AtomicInteger rightVariantIndex = new AtomicInteger(0);
-        right.accept(new OracleASTVisitorAdapter() {
+        right.accept(new MySqlASTVisitorAdapter() {
             @Override
             public boolean visit(SQLVariantRefExpr x) {
                 rightVariantIndex.incrementAndGet();
@@ -349,13 +331,13 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     private boolean containsInSecureFields(Object tableName, String fieldName) {
         if (tableName instanceof String)
             return containsInSecureFields((String) tableName, fieldName);
-        else if (tableName instanceof OracleSensitiveFieldsParser)
-            return containsInSecureFields((OracleSensitiveFieldsParser) tableName, fieldName);
+        else if (tableName instanceof MySqlSensitiveFieldsParser)
+            return containsInSecureFields((MySqlSensitiveFieldsParser) tableName, fieldName);
 
         return false;
     }
 
-    private boolean containsInSecureFields(OracleSensitiveFieldsParser parser, String fieldName) {
+    private boolean containsInSecureFields(MySqlSensitiveFieldsParser parser, String fieldName) {
         return "*".equals(fieldName)
                 ? !parser.getSecureResultIndices().isEmpty()
                 : parser.inResultLabels(fieldName);
@@ -380,7 +362,7 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     }
 
     private void parseTable(SQLTableSource from) {
-        if (from instanceof OracleSelectTableReference) {
+        if (from instanceof SQLExprTableSource) {
             SQLExprTableSource source = (SQLExprTableSource) from;
 
             if (source.getExpr() instanceof SQLIdentifierExpr)
@@ -394,15 +376,15 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
             // maybe there are binding variants in connection
             SQLExpr conditionOn = joinTableSource.getCondition();
             if (conditionOn != null) conditionOn.accept(adapter);
-        } else if (from instanceof OracleSelectSubqueryTableSource) {
-            OracleSelectSubqueryTableSource tableSource = (OracleSelectSubqueryTableSource) from;
+        } else if (from instanceof SQLSubqueryTableSource) {
+            SQLSubqueryTableSource tableSource = (SQLSubqueryTableSource) from;
             SQLSelectQuery query = tableSource.getSelect().getQuery();
-            OracleSensitiveFieldsParser subParser = createSubQueryParser(query, QueryBelongs.FROM);
+            MySqlSensitiveFieldsParser subParser = createSubQueryParser(query, QueryBelongs.FROM);
             addTableAlias(from, subParser);
         }
     }
 
-    private void addTableAlias(SQLTableSource from, OracleSensitiveFieldsParser subParser) {
+    private void addTableAlias(SQLTableSource from, MySqlSensitiveFieldsParser subParser) {
         addTableAlias(from.getAlias(), subParser);
     }
 
@@ -420,7 +402,7 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     }
 
 
-    private void addTableAlias(String alias, OracleSensitiveFieldsParser subParser) {
+    private void addTableAlias(String alias, MySqlSensitiveFieldsParser subParser) {
         aliasTablesMap.put(alias, subParser);
     }
 
@@ -468,7 +450,7 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
             } else if (item.getExpr() instanceof SQLQueryExpr) {
                 SQLQueryExpr expr = (SQLQueryExpr) item.getExpr();
                 SQLSelectQuery subQuery = expr.getSubQuery().getQuery();
-                OracleSensitiveFieldsParser subParser = createSubQueryParser(subQuery, QueryBelongs.SELECT);
+                MySqlSensitiveFieldsParser subParser = createSubQueryParser(subQuery, QueryBelongs.SELECT);
 
                 if (subParser.inResultIndices(1)) {
                     secureResultIndices.add(itemIndex + 1);
@@ -480,8 +462,8 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     }
 
     private void copyResultIndicesAndLabels(int itemIndex, Object tableName) {
-        if (tableName instanceof OracleSensitiveFieldsParser) {
-            OracleSensitiveFieldsParser parser = (OracleSensitiveFieldsParser) tableName;
+        if (tableName instanceof MySqlSensitiveFieldsParser) {
+            MySqlSensitiveFieldsParser parser = (MySqlSensitiveFieldsParser) tableName;
             for (Integer resultIndex : parser.getSecureResultIndices()) {
                 secureResultIndices.add(resultIndex + itemIndex);
             }
@@ -489,8 +471,8 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
         }
     }
 
-    private OracleSensitiveFieldsParser createSubQueryParser(SQLSelectQuery subQuery, QueryBelongs mode) {
-        OracleSensitiveFieldsParser subParser = new OracleSensitiveFieldsParser(secureFields, sql);
+    private MySqlSensitiveFieldsParser createSubQueryParser(SQLSelectQuery subQuery, QueryBelongs mode) {
+        MySqlSensitiveFieldsParser subParser = new MySqlSensitiveFieldsParser(secureFields, sql);
         subParser.parseSelectQuery(subQuery);
 
         switch (mode) {
@@ -510,14 +492,26 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
         return subParser;
     }
 
+    private void parseReplace(MySqlReplaceStatement x) {
+        SQLExprTableSource tableSource = x.getTableSource();
+        if (tableSource.getExpr() instanceof SQLIdentifierExpr)
+            addTableAlias(tableSource, (SQLIdentifierExpr) tableSource.getExpr());
 
-    private void parseMultiInsert(OracleMultiInsertStatement multiInsertStatement) {
-        List<OracleMultiInsertStatement.Entry> entries = multiInsertStatement.getEntries();
-        for (OracleMultiInsertStatement.Entry entry : entries) {
-            parseInsert((OracleMultiInsertStatement.InsertIntoClause) entry);
+        List<SQLExpr> columns = x.getColumns();
+        List<Integer> secureFieldsIndices = walkInsertColumns(columns);
+
+        List<SQLInsertStatement.ValuesClause> valuesList = x.getValuesList();
+
+        // may be insert ... select ...
+        if (valuesList != null) {
+            for (SQLInsertStatement.ValuesClause valuesClause : valuesList) {
+                walkInsertValues(secureFieldsIndices, valuesClause.getValues());
+            }
+        } else if (x.getQuery() != null) {
+            SQLQueryExpr query = x.getQuery();
+//            parseQuery4Insert(secureFieldsIndices, (SQLSelectQueryBlock) query.gets());
         }
     }
-
 
     private void parseInsert(SQLInsertInto x) {
         SQLExprTableSource tableSource = x.getTableSource();

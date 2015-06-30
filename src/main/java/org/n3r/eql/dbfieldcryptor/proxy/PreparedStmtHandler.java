@@ -32,7 +32,7 @@ class PreparedStmtHandler implements InvocationHandler {
             try {
                 args[1] = args[1] == null ? null : cryptor.encrypt(args[1].toString());
             } catch (Exception e) {
-                logger.warn("Encrypt parameter #{}# error", args[1]);
+                logger.warn("Encrypt parameter #{}# error", args[1], e);
             }
         }
 
