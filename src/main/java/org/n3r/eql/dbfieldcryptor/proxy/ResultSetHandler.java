@@ -33,7 +33,8 @@ public class ResultSetHandler implements InvocationHandler {
         if (O.in(method.getName(), "getString", "getObject")
                 && parser.inResultIndicesOrLabel(args[0])) {
             try {
-                result = cryptor.decrypt(result.toString());
+                String data = result.toString();
+                if (data.length() > 1) result = cryptor.decrypt(data);
             } catch (Exception e) {
                 logger.warn("Decrypt result #{}# error", result);
             }
