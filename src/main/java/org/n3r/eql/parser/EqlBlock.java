@@ -98,7 +98,7 @@ public class EqlBlock {
             if (S.isBlank(sqlStr)) continue;
 
             eqlRuns.add(eqlRun);
-            addEqlRun(eqlRun, sqlStr);
+            addEqlRun(eqlConfig, eqlRun, sqlStr);
             if (eqlRun.getSqlType() == EqlType.SELECT) lastSelectSql = eqlRun;
         }
 
@@ -108,9 +108,9 @@ public class EqlBlock {
     }
 
 
-    private void addEqlRun(EqlRun eqlRun, String sqlStr) {
+    private void addEqlRun(EqlConfigDecorator eqlConfig, EqlRun eqlRun, String sqlStr) {
         EqlParamsParser.parseParams(eqlRun, sqlStr);
-        new DynamicReplacer().replaceDynamics(eqlRun);
+        new DynamicReplacer().replaceDynamics(eqlConfig, eqlRun);
     }
 
     public List<EqlRun> createEqlRunsByDirectSqls(String tagSqlId, EqlConfigDecorator eqlConfig, Map<String, Object> executionContext,
@@ -125,7 +125,7 @@ public class EqlBlock {
             EqlRun eqlRun = newEqlRun(seqTagSqlId, eqlConfig, executionContext, params, dynamics, paramBean);
 
             eqlRuns.add(eqlRun);
-            addEqlRun(eqlRun, sql);
+            addEqlRun(eqlConfig, eqlRun, sql);
 
             if (eqlRun.getSqlType() == EqlType.SELECT) lastSelectSql = eqlRun;
         }

@@ -2,6 +2,7 @@ package org.n3r.eql.parser;
 
 import com.google.common.base.Objects;
 import org.n3r.eql.base.ExpressionEvaluator;
+import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlDynamic;
 import org.n3r.eql.map.EqlRun;
@@ -13,7 +14,10 @@ public class DynamicReplacer {
     private Object[] dynamics;
     private EqlRun eqlRun;
 
-    public void replaceDynamics(EqlRun eqlRun) {
+    public void replaceDynamics(EqlConfigDecorator eqlConfig, EqlRun eqlRun) {
+        boolean dynamicsEnabled = isDynamicsEnabled(eqlConfig);
+        if (!dynamicsEnabled) return;
+
         this.eqlRun = eqlRun;
         this.dynamics = eqlRun.getDynamics();
         if (dynamics != null && dynamics.length > 0 && eqlRun.getEqlDynamic() == null) {
@@ -26,6 +30,14 @@ public class DynamicReplacer {
 
         eqlRun.setRunSql(replaceRunSqlDynamics(eqlDynamic));
         eqlRun.setEvalSqlTemplate(replaceRunSqlDynamics(eqlRun.getEvalEqlDynamic()));
+    }
+
+    private boolean isDynamicsEnabled(EqlConfigDecorator eqlConfig) {
+        String dynamicsEnabledConfig = eqlConfig.getStr("dynamics.enabled");
+        return dynamicsEnabledConfig == null
+                || "yes".equalsIgnoreCase(dynamicsEnabledConfig)
+                || "true".equalsIgnoreCase(dynamicsEnabledConfig)
+                || "on".equalsIgnoreCase(dynamicsEnabledConfig);
     }
 
     private String replaceRunSqlDynamics(EqlDynamic eqlDynamic) {
