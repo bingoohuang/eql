@@ -24,7 +24,14 @@ public class EqlPropertiesConfig implements EqlConfig {
     }
 
     public EqlPropertiesConfig(Properties properties) {
-        this.properties = properties;
+        this.properties = checkNotEmptyProperties(properties);
+    }
+
+    private Properties checkNotEmptyProperties(Properties properties) {
+        if (properties == null || properties.isEmpty())
+            throw new IllegalArgumentException("eql properties is null or empty");
+
+        return properties;
     }
 
     @Override
