@@ -22,4 +22,8 @@ public class Eqll extends Eql {
     public Eqll() {
         super(eqlConfigLocal.get(), Eql.STACKTRACE_DEEP_FIVE);
     }
+
+    public Eqll(String connectionName) {
+        super(eqlConfigLocal.get(), Eql.STACKTRACE_DEEP_FIVE);
+    }
 }
