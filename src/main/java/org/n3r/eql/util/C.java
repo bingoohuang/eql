@@ -77,7 +77,7 @@ public class C {
         try {
             return Resources.toString(url, Charsets.UTF_8);
         } catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw Fucks.fuck(e);
         }
 
     }
@@ -89,7 +89,7 @@ public class C {
         try {
             return Resources.readLines(url, Charsets.UTF_8);
         } catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw Fucks.fuck(e);
         }
 
     }

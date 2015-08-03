@@ -6,6 +6,7 @@ import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.Closes;
+import org.n3r.eql.util.Fucks;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -29,7 +30,7 @@ public class EqlJdbcTran implements EqlTran {
             try {
                 connection.commit();
             } catch (SQLException e) {
-                throw new EqlExecuteException(e);
+                throw Fucks.fuck(e);
             }
         }
     }
@@ -40,7 +41,7 @@ public class EqlJdbcTran implements EqlTran {
             try {
                 connection.rollback();
             } catch (SQLException e) {
-                throw new EqlExecuteException(e);
+                throw Fucks.fuck(e);
             }
         }
     }
@@ -62,7 +63,7 @@ public class EqlJdbcTran implements EqlTran {
         try {
             if (connection.getAutoCommit()) connection.setAutoCommit(false);
         } catch (SQLException e) {
-            throw new EqlExecuteException(e);
+            throw Fucks.fuck(e);
         }
 
         connections.put(dbName, connection);

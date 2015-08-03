@@ -6,6 +6,7 @@ import com.google.common.cache.LoadingCache;
 import org.n3r.eql.eqler.generators.ClassGenerator;
 import org.n3r.eql.ex.EqlConfigException;
 import org.n3r.eql.ex.EqlExecuteException;
+import org.n3r.eql.util.Fucks;
 
 public class EqlerFactory {
     private static LoadingCache<Class, Object> eqlerCache =
@@ -27,7 +28,7 @@ public class EqlerFactory {
         try {
             return clazz.newInstance();
         } catch (Exception e) {
-            throw new EqlExecuteException(e);
+            throw Fucks.fuck(e);
         }
     }
 

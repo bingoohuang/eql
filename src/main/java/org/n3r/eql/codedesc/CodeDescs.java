@@ -9,6 +9,7 @@ import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.parser.OffsetAndOptionValue;
 import org.n3r.eql.spec.Spec;
 import org.n3r.eql.spec.SpecParser;
+import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.Rs;
 import org.n3r.eql.util.S;
 
@@ -43,7 +44,7 @@ public class CodeDescs {
 
             return false;
         } catch (SQLException e) {
-            throw new EqlExecuteException(e);
+            throw Fucks.fuck(e);
         }
     }
 

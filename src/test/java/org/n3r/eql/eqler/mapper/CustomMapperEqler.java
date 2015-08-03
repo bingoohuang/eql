@@ -18,4 +18,10 @@ public interface CustomMapperEqler {
 
     @SqlId("queryParams2")
     <T> List<T> queryParam3(@ReturnType Class<T> returnTypeClass);
+
+    @Sql("select 'name' as code, 'bingoo' as value ")
+    <T> T queryParam4(@ReturnType Class<T> returnTypeClass);
+
+    @Sql("select 'name' as code, 'bingoo' as value ")
+    <T> T queryParam4(long id, @ReturnType Class<T> returnTypeClass);
 }

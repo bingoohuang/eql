@@ -3,6 +3,7 @@ package org.n3r.eql.trans;
 import com.google.common.collect.Maps;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlConfigException;
+import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.S;
 
 import java.sql.Connection;
@@ -17,7 +18,7 @@ public class EqlSimpleConnection extends AbstractEqlConnection {
         try {
             return dataSource.getConnection();
         } catch (SQLException e) {
-            throw new EqlConfigException("create connection fail", e);
+            throw Fucks.fuck(e);
         }
     }
 

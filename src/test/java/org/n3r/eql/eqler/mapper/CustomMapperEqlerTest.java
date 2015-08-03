@@ -37,12 +37,23 @@ public class CustomMapperEqlerTest {
     }
 
     @Test
-    public void parameterMapperClass() {
+    public void parameterMapperClassList() {
         List<MyRow> rows = eqler.queryParam3(MyRow.class);
         assertThat(rows.size()).isEqualTo(2);
         assertThat(rows.get(0).getCode()).isEqualTo("name");
         assertThat(rows.get(0).getValue()).isEqualTo("huang");
         assertThat(rows.get(1).getCode()).isEqualTo("age");
         assertThat(rows.get(1).getValue()).isEqualTo("321");
+    }
+
+    @Test
+    public void parameterMapperClass() {
+        MyRow myRow = eqler.queryParam4(MyRow.class);
+        assertThat(myRow.getCode()).isEqualTo("name");
+        assertThat(myRow.getValue()).isEqualTo("bingoo");
+
+        myRow = eqler.queryParam4(123L, MyRow.class);
+        assertThat(myRow.getCode()).isEqualTo("name");
+        assertThat(myRow.getValue()).isEqualTo("bingoo");
     }
 }

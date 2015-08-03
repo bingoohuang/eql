@@ -1,7 +1,6 @@
 package org.n3r.eql.codedesc;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +15,7 @@ import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.Closes;
 import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Fucks;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -82,8 +82,7 @@ public class CodeDescCache {
                 }
             });
         } catch (ExecutionException e) {
-            // should now happen
-            throw Throwables.propagate(e);
+            throw Fucks.fuck(e);
         }
     }
 
@@ -98,8 +97,7 @@ public class CodeDescCache {
                 }
             });
         } catch (ExecutionException e) {
-            // should now happen
-            throw Throwables.propagate(e);
+            throw Fucks.fuck(e);
         }
     }
 

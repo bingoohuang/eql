@@ -1,6 +1,7 @@
 package org.n3r.eql.dbfieldcryptor.refer.aes;
 
 import com.google.common.base.Throwables;
+import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.S;
 
 import javax.crypto.Cipher;
@@ -46,7 +47,7 @@ public class AesCryptor extends BaseCryptor {
             decryptCipher = Cipher.getInstance("AES");
             decryptCipher.init(Cipher.DECRYPT_MODE, key1);
         } catch (Throwable e) {
-            Throwables.propagate(e);
+            throw Fucks.fuck(e);
         }
     }
 

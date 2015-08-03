@@ -8,6 +8,7 @@ import com.google.common.cache.LoadingCache;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.C;
+import org.n3r.eql.util.Fucks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,9 +66,8 @@ public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
         try {
             return fileCache.get(sqlClassPath, valueLoader).orNull();
         } catch (ExecutionException e) {
-            Throwables.propagateIfPossible(Throwables.getRootCause(e));
+            throw Fucks.fuck(Throwables.getRootCause(e));
         }
-        return null;
     }
 
 

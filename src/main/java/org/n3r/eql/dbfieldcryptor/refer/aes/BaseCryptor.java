@@ -1,6 +1,7 @@
 package org.n3r.eql.dbfieldcryptor.refer.aes;
 
 import com.google.common.base.Throwables;
+import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.S;
 
 import javax.crypto.Cipher;
@@ -55,7 +56,7 @@ public abstract class BaseCryptor {
 
             return DatatypeConverter.printBase64Binary(ciphertext);
         } catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw Fucks.fuck(e);
         }
 
     }
@@ -74,7 +75,7 @@ public abstract class BaseCryptor {
 
             return S.bytesToStr(ciphertext);
         } catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw Fucks.fuck(e);
         }
     }
 

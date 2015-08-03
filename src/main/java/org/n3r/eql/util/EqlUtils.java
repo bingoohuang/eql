@@ -29,7 +29,7 @@ public class EqlUtils {
             connection = dataSource.getConnection();
             return connection.getMetaData().getDriverName();
         } catch (SQLException e) {
-            throw new EqlExecuteException(e);
+            throw Fucks.fuck(e);
         } finally {
             Closes.closeQuietly(connection);
         }
@@ -42,7 +42,7 @@ public class EqlUtils {
             connection = dataSource.getConnection();
             return connection.getMetaData().getURL();
         } catch (SQLException e) {
-            throw new EqlExecuteException(e);
+            throw Fucks.fuck(e);
         } finally {
             Closes.closeQuietly(connection);
         }

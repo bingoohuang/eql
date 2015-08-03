@@ -12,8 +12,9 @@ public class DynamicsEnabledTest {
         try {
             new Eql("dynamicsEnabled").dynamics("123").execute("select $$");
             fail("should throw exception");
-        } catch (RuntimeException ex) {
-            assertTrue(ex.getMessage().contains("MySQLSyntaxErrorException: Unknown column '$$' in 'field list'"));
+        } catch (Exception ex) {
+            String message = ex.getCause().getMessage();
+            assertTrue(message.contains("Unknown column '$$' in 'field list'"));
         }
     }
 

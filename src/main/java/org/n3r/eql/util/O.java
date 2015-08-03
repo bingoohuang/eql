@@ -102,7 +102,7 @@ public class O {
         try {
             object = Reflect.on(spec.getName()).create().get();
         } catch (ReflectException e) {
-            throw new EqlExecuteException(e);
+            throw Fucks.fuck(e);
         }
 
         if (!clazz.isInstance(object)) {
@@ -168,13 +168,11 @@ public class O {
         try {
             return Introspector.getBeanInfo(aClass);
         } catch (IntrospectionException e) {
-            throw new EqlExecuteException(e);
+            throw Fucks.fuck(e);
         }
     }
 
-
-
-    public static interface ValueGettable {
+    public interface ValueGettable {
         Object getValue();
 
         Object getValue(Class<?> returnType);

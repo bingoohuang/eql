@@ -3,6 +3,7 @@ package org.n3r.eql.codedesc;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.O;
 import org.n3r.eql.util.Rs;
 import org.n3r.eql.util.S;
@@ -60,7 +61,7 @@ public class CodeDescResultSetHandler implements InvocationHandler {
 
             throw new EqlExecuteException("unable to find code column");
         } catch (SQLException e) {
-            throw new EqlExecuteException(e);
+            throw Fucks.fuck(e);
         }
     }
 

@@ -3,6 +3,7 @@ package org.n3r.eql.trans;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlConfigException;
 import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.S;
 
 import javax.naming.InitialContext;
@@ -20,7 +21,7 @@ public class EqlJndiConnection extends AbstractEqlConnection {
         try {
             return dataSource.getConnection();
         } catch (SQLException e) {
-            throw new EqlConfigException("create connection fail", e);
+            throw Fucks.fuck(e);
         }
     }
 
@@ -57,7 +58,7 @@ public class EqlJndiConnection extends AbstractEqlConnection {
 
             dataSource = (DataSource) new InitialContext(context).lookup(jndiName);
         } catch (NamingException e) {
-            throw new EqlConfigException("create data source fail", e);
+            throw Fucks.fuck(e);
         }
     }
 

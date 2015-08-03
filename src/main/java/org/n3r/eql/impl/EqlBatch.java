@@ -7,6 +7,7 @@ import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.Closes;
 import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.Logs;
 import org.slf4j.Logger;
 
@@ -86,7 +87,7 @@ public class EqlBatch {
             return totalBatches;
         } catch (SQLException ex) {
             cleanupBatch();
-            throw new EqlExecuteException(ex);
+            throw Fucks.fuck(ex);
         } finally {
             if (cleanup) cleanupBatch();
         }

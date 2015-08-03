@@ -14,6 +14,7 @@ import org.n3r.eql.impl.EqlResourceLoaderHelper;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.impl.FileEqlResourceLoader;
 import org.n3r.eql.parser.EqlBlock;
+import org.n3r.eql.util.Fucks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,9 +84,8 @@ public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
         try {
             return fileCache.get(sqlClassPath, valueLoader).orNull();
         } catch (ExecutionException e) {
-            Throwables.propagateIfPossible(Throwables.getRootCause(e));
+            throw Fucks.fuck(Throwables.getRootCause(e));
         }
-        return null;
     }
 
 }

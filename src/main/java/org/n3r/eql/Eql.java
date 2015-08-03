@@ -2,7 +2,6 @@ package org.n3r.eql;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import org.n3r.eql.codedesc.CodeDescs;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigCache;
@@ -187,8 +186,8 @@ public class Eql {
         } catch (Throwable e) {
             if (!isAllSelect) tranRollback();
             logger.error("exception", e);
-            if (currRun != null) throw new EqlExecuteException("exec sql failed[" + currRun.getPrintSql() + "]" + e.getMessage());
-            else throw new EqlExecuteException(e);
+            if (currRun == null) throw Fucks.fuck(e);
+            else throw new EqlExecuteException("exec sql failed[" + currRun.getPrintSql() + "]", e);
         } finally {
             resetState();
             close();
@@ -318,11 +317,11 @@ public class Eql {
         initSqlId(defaultSqlId, STACKTRACE_DEEP_FIVE);
     }
 
-    protected Object runEql() throws SQLException {
+    protected Object runEql() {
         try {
             return currRun.getSqlType().isDdl() ? execDdl() : pageExecute();
         } catch (Exception ex) {
-            if (!currRun.getEqlBlock().isOnerrResume()) throw Throwables.propagate(ex);
+            if (!currRun.getEqlBlock().isOnerrResume()) throw Fucks.fuck(ex);
             else logger.warn("execute sql {} error {}", currRun.getPrintSql(), ex.getMessage());
         }
 
@@ -337,7 +336,7 @@ public class Eql {
             EqlUtils.setQueryTimeout(eqlConfig, stmt);
             return stmt.execute(currRun.getRunSql());
         } catch (SQLException ex) {
-            throw new EqlExecuteException(ex);
+            throw Fucks.fuck(ex);
         } finally {
             Closes.closeQuietly(stmt);
         }
@@ -412,7 +411,7 @@ public class Eql {
             stmt.setEqlTran(externalTran != null ? externalTran : internalTran);
         } catch (Exception ex) {
             Closes.closeQuietly(ps);
-            throw new EqlExecuteException(ex);
+            throw Fucks.fuck(ex);
         }
     }
 
@@ -587,7 +586,7 @@ public class Eql {
         if (batch != null) return;
         if (externalTran != null) return;
 
-        if(internalTran != null) internalTran.rollback();
+        if (internalTran != null) internalTran.rollback();
     }
 
     private void tranClose() {

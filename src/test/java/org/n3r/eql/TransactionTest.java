@@ -4,6 +4,7 @@ import com.google.common.base.Throwables;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.n3r.eql.util.Closes;
+import org.n3r.eql.util.Fucks;
 
 import java.sql.Timestamp;
 
@@ -73,7 +74,7 @@ public class TransactionTest {
             tran.commit();
         } catch (Exception ex) {
             tran.rollback();
-            Throwables.propagate(ex);
+            throw Fucks.fuck(ex);
         } finally {
             Closes.closeQuietly(tran);
         }

@@ -3,7 +3,6 @@ package org.n3r.eql.map;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import org.n3r.eql.config.EqlConfigDecorator;
-import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.EqlParamsParser;
 import org.n3r.eql.param.PlaceholderType;
@@ -59,7 +58,7 @@ public class EqlRun implements Cloneable {
                 ((CallableStatement) ps).registerOutParameter(out._1, out._2);
             }
         } catch (SQLException e) {
-            throw new EqlExecuteException(e);
+            throw Fucks.fuck(e);
         }
 
         createEvalSql(-1, sqlClassPath, eqlConfig, tagSqlId, boundParams.toString());
@@ -71,7 +70,7 @@ public class EqlRun implements Cloneable {
                 ps.setObject(param._1, ((Object[]) param._2)[index]);
             }
         } catch (SQLException e) {
-            throw new EqlExecuteException(e);
+            throw Fucks.fuck(e);
         }
 
         createEvalSql(index, sqlClassPath, eqlConfig, tagSqlId, batchParamsString(boundParams, index));
@@ -187,7 +186,7 @@ public class EqlRun implements Cloneable {
         try {
             return (EqlRun) super.clone();
         } catch (CloneNotSupportedException e) {
-            throw Throwables.propagate(e);
+            throw Fucks.fuck(e);
         }
     }
 

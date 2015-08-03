@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.Names;
 
 import java.sql.SQLException;
@@ -69,7 +70,7 @@ public class EqlParamsBinder {
                     break;
             }
         } catch (SQLException e) {
-            throw new EqlExecuteException("set parameters fail", e);
+            throw Fucks.fuck(e);
         }
     }
 

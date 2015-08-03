@@ -5,7 +5,6 @@ import org.n3r.eql.eqler.annotations.*;
 
 import java.util.Map;
 
-@Diagnose
 @EqlerConfig("me")
 public interface DynamicEqler {
     @Sql("select '$$' as hello, ## as world")
@@ -20,10 +19,10 @@ public interface DynamicEqler {
     Map<String, String> echoNamedWithSqlId(@Dynamic(name = "hello") String hello, @Param("world") String world, @SqlId String id);
 
     @Sql("select '$hello$' as hello, #hello# as shared, #world# as world")
-    Map<String, String> echoShareNamed( @Param("hello")
-                                        @Dynamic(sole = false, name = "hello")
-                                        String hello,
-                                        @Param("world") String world);
+    Map<String, String> echoShareNamed(@Param("hello")
+                                       @Dynamic(sole = false, name = "hello")
+                                       String hello,
+                                       @Param("world") String world);
 
     @Sql("select 'abc'")
     String eqlConfig(EqlConfig eqlConfig);

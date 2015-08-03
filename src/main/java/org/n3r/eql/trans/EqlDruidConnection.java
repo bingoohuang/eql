@@ -4,6 +4,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.O;
 
 import java.sql.Connection;
@@ -27,7 +28,7 @@ public class EqlDruidConnection extends AbstractEqlConnection {
         try {
             return dataSource.getConnection();
         } catch (SQLException e) {
-            throw new EqlExecuteException(e);
+            throw Fucks.fuck(e);
         }
     }
 

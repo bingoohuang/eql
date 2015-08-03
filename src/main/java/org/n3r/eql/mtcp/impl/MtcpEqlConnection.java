@@ -4,6 +4,7 @@ import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.mtcp.MtcpDataSourceHandler;
 import org.n3r.eql.trans.AbstractEqlConnection;
+import org.n3r.eql.util.Fucks;
 
 import javax.sql.DataSource;
 import java.io.Closeable;
@@ -26,7 +27,7 @@ public class MtcpEqlConnection extends AbstractEqlConnection {
         try {
             return dataSource.getConnection();
         } catch (SQLException e) {
-            throw new EqlExecuteException(e);
+            throw Fucks.fuck(e);
         }
     }
 

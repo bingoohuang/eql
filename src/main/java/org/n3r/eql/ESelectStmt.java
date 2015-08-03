@@ -1,10 +1,10 @@
 package org.n3r.eql;
 
-import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.impl.EqlRsRetriever;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.util.Closes;
+import org.n3r.eql.util.Fucks;
 import org.slf4j.Logger;
 
 import java.io.Closeable;
@@ -39,7 +39,7 @@ public class ESelectStmt implements Closeable, EStmt {
             resultSet = preparedStatement.executeQuery();
             if (fetchSize > 0) resultSet.setFetchSize(fetchSize);
         } catch (SQLException e) {
-            throw new EqlExecuteException("executeQuery", e);
+            throw Fucks.fuck(e);
         }
     }
 
@@ -55,7 +55,7 @@ public class ESelectStmt implements Closeable, EStmt {
             }
             return rowBean;
         } catch (SQLException e) {
-            throw new EqlExecuteException("select row", e);
+            throw Fucks.fuck(e);
         }
     }
 
