@@ -5,9 +5,11 @@ import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.map.*;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.Enums;
+import org.n3r.eql.util.O;
 import org.n3r.eql.util.Rs;
 import org.n3r.eql.util.S;
 
+import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -38,7 +40,8 @@ public class EqlRsRetriever {
         }
 
         EqlRowMapper rowMapper = getRowMapper(rs.getMetaData());
-        return rowBeanCreate(rowMapper, singleColumn, rs, 1);
+        Object o = rowBeanCreate(rowMapper, singleColumn, rs, 1);
+        return mapResult(o, rowMapper);
     }
 
     public Object selectRow(ResultSet rs, int rowIndex) throws SQLException {
@@ -61,7 +64,28 @@ public class EqlRsRetriever {
             if (rowObject != null) result.add(rowObject);
         }
 
+        return mapResult(result, rowMapper);
+    }
+
+    private static Object mapResult(Object result, final EqlRowMapper rowMapper) {
+        // TODO: to use asm other than reflection
+        Method mappingResult = findEqlMappingResultMethod(rowMapper.getClass());
+        if (mappingResult != null) return O.invokeMethod(rowMapper, mappingResult).orNull();
+
         return result;
+    }
+
+    private static Method findEqlMappingResultMethod(Class<? extends EqlRowMapper> rowMapperClass) {
+        for (Method method : rowMapperClass.getMethods()) {
+            if (method.isAnnotationPresent(EqlMappingResult.class)
+                    && method.getParameterTypes().length == 0
+                    && method.getReturnType() != void.class
+                    ) {
+                return method;
+            }
+        }
+
+        return null;
     }
 
     private Object rowBeanCreate(EqlRowMapper rowMapper, boolean isSingleColumn, ResultSet rs, int rowNum) throws SQLException {

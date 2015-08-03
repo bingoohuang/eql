@@ -1,4 +1,4 @@
-package org.n3r.eql.eqler;
+package org.n3r.eql.eqler.mybatis;
 
 public class Employee {
     private long empid;

@@ -6,9 +6,12 @@ import org.n3r.eql.EqlTran;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.eqler.annotations.Dynamic;
 import org.n3r.eql.eqler.annotations.Param;
+import org.n3r.eql.eqler.annotations.ReturnType;
 import org.n3r.eql.eqler.annotations.SqlId;
 import org.n3r.eql.impl.EqlBatch;
+import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.pojo.annotations.EqlId;
+import org.objectweb.asm.Type;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -22,10 +25,12 @@ public class MethodAllParam {
     private int namedParamsCount;
     private int namedDynamicCount;
     private MethodParam paramEqlId;
+    private MethodParam paramReturnType;
     private MethodParam eqlTran;
     private MethodParam eqlBatch;
     private MethodParam eqlPage;
     private MethodParam eqlConfig;
+    private MethodParam eqlRowMapper;
     private int methodParamsCount = 0;
 
     private int asmLocalVarNamedParamIndex = -1;
@@ -33,8 +38,11 @@ public class MethodAllParam {
     private EqlId methodEqlId;
 
     public void compute() {
+        int offset = 0;
         for (MethodParam methodParam : methodParams) {
             computeMethodParam(methodParam);
+            methodParam.setOffset(offset);
+            if (isWildType(methodParam)) ++offset;
         }
 
         if (seqParamsCount > 0 && namedParamsCount > 0)
@@ -88,6 +96,15 @@ public class MethodAllParam {
         return eqlConfig;
     }
 
+    public MethodParam getEqlRowMapper() {
+        return eqlRowMapper;
+    }
+
+    private boolean isWildType(MethodParam methodParam) {
+        Type tp = Type.getType(methodParam.getParamType());
+        return tp.equals(Type.LONG_TYPE) || tp.equals(Type.DOUBLE_TYPE);
+    }
+
     private void computeMethodParam(MethodParam methodParam) {
         MethodParam eqlTranNew = parseNonAnnotationsMethodParam(methodParam, EqlTran.class, eqlTran);
         if (eqlTranNew != null) { eqlTran = eqlTranNew; return; }
@@ -101,7 +118,11 @@ public class MethodAllParam {
         MethodParam eqlConfigNew = parseNonAnnotationsMethodParam(methodParam, EqlConfig.class, eqlConfig);
         if (eqlConfigNew != null) { eqlConfig = eqlConfigNew; return; }
 
+        MethodParam eqlRowMapperNew = parseNonAnnotationsMethodParam(methodParam, EqlRowMapper.class, eqlRowMapper);
+        if (eqlRowMapperNew != null) { eqlRowMapper = eqlRowMapperNew; return; }
+
         if (isSqlIdAnnotated(methodParam)) return;
+        if (isReturnTypeAnnotated(methodParam)) return;
 
         ++methodParamsCount;
 
@@ -122,6 +143,18 @@ public class MethodAllParam {
                 methodParam.setSeqParamIndex(seqParamsCount++);
             }
         }
+    }
+
+    private boolean isReturnTypeAnnotated(MethodParam methodParam) {
+        ReturnType returnType = methodParam.getReturnType();
+        if (returnType == null) return false;
+
+
+        if (paramReturnType != null) throw new RuntimeException("more than one @ReturnType defined");
+        if (methodParam.getParamType() != Class.class) throw new RuntimeException("bad @ReturnType parameter type, required Class");
+
+        paramReturnType = methodParam;
+        return true;
     }
 
     private boolean isSqlIdAnnotated(MethodParam methodParam) {
@@ -186,5 +219,9 @@ public class MethodAllParam {
 
     public int getParamsSize() {
         return methodParams.size();
+    }
+
+    public MethodParam getParamReturnType() {
+        return paramReturnType;
     }
 }

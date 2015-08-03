@@ -1,4 +1,4 @@
-package org.n3r.eql.eqler;
+package org.n3r.eql.eqler.mybatis;
 
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
