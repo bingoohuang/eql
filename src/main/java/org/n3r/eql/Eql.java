@@ -185,9 +185,8 @@ public class Eql {
             if (!isAllSelect) tranCommit();
         } catch (Throwable e) {
             if (!isAllSelect) tranRollback();
-            logger.error("exception", e);
-            if (currRun == null) throw Fucks.fuck(e);
-            else throw new EqlExecuteException("exec sql failed[" + currRun.getPrintSql() + "]", e);
+            logger.error("exec sql {} exception", currRun == null ? "none" : currRun.getPrintSql(), e);
+            throw Fucks.fuck(e);
         } finally {
             resetState();
             close();
