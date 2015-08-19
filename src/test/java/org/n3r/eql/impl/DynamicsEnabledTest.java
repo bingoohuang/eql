@@ -13,7 +13,7 @@ public class DynamicsEnabledTest {
             new Eql("dynamicsEnabled").dynamics("123").execute("select $$");
             fail("should throw exception");
         } catch (Exception ex) {
-            String message = ex.getCause().getMessage();
+            String message = ex.getMessage();
             assertTrue(message.contains("Unknown column '$$' in 'field list'"));
         }
     }

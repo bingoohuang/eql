@@ -7,7 +7,6 @@ import org.n3r.eql.EqlTran;
 import org.n3r.eql.EqlTranable;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.eqler.annotations.*;
-import org.n3r.eql.eqler.annotations.EqlMapper;
 import org.n3r.eql.impl.EqlBatch;
 import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.pojo.annotations.EqlId;
@@ -329,7 +328,7 @@ public class MethodGenerator<T> {
             mv.visitLdcInsn(returnType);
         }
 
-        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType",sig(Eql.class, Class.class), false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType", sig(Eql.class, Class.class), false);
     }
 
     private void id() {

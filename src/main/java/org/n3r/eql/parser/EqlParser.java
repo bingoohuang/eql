@@ -35,7 +35,7 @@ public class EqlParser {
         this.eqlResourceLoader = eqlResourceLoader;
         this.sqlClassPath = sqlClassPath;
         if (eqlResourceLoader != null)
-            this.dynamicLanguageDriver = eqlResourceLoader.getDynamicLanguageDriver();
+            dynamicLanguageDriver = eqlResourceLoader.getDynamicLanguageDriver();
 
         if (dynamicLanguageDriver == null)
             dynamicLanguageDriver = new DefaultDynamicLanguageDriver();

@@ -26,7 +26,8 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
 
     public DefaultEqlConfigDecorator(EqlConfig eqlConfig) {
         this.eqlConfig = eqlConfig;
-        if (eqlConfig instanceof EqlTranFactoryCacheLifeCycle) lifeCycle = (EqlTranFactoryCacheLifeCycle) eqlConfig;
+        if (eqlConfig instanceof EqlTranFactoryCacheLifeCycle)
+            lifeCycle = (EqlTranFactoryCacheLifeCycle) eqlConfig;
 
         parseResourceLoader(eqlConfig);
         parseExpressionEvaluator(eqlConfig);

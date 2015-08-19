@@ -11,6 +11,7 @@ import org.n3r.eql.cache.EqlCacheSettings;
 import org.n3r.eql.codedesc.CodeDesc;
 import org.n3r.eql.codedesc.CodeDescs;
 import org.n3r.eql.config.EqlConfigDecorator;
+import org.n3r.eql.impl.DefaultDynamicLanguageDriver;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.map.EqlType;
@@ -25,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 
 public class EqlBlock {
-    private int startLineNo;
     private Map<String, String> options = Maps.newHashMap();
     private Class<?> returnType;
     private String onerr;
@@ -33,7 +33,7 @@ public class EqlBlock {
 
     private List<Sql> sqls = Lists.newArrayList();
     private Collection<String> sqlLines;
-    private EqlUniqueSqlId uniquEQLId;
+    private EqlUniqueSqlId uniqueSqlId;
     private EqlCacheProvider cacheProvider;
     private String returnTypeName;
     private boolean iterateOption;
@@ -41,15 +41,14 @@ public class EqlBlock {
     private boolean override;
 
     public EqlBlock(String sqlClassPath, String sqlId, String options, int startLineNo) {
-        this.uniquEQLId = new EqlUniqueSqlId(sqlClassPath, sqlId);
-        this.startLineNo = startLineNo;
+        this.uniqueSqlId = new EqlUniqueSqlId(sqlClassPath, sqlId);
         this.options = BlockOptionsParser.parseOptions(options);
 
         initSomeOptions();
     }
 
     public EqlBlock() {
-        this.uniquEQLId = new EqlUniqueSqlId("<DirectSql>", "auto");
+        this.uniqueSqlId = new EqlUniqueSqlId("<DirectSql>", "auto");
     }
 
     private void initSomeOptions() {
@@ -69,7 +68,7 @@ public class EqlBlock {
     private void initEqlCache(boolean useCache, String cacheModel) {
         if (Strings.isNullOrEmpty(cacheModel) && !useCache) return;
 
-        cacheProvider = EqlCacheSettings.getCacheProvider(uniquEQLId, cacheModel);
+        cacheProvider = EqlCacheSettings.getCacheProvider(uniqueSqlId, cacheModel);
     }
 
     public List<Sql> getSqls() {
@@ -113,19 +112,26 @@ public class EqlBlock {
         new DynamicReplacer().replaceDynamics(eqlConfig, eqlRun);
     }
 
-    public List<EqlRun> createEqlRunsByDirectSqls(String tagSqlId, EqlConfigDecorator eqlConfig, Map<String, Object> executionContext,
-                                                  Object[] params, Object[] dynamics, String[] sqls) {
+    public List<EqlRun> createEqlRunsByDirectSqls(
+            String tagSqlId, EqlConfigDecorator eqlConfig,
+            Map<String, Object> executionContext,
+            Object[] params, Object[] dynamics, String[] sqls) {
         Object paramBean = O.createSingleBean(params);
 
         List<EqlRun> eqlRuns = Lists.newArrayList();
         EqlRun lastSelectSql = null;
         int sqlNo = 0;
-        for (String sql : sqls) {
-            String seqTagSqlId =  sqls.length == 1 ? tagSqlId : (tagSqlId + "." + (++sqlNo));
+        for (String sqlStr : sqls) {
+            String seqTagSqlId = sqls.length == 1 ? tagSqlId : (tagSqlId + "." + (++sqlNo));
             EqlRun eqlRun = newEqlRun(seqTagSqlId, eqlConfig, executionContext, params, dynamics, paramBean);
 
+            Sql sql = new DefaultDynamicLanguageDriver().parse(Lists.newArrayList(sqlStr));
+            String parsedSqlStr = sql.evalSql(eqlRun);
+            sqlStr = EqlUtils.trimLastUnusedPart(parsedSqlStr);
+            if (S.isBlank(sqlStr)) continue;
+
             eqlRuns.add(eqlRun);
-            addEqlRun(eqlConfig, eqlRun, sql);
+            addEqlRun(eqlConfig, eqlRun, sqlStr);
 
             if (eqlRun.getSqlType() == EqlType.SELECT) lastSelectSql = eqlRun;
         }
@@ -136,8 +142,10 @@ public class EqlBlock {
     }
 
 
-    private EqlRun newEqlRun(String tagSqlId, EqlConfigDecorator eqlConfig, Map<String, Object> executionContext, Object[] params,
-                             Object[] dynamics, Object paramBean) {
+    private EqlRun newEqlRun(
+            String tagSqlId, EqlConfigDecorator eqlConfig,
+            Map<String, Object> executionContext, Object[] params,
+            Object[] dynamics, Object paramBean) {
         EqlRun eqlRun = new EqlRun();
 
         eqlRun.setEqlConfig(eqlConfig);
@@ -187,27 +195,28 @@ public class EqlBlock {
     }
 
     public EqlUniqueSqlId getUniqueSqlId() {
-        return uniquEQLId;
+        return uniqueSqlId;
     }
 
     public String getUniqueSqlIdStr() {
-        return uniquEQLId.getSqlClassPath() + ":" + uniquEQLId.getSqlId();
+        return uniqueSqlId.getSqlClassPath() + ":" + uniqueSqlId.getSqlId();
     }
 
     public String getSqlId() {
-        return uniquEQLId.getSqlId();
+        return uniqueSqlId.getSqlId();
     }
 
     public Optional<Object> getCachedResult(Object[] params, Object[] dynamics, EqlPage page) {
         if (cacheProvider == null) return null;
 
-        EqlCacheKey cacheKey = new EqlCacheKey(uniquEQLId, params, dynamics, page);
+        EqlCacheKey cacheKey = new EqlCacheKey(uniqueSqlId, params, dynamics, page);
         Optional<Object> cache = cacheProvider.getCache(cacheKey);
         if (cache != null && page != null) {
-            EqlUniqueSqlId totalRowSqlId = uniquEQLId.newTotalRowSqlId();
+            EqlUniqueSqlId totalRowSqlId = uniqueSqlId.newTotalRowSqlId();
             cacheKey = new EqlCacheKey(totalRowSqlId, params, dynamics, page);
             Optional<Object> totalNumber = cacheProvider.getCache(cacheKey);
-            if (totalNumber.isPresent()) page.setTotalRows((Integer) totalNumber.get());
+            if (totalNumber.isPresent())
+                page.setTotalRows((Integer) totalNumber.get());
         }
 
         return cache;
@@ -217,11 +226,11 @@ public class EqlBlock {
         if (cacheProvider == null) return;
         if (!currRun.isLastSelectSql()) return;
 
-        EqlCacheKey cacheKey = new EqlCacheKey(uniquEQLId, currRun.getParams(), currRun.getDynamics(), page);
+        EqlCacheKey cacheKey = new EqlCacheKey(uniqueSqlId, currRun.getParams(), currRun.getDynamics(), page);
         cacheProvider.setCache(cacheKey, currRun.getResult());
 
         if (page != null) {
-            EqlUniqueSqlId totalRowSqlId = uniquEQLId.newTotalRowSqlId();
+            EqlUniqueSqlId totalRowSqlId = uniqueSqlId.newTotalRowSqlId();
             cacheKey = new EqlCacheKey(totalRowSqlId, currRun.getParams(), currRun.getDynamics(), page);
             cacheProvider.setCache(cacheKey, page.getTotalRows());
         }
