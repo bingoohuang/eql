@@ -29,7 +29,7 @@ import static org.n3r.eql.util.Asms.sig;
 import static org.objectweb.asm.Opcodes.*;
 
 public class MethodGenerator<T> {
-    public static final String EQL = "org/n3r/eql/Eql";
+    public static final String EQL = p(Eql.class);
     private final Method method;
     private final MethodVisitor mv;
     private final Class<T> eqlerClass;
@@ -42,10 +42,13 @@ public class MethodGenerator<T> {
         this.method = method;
         this.eqlerClass = eqlerClass;
         EqlerConfig eqlerConfig = method.getAnnotation(EqlerConfig.class);
-        this.eqlerConfig = eqlerConfig != null ? eqlerConfig : eqlerClass.getAnnotation(EqlerConfig.class);
-        this.eqlClassName = this.eqlerConfig != null ? Type.getInternalName(this.eqlerConfig.eql()) : EQL;
+        this.eqlerConfig = eqlerConfig != null ?
+                eqlerConfig : eqlerClass.getAnnotation(EqlerConfig.class);
+        this.eqlClassName = this.eqlerConfig != null ?
+                Type.getInternalName(this.eqlerConfig.eql()) : EQL;
         this.classUseSqlFile = eqlerClass.getAnnotation(UseSqlFile.class);
-        this.mv = classWriter.visitMethod(ACC_PUBLIC, method.getName(), Type.getMethodDescriptor(method), null, null);
+        this.mv = classWriter.visitMethod(ACC_PUBLIC, method.getName(),
+                Type.getMethodDescriptor(method), null, null);
         this.methodAllParam = parseParams(method);
     }
 
@@ -105,7 +108,8 @@ public class MethodGenerator<T> {
             mv.visitLdcInsn(param.value());
 
             visitVar(i + 1 + methodParam.getOffset(), Type.getType(methodParam.getParamType()));
-            mv.visitMethodInsn(INVOKEINTERFACE, p(Map.class), "put", sig(Object.class, Object.class, Object.class), true);
+            mv.visitMethodInsn(INVOKEINTERFACE, p(Map.class), "put",
+                    sig(Object.class, Object.class, Object.class), true);
             mv.visitInsn(POP);
         }
     }
@@ -127,7 +131,8 @@ public class MethodGenerator<T> {
             mv.visitLdcInsn(dynamic.name());
 
             visitVar(i + 1 + methodParam.getOffset(), Type.getType(methodParam.getParamType()));
-            mv.visitMethodInsn(INVOKEINTERFACE, p(Map.class), "put", sig(Object.class, Object.class, Object.class), true);
+            mv.visitMethodInsn(INVOKEINTERFACE, p(Map.class), "put",
+                    sig(Object.class, Object.class, Object.class), true);
             mv.visitInsn(POP);
         }
     }
@@ -178,13 +183,16 @@ public class MethodGenerator<T> {
         MethodParam eqlConfig = methodAllParam.getEqlConfig();
         if (eqlConfig == null) {
             mv.visitLdcInsn(eqlerConfig != null ? eqlerConfig.value() : "DEFAULT");
-            mv.visitMethodInsn(INVOKESPECIAL, eqlClassName, "<init>", sig(void.class, String.class), false);
+            mv.visitMethodInsn(INVOKESPECIAL, eqlClassName, "<init>",
+                    sig(void.class, String.class), false);
         } else {
             mv.visitVarInsn(ALOAD, eqlConfig.getParamIndex() + 1);
-            mv.visitMethodInsn(INVOKESPECIAL, eqlClassName, "<init>", sig(void.class, EqlConfig.class), false);
+            mv.visitMethodInsn(INVOKESPECIAL, eqlClassName, "<init>",
+                    sig(void.class, EqlConfig.class), false);
         }
 
-        mv.visitMethodInsn(INVOKEVIRTUAL, eqlClassName, "me", sig(Eql.class), false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, eqlClassName, "me",
+                sig(Eql.class), false);
     }
 
     private void result() {
@@ -249,7 +257,8 @@ public class MethodGenerator<T> {
             }
         }
 
-        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "execute", sig(Object.class, String[].class), false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "execute",
+                sig(Object.class, String[].class), false);
     }
 
     private void limit() {
@@ -258,7 +267,8 @@ public class MethodGenerator<T> {
             MethodParam eqlPage = methodAllParam.getEqlPage();
             if (eqlPage != null) {
                 mv.visitVarInsn(ALOAD, eqlPage.getParamIndex() + 1);
-                mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "limit", sig(Eql.class, EqlPage.class), false);
+                mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "limit",
+                        sig(Eql.class, EqlPage.class), false);
             }
 
         } else {
@@ -266,7 +276,8 @@ public class MethodGenerator<T> {
             EqlMapper eqlMapper = method.getAnnotation(EqlMapper.class);
             if (eqlRowMapper == null && eqlMapper == null) {
                 mv.visitInsn(ICONST_1);
-                mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "limit", sig(Eql.class, int.class), false);
+                mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "limit",
+                        sig(Eql.class, int.class), false);
             }
         }
     }
@@ -279,7 +290,8 @@ public class MethodGenerator<T> {
         MethodParam eqlRowMapper = methodAllParam.getEqlRowMapper();
         if (eqlRowMapper != null) {
             mv.visitVarInsn(ALOAD, eqlRowMapper.getVarIndex());
-            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType", sig(Eql.class, EqlRowMapper.class), false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType",
+                    sig(Eql.class, EqlRowMapper.class), false);
             return;
         }
 
@@ -287,14 +299,16 @@ public class MethodGenerator<T> {
         if (eqlMapper != null) {
             Type returnType = Type.getType(eqlMapper.value());
             mv.visitLdcInsn(returnType);
-            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType", sig(Eql.class, Class.class), false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType",
+                    sig(Eql.class, Class.class), false);
             return;
         }
 
         MethodParam paramReturnType = methodAllParam.getParamReturnType();
         if (paramReturnType != null) {
             mv.visitVarInsn(ALOAD, paramReturnType.getVarIndex());
-            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType", sig(Eql.class, Class.class), false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType",
+                    sig(Eql.class, Class.class), false);
             return;
         }
 
@@ -328,14 +342,16 @@ public class MethodGenerator<T> {
             mv.visitLdcInsn(returnType);
         }
 
-        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType", sig(Eql.class, Class.class), false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType",
+                sig(Eql.class, Class.class), false);
     }
 
     private void id() {
         Sql sqlAnn = method.getAnnotation(Sql.class);
         if (sqlAnn != null) {
             mv.visitLdcInsn(method.getName());
-            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "tagSqlId", sig(Eql.class, String.class), false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "tagSqlId",
+                    sig(Eql.class, String.class), false);
         } else {
             SqlId sqlId = method.getAnnotation(SqlId.class);
             MethodParam paramEqlId = methodAllParam.getParamEqlId();
@@ -344,7 +360,8 @@ public class MethodGenerator<T> {
             } else {
                 mv.visitVarInsn(ALOAD, paramEqlId.getParamIndex() + 1);
             }
-            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "id", sig(Eql.class, String.class), false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "id",
+                    sig(Eql.class, String.class), false);
         }
     }
 
@@ -357,16 +374,19 @@ public class MethodGenerator<T> {
         if (useSqlFile != null) {
             if (S.isNotBlank(useSqlFile.value())) {
                 mv.visitLdcInsn(useSqlFile.value());
-                mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useSqlFile", sig(Eql.class, String.class), false);
+                mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useSqlFile",
+                        sig(Eql.class, String.class), false);
             } else if (useSqlFile.clazz() != Void.class) {
                 mv.visitLdcInsn(Type.getType(useSqlFile.clazz()));
-                mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useSqlFile", sig(Eql.class, Class.class), false);
+                mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useSqlFile",
+                        sig(Eql.class, Class.class), false);
             } else {
                 throw new RuntimeException("Bad @UseSqlFile usage!");
             }
         } else {
             mv.visitLdcInsn(Type.getType(eqlerClass));
-            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useSqlFile", sig(Eql.class, Class.class), false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useSqlFile",
+                    sig(Eql.class, Class.class), false);
         }
     }
 
@@ -378,7 +398,8 @@ public class MethodGenerator<T> {
             mv.visitInsn(ICONST_0);
             mv.visitVarInsn(ALOAD, methodAllParam.getAsmLocalVarNamedParamIndex());
             mv.visitInsn(AASTORE);
-            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "params", sig(Eql.class, Object[].class), false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "params",
+                    sig(Eql.class, Object[].class), false);
             return;
         }
 
@@ -399,7 +420,8 @@ public class MethodGenerator<T> {
             mv.visitInsn(AASTORE);
         }
 
-        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "params", sig(Eql.class, Object[].class), false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "params",
+                sig(Eql.class, Object[].class), false);
     }
 
 
@@ -411,7 +433,8 @@ public class MethodGenerator<T> {
             mv.visitInsn(ICONST_0);
             mv.visitVarInsn(ALOAD, methodAllParam.getAsmLocalVarNamedDynamicIndex());
             mv.visitInsn(AASTORE);
-            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "dynamics", sig(Eql.class, Object[].class), false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "dynamics",
+                    sig(Eql.class, Object[].class), false);
             return;
         }
 
@@ -432,7 +455,8 @@ public class MethodGenerator<T> {
             mv.visitInsn(AASTORE);
         }
 
-        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "dynamics", sig(Eql.class, Object[].class), false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "dynamics",
+                sig(Eql.class, Object[].class), false);
 
     }
 
