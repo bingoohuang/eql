@@ -17,10 +17,7 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -164,6 +161,8 @@ public class O {
     public static Optional<Object> invokeMethod(Object bean, Method method) {
         try {
             return Optional.fromNullable(method.invoke(bean));
+        } catch (InvocationTargetException e) {
+            throw Fucks.fuck(e.getCause() != null ? e.getCause() : e);
         } catch (Exception e) {
             throw Fucks.fuck(e);
         }
