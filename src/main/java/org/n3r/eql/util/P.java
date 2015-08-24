@@ -15,7 +15,8 @@ import java.util.Properties;
 @SuppressWarnings("unchecked")
 public class P {
 
-    public static Map<String, Object> mergeProperties(Map<String, Object> context, Object bean) {
+    public static Map<String, Object> mergeProperties(
+            Map<String, Object> context, Object bean) {
         Map<String, Object> map = Maps.newHashMap(context);
         if (bean == null) return map;
 
@@ -24,13 +25,14 @@ public class P {
             return map;
         }
 
-        mergeDelcaredProeprties(bean, map);
+        mergeDeclaredProperties(bean, map);
         mergeReadProperties(bean, map);
 
         return map;
     }
 
-    private static void mergeDelcaredProeprties(Object bean, Map<String, Object> map) {
+    private static void mergeDeclaredProperties(
+            Object bean, Map<String, Object> map) {
         for (Field field : bean.getClass().getDeclaredFields()) {
             try {
                 field.setAccessible(true);
@@ -41,7 +43,8 @@ public class P {
         }
     }
 
-    private static void mergeReadProperties(Object bean, Map<String, Object> map) {
+    private static void mergeReadProperties(
+            Object bean, Map<String, Object> map) {
         BeanInfo info = O.getBeanInfo(bean.getClass());
 
         for (PropertyDescriptor pDesc : info.getPropertyDescriptors()) {
@@ -58,9 +61,10 @@ public class P {
         Properties result = new Properties();
 
         try {
-            result.load(new ByteArrayInputStream(properties.getBytes(Charsets.UTF_8)));
+            byte[] bytes = properties.getBytes(Charsets.UTF_8);
+            result.load(new ByteArrayInputStream(bytes));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw Fucks.fuck(e);
         }
 
         return result;
@@ -74,7 +78,7 @@ public class P {
             fis = new FileInputStream(file);
             result.load(fis);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw Fucks.fuck(e);
         } finally {
             Closes.closeQuietly(fis);
         }
@@ -88,7 +92,7 @@ public class P {
         try {
             result.load(is);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw Fucks.fuck(e);
         }
 
         return result;

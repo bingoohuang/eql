@@ -29,7 +29,9 @@ import java.util.Map;
 public class O {
     static Logger log = LoggerFactory.getLogger(O.class);
 
-    public static <T> T populate(T object, Map<String, String> map, PropertyValueFilter... propertyValueFilters) {
+    public static <T> T populate(
+            T object, Map<String, String> map,
+            PropertyValueFilter... propertyValueFilters) {
         Map<String, String> params = new HashMap<String, String>(map);
         for (Method method : object.getClass().getMethods()) {
             if (!isSetterMethod(method)) continue;
@@ -47,7 +49,8 @@ public class O {
         }
 
         for (Map.Entry<String, String> entry : params.entrySet()) {
-            log.warn("{}:{} is not recognized", entry.getKey(), entry.getValue());
+            log.warn("{}:{} is not recognized",
+                    entry.getKey(), entry.getValue());
         }
 
         return object;
@@ -70,7 +73,8 @@ public class O {
                 && method.getParameterTypes().length == 1;
     }
 
-    private static <T> boolean populateProperty(T object, Method method, String propertyName, String propertyValue) {
+    private static <T> boolean populateProperty(
+            T object, Method method, String propertyName, String propertyValue) {
         Class<?> paramType = method.getParameterTypes()[0];
         try {
             if (paramType == String.class) {
@@ -141,7 +145,8 @@ public class O {
         return param;
     }
 
-    public static boolean setProperty(Object object, PropertyDescriptor pd, Object value) {
+    public static boolean setProperty(
+            Object object, PropertyDescriptor pd, Object value) {
         Method setter = pd.getWriteMethod();
         if (setter == null) return false;
 
@@ -160,7 +165,7 @@ public class O {
         try {
             return Optional.fromNullable(method.invoke(bean));
         } catch (Exception e) {
-            return Optional.absent();
+            throw Fucks.fuck(e);
         }
     }
 
@@ -196,14 +201,16 @@ public class O {
         }
     }
 
-    public static boolean setValue(Object mappedObject, String columnName, ValueGettable valueGettable) {
+    public static boolean setValue(
+            Object mappedObject, String columnName, ValueGettable valueGettable) {
         if (mappedObject instanceof Map) {
             ((Map) mappedObject).put(columnName, valueGettable.getValue());
             return true;
         }
 
         int dotPos = columnName.indexOf('.');
-        if (dotPos < 0) return setProperty(mappedObject, columnName, valueGettable);
+        if (dotPos < 0)
+            return setProperty(mappedObject, columnName, valueGettable);
 
         String property = columnName.substring(0, dotPos);
         Object propertyValue = getOrCreateProperty(property, mappedObject);
@@ -220,7 +227,8 @@ public class O {
         // There has to be a method get* matching this segment
         Class<?> returnType = getPropertyType(propertyName, hostBean);
 
-        if (Map.class.isAssignableFrom(returnType)) property = Maps.newHashMap();
+        if (Map.class.isAssignableFrom(returnType))
+            property = Maps.newHashMap();
 
         if (property == null) property = Reflect.on(returnType).create().get();
 
@@ -235,7 +243,8 @@ public class O {
             Method m = getAccessibleMethod(hostBean, methodName);
             return m.getReturnType();
         } catch (NoSuchMethodException e) {
-            log.debug("NoSuchMethodException invoke get method of property {} of {}", propertyName, hostBean);
+            log.debug("NoSuchMethodException invoke get method of property {} of {}",
+                    propertyName, hostBean);
             // ignore
         } catch (Exception e) {
             log.debug("invoke method exception", e);
@@ -276,7 +285,8 @@ public class O {
         throw new RuntimeException("unable to get property value " + propertyName + " of bean " + hostBean);
     }
 
-    private static boolean setProperty(Object hostBean, String propertyName, ValueGettable valueGettable) {
+    private static boolean setProperty(
+            Object hostBean, String propertyName, ValueGettable valueGettable) {
         if (hostBean instanceof Map) {
             ((Map) hostBean).put(propertyName, valueGettable.getValue());
             return true;
@@ -285,7 +295,8 @@ public class O {
         return setBeanProperty(hostBean, propertyName, valueGettable);
     }
 
-    private static boolean setBeanProperty(Object hostBean, String propertyName, ValueGettable valueGettable) {
+    private static boolean setBeanProperty(
+            Object hostBean, String propertyName, ValueGettable valueGettable) {
         String methodName = getSetMethodName(propertyName);
         try {
             Method m = getAccessibleMethod(hostBean, methodName);
@@ -324,13 +335,15 @@ public class O {
         if (!m.isAccessible()) m.setAccessible(true);
     }
 
-    public static Method getAccessibleMethod(Object hostBean, String methodName) throws NoSuchMethodException {
+    public static Method getAccessibleMethod(Object hostBean, String methodName)
+            throws NoSuchMethodException {
         Method m = hostBean.getClass().getMethod(methodName);
         setAccessibleTrue(m);
         return m;
     }
 
-    public static Field getAccessibleField(Object hostBean, String propertyName) throws NoSuchFieldException {
+    public static Field getAccessibleField(Object hostBean, String propertyName)
+            throws NoSuchFieldException {
         Field field = hostBean.getClass().getDeclaredField(propertyName);
         setAccessibleTrue(field);
         return field;
