@@ -50,6 +50,7 @@ public class Eql {
     private String defaultSqlId;
     private boolean cached = true;
     private String tagSqlId; // for eqler log convenience
+    private String sqlId;
 
     public Eql() {
         this(Eql.STACKTRACE_DEEP_FIVE);
@@ -266,6 +267,8 @@ public class Eql {
     }
 
     public ESelectStmt selectStmt() {
+        checkPreconditions();
+
         execContext = EqlUtils.newExecContext(params, dynamics);
         tranStart();
 
@@ -287,6 +290,8 @@ public class Eql {
     }
 
     public EUpdateStmt updateStmt() {
+        checkPreconditions();
+
         execContext = EqlUtils.newExecContext(params, dynamics);
         tranStart();
         createConn();
@@ -306,6 +311,8 @@ public class Eql {
     }
 
     protected void checkPreconditions(String... directSqls) {
+        initSqlId(sqlId, STACKTRACE_DEEP_FIVE);
+
         if (eqlBlock != null || directSqls.length > 0) {
             initSqlClassPath(STACKTRACE_DEEP_FIVE);
             return;
@@ -475,16 +482,14 @@ public class Eql {
         return this;
     }
 
-    protected void initSqlId(String sqlId) {
-        initSqlId(sqlId, STACKTRACE_DEEP_FIVE);
-    }
-
     private void initSqlClassPath(int level) {
         sqlClassPath = Strings.isNullOrEmpty(sqlClassPath)
                 ? C.getSqlClassPath(level, getEqlExtension()) : sqlClassPath;
     }
 
     protected void initSqlId(String sqlId, int level) {
+        if (S.isBlank(sqlId)) return;
+
         initSqlClassPath(level + 1);
 
         eqlBlock = eqlConfig.getSqlResourceLoader().loadEqlBlock(sqlClassPath, sqlId);
@@ -508,48 +513,48 @@ public class Eql {
     }
 
     public Eql id(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         return this;
     }
 
     public Eql merge(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         return this;
     }
 
     public Eql replace(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         return this;
     }
 
     public Eql update(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         return this;
     }
 
     public Eql insert(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         return this;
     }
 
     public Eql delete(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         return this;
     }
 
     public Eql select(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         return this;
     }
 
     public Eql selectFirst(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         limit(1);
         return this;
     }
 
     public Eql procedure(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         return this;
     }
 
