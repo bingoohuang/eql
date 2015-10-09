@@ -1,6 +1,11 @@
 package org.n3r.eql.map;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import org.n3r.eql.convert.EqlConvertAnn;
+import org.n3r.eql.convert.EqlConverts;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.util.Names;
 import org.n3r.eql.util.O;
@@ -9,16 +14,20 @@ import org.n3r.eql.util.Rs;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public class EqlBaseBeanMapper {
     protected Class<?> mappedClass;
     protected Map<String, PropertyDescriptor> mappedProperties;
     protected Map<String, Field> mappedFields;
+    protected Multimap<String, EqlConvertAnn> converters = HashMultimap.create();
 
     public EqlBaseBeanMapper(Class<?> mappedClass) {
         initialize(mappedClass);
     }
+
 
     protected void initialize(Class<?> mappedClass) {
         this.mappedClass = mappedClass;
@@ -28,7 +37,8 @@ public class EqlBaseBeanMapper {
             if (pd.getWriteMethod() != null) {
                 this.mappedProperties.put(pd.getName().toLowerCase(), pd);
                 String underscoredName = Names.underscore(pd.getName());
-                if (!pd.getName().toLowerCase().equals(underscoredName)) this.mappedProperties.put(underscoredName, pd);
+                if (!pd.getName().toLowerCase().equals(underscoredName))
+                    this.mappedProperties.put(underscoredName, pd);
             }
         }
 
@@ -36,14 +46,23 @@ public class EqlBaseBeanMapper {
         Field[] declaredFields = mappedClass.getDeclaredFields();
         for (Field field : declaredFields) {
             mappedFields.put(field.getName().toLowerCase(), field);
+            List<EqlConvertAnn> ecas = Lists.newArrayList();
+            EqlConverts.searchEqlConvertAnns(field, ecas);
+            if (ecas.size() > 0) converters.putAll(field.getName(), ecas);
         }
     }
 
-    protected boolean setColumnValue(final RsAware rs, Object mappedObject, final int index, String columnName) throws SQLException {
+    protected boolean setColumnValue(
+            final RsAware rs, Object mappedObject,
+            final int index, String columnName) throws SQLException {
         String lowerCaseName = columnName.replaceAll(" ", "").replaceAll("_", "").toLowerCase();
         PropertyDescriptor pd = this.mappedProperties.get(lowerCaseName);
         if (pd != null) {
             Object value = Rs.getResultSetValue(rs, index, pd.getPropertyType());
+
+            Collection<EqlConvertAnn> eqlConvertAnns = converters.get(pd.getName());
+            value = EqlConverts.convertValue(rs, index, eqlConvertAnns, value);
+
             boolean succ = O.setProperty(mappedObject, pd, value);
             if (succ) return true;
         }
@@ -51,6 +70,9 @@ public class EqlBaseBeanMapper {
         Field field = this.mappedFields.get(lowerCaseName);
         if (field != null) {
             Object value = Rs.getResultSetValue(rs, index, field.getType());
+
+            Collection<EqlConvertAnn> eqlConvertAnns = converters.get(field.getName());
+            value = EqlConverts.convertValue(rs, index, eqlConvertAnns, value);
             Reflect.on(mappedObject).set(field.getName(), value);
             return true;
         }
@@ -67,6 +89,5 @@ public class EqlBaseBeanMapper {
             }
         });
     }
-
 
 }
