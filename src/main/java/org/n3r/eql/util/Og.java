@@ -14,10 +14,10 @@ public class Og {
     public static Object eval(String expr, Map<String, Object> mergeProperties) {
         Exception ex = null;
         try {
-            return Ognl.getValue(expr, mergeProperties);
+            return Ognl.getValue(expr, new OgRoot(mergeProperties));
         } catch (NoSuchPropertyException e) { // ignore
         } catch (OgnlException e) {
-            if (e.getMessage().indexOf("source is null for getProperty") < 0) ex = e;
+            if (!e.getMessage().contains("source is null for getProperty")) ex = e;
         } catch (Exception e) {
             ex = e;
         }

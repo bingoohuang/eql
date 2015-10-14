@@ -26,14 +26,14 @@ public class IsEmptyPart implements EqlPart {
         ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
         Object target = evaluator.eval(expr, eqlRun);
 
-        return isEmpty(target) ? true : target.toString().length() == 0;
+        return isEmpty(target) || target.toString().length() == 0;
     }
 
     protected boolean isBlank(EqlRun eqlRun) {
         ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
         Object target = evaluator.eval(expr, eqlRun);
 
-        return isEmpty(target) ? true : target.toString().trim().length() == 0;
+        return isEmpty(target) || target.toString().trim().length() == 0;
     }
 
     public static boolean isEmpty(Object target) {
