@@ -7,10 +7,26 @@ FROM EQL_TEST
 WHERE A in (1,2)
 -- end
 
+-- [isEmptyInIf]
+SELECT B
+FROM EQL_TEST
+-- if isEmpty(a)
+WHERE A in (1,2)
+-- end
+
 -- [isEmptyElse]
 SELECT B
 FROM EQL_TEST
 -- isEmpty a
+WHERE A in (1,2)
+-- else
+WHERE A = #a#
+-- end
+
+-- [isEmptyElseInIf]
+SELECT B
+FROM EQL_TEST
+-- if isEmpty(a)
 WHERE A in (1,2)
 -- else
 WHERE A = #a#
@@ -26,6 +42,16 @@ WHERE A in
 (3,4)
 -- end
 
+-- [isNotEmptyElseInIf]
+SELECT B
+FROM EQL_TEST
+WHERE A in
+-- if isNotEmpty(a)
+(1,2)
+-- else
+(3,4)
+-- end
+
 
 -- [isNotEmpty]
 SELECT B
@@ -33,3 +59,12 @@ FROM EQL_TEST
 -- isNotEmpty a
 WHERE A = #a#
 -- end
+
+
+-- [isNotEmptyInIf]
+SELECT B
+FROM EQL_TEST
+-- if isNotEmpty(a)
+WHERE A = #a#
+-- end
+
