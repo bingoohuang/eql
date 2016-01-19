@@ -73,18 +73,18 @@ public class EqlMatrixConnection implements EqlConnection {
 
     @Override
     public Connection getConnection(String dbName) {
+        String localDbName;
+
+        if (!DEFAULT.equals(dbName)) localDbName = dbName;
+        else localDbName = dbNameTL.get() != null ? dbNameTL.get() : DEFAULT;
+
         try {
-            String localDbName;
-
-            if (!DEFAULT.equals(dbName)) localDbName = dbName;
-            else localDbName = dbNameTL.get() != null ? dbNameTL.get() : DEFAULT;
-
             DruidDataSource dataSource = dataSourceCache.getUnchecked(localDbName);
-            logger.debug("use database [{}]", dbName);
+            logger.debug("use database [{}]", localDbName);
             return dataSource.getConnection();
 
         } catch (SQLException e) {
-            throw new EqlExecuteException("unable to find database " + dbName, e);
+            throw new EqlExecuteException("unable to find database " + localDbName, e);
         }
     }
 
