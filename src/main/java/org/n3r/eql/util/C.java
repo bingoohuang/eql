@@ -12,6 +12,15 @@ import java.net.URL;
 import java.util.List;
 
 public class C {
+    public static boolean classExists(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch(Throwable e ) { // including ClassNotFoundException
+            return false;
+        }
+    }
+
     public static String getSqlClassPath(int num, String extension) {
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
 

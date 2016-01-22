@@ -1,6 +1,5 @@
 package org.n3r.eql.map;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.param.EqlParamPlaceholder;
@@ -76,6 +75,9 @@ public class EqlRun implements Cloneable {
         createEvalSql(index, sqlClassPath, eqlConfig, tagSqlId, batchParamsString(boundParams, index));
     }
 
+    public static boolean CallBlackcat = C.classExists(
+            "com.github.bingoohuang.blackcat.javaagent.callback.Blackcat");
+
     private void createEvalSql(int index, String sqlClassPath, EqlConfigDecorator eqlConfig,
                                String tagSqlId, String msg) {
         boolean hasBoundParams = boundParams != null && boundParams.size() > 0;
@@ -83,12 +85,21 @@ public class EqlRun implements Cloneable {
         if (hasBoundParams) {
             Logger logger = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "params");
             logger.debug(msg);
+            if (CallBlackcat) {
+                com.github.bingoohuang.blackcat.javaagent.callback
+                        .Blackcat.log("SQL-PARAMS", msg);
+            }
         }
 
         if (hasBoundParams) {
             Logger evalLogger = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "eval");
-            if (isForEvaluate() || evalLogger.isDebugEnabled()) this.evalSql = parseEvalSql(index);
+            /* if (isForEvaluate() || evalLogger.isDebugEnabled()) */
+            this.evalSql = parseEvalSql(index);
             evalLogger.debug(this.evalSql);
+            if (CallBlackcat) {
+                com.github.bingoohuang.blackcat.javaagent.callback
+                        .Blackcat.log("SQL-EVAL", this.evalSql);
+            }
         } else {
             this.evalSql = evalSqlTemplate;
         }

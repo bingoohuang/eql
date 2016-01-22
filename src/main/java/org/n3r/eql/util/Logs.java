@@ -1,6 +1,7 @@
 package org.n3r.eql.util;
 
 import org.n3r.eql.config.EqlConfig;
+import org.n3r.eql.map.EqlRun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,10 +10,14 @@ import java.util.List;
 public class Logs {
     public static void logResult(EqlConfig eqlConfig, String sqlClassPath, Object execRet, String sqlId, String tagSqlId) {
         Logger logger = createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "result");
-        if (!logger.isDebugEnabled()) return;
+//        if (!logger.isDebugEnabled()) return;
 
         if (!(execRet instanceof List)) {
             logger.debug("" + execRet);
+            if (EqlRun.CallBlackcat) {
+                com.github.bingoohuang.blackcat.javaagent.callback
+                        .Blackcat.log("SQL-RESULT", "" + execRet);
+            }
             return;
         }
 
@@ -23,8 +28,16 @@ public class Logs {
         if (size > logMaxRows) {
             List logRows = list.subList(0, logMaxRows);
             logger.debug("first {}/{} rows: {}", logMaxRows, size, logRows);
+            if (EqlRun.CallBlackcat) {
+                com.github.bingoohuang.blackcat.javaagent.callback
+                        .Blackcat.log("SQL-RESULT", "first {}/{} rows: {}", logMaxRows, size, logRows);
+            }
         } else {
             logger.debug("total {} rows of: {}", size, list);
+            if (EqlRun.CallBlackcat) {
+                com.github.bingoohuang.blackcat.javaagent.callback
+                        .Blackcat.log("SQL-RESULT", "total {} rows of: {}", size, list);
+            }
         }
     }
 

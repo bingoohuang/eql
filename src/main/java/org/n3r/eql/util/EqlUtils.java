@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.config.EqlConfig;
-import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +87,11 @@ public class EqlUtils {
         Logger sqlLogger = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "prepare");
 
         sqlLogger.debug(eqlRun.getPrintSql());
+        if (EqlRun.CallBlackcat) {
+            com.github.bingoohuang.blackcat.javaagent.callback
+                    .Blackcat.log("SQL-PREPARE", eqlRun.getPrintSql());
+        }
+
         Connection conn = eqlRun.getConnection();
         String sql = eqlRun.getRunSql();
         boolean procedure = eqlRun.getSqlType().isProcedure();
