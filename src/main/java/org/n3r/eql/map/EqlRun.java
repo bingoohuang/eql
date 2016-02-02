@@ -75,9 +75,6 @@ public class EqlRun implements Cloneable {
         createEvalSql(index, sqlClassPath, eqlConfig, tagSqlId, batchParamsString(boundParams, index));
     }
 
-    public static boolean CallBlackcat = C.classExists(
-            "com.github.bingoohuang.blackcat.javaagent.callback.Blackcat");
-
     private void createEvalSql(int index, String sqlClassPath, EqlConfigDecorator eqlConfig,
                                String tagSqlId, String msg) {
         boolean hasBoundParams = boundParams != null && boundParams.size() > 0;
@@ -85,10 +82,7 @@ public class EqlRun implements Cloneable {
         if (hasBoundParams) {
             Logger logger = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "params");
             logger.debug(msg);
-            if (CallBlackcat) {
-                com.github.bingoohuang.blackcat.javaagent.callback
-                        .Blackcat.log("SQL-PARAMS", msg);
-            }
+            BlackcatUtils.log("SQL.PARAMS", msg);
         }
 
         if (hasBoundParams) {
@@ -96,10 +90,7 @@ public class EqlRun implements Cloneable {
             /* if (isForEvaluate() || evalLogger.isDebugEnabled()) */
             this.evalSql = parseEvalSql(index);
             evalLogger.debug(this.evalSql);
-            if (CallBlackcat) {
-                com.github.bingoohuang.blackcat.javaagent.callback
-                        .Blackcat.log("SQL-EVAL", this.evalSql);
-            }
+            BlackcatUtils.log("SQL-EVAL", this.evalSql);
         } else {
             this.evalSql = evalSqlTemplate;
         }
@@ -154,10 +145,13 @@ public class EqlRun implements Cloneable {
 
     private String createEvalBoundParam(SimpleDateFormat simpleDateFormat, Object boundParam) {
         if (boundParam == null) return "NULL";
-        if (boundParam instanceof Boolean) return (Boolean) boundParam ? "1" : "0";
+        if (boundParam instanceof Boolean)
+            return (Boolean) boundParam ? "1" : "0";
         if (boundParam instanceof Number) return boundParam.toString();
-        if (boundParam instanceof Date) return '\'' + simpleDateFormat.format((Date) boundParam) + '\'';
-        if (boundParam instanceof byte[]) return '\'' + Hex.encode((byte[]) boundParam) + '\'';
+        if (boundParam instanceof Date)
+            return '\'' + simpleDateFormat.format((Date) boundParam) + '\'';
+        if (boundParam instanceof byte[])
+            return '\'' + Hex.encode((byte[]) boundParam) + '\'';
 
         return '\'' + S.escapeSingleQuotes(boundParam.toString()) + '\'';
     }
@@ -275,7 +269,8 @@ public class EqlRun implements Cloneable {
         this.placeHolders = placeHolders;
         outCount = 0;
         for (EqlParamPlaceholder placeHolder : placeHolders)
-            if (placeHolder.getInOut() != EqlParamPlaceholder.InOut.IN) ++outCount;
+            if (placeHolder.getInOut() != EqlParamPlaceholder.InOut.IN)
+                ++outCount;
     }
 
     public EqlParamPlaceholder[] getPlaceHolders() {

@@ -87,10 +87,7 @@ public class EqlUtils {
         Logger sqlLogger = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "prepare");
 
         sqlLogger.debug(eqlRun.getPrintSql());
-        if (EqlRun.CallBlackcat) {
-            com.github.bingoohuang.blackcat.javaagent.callback
-                    .Blackcat.log("SQL-PREPARE", eqlRun.getPrintSql());
-        }
+        BlackcatUtils.log("SQL.PREPARE", eqlRun.getPrintSql());
 
         Connection conn = eqlRun.getConnection();
         String sql = eqlRun.getRunSql();
