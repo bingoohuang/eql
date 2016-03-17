@@ -60,6 +60,25 @@ public class DynamicTest {
     }
 
     @Test
+    public void testSelectIf3() {
+        Map<String, Object> map = Maps.newHashMap();
+        map.put("a", 1);
+        map.put("e", 100);
+        map.put("c", "#AC");
+
+        SimpleTest.Bean bean1 = new Eql().selectFirst("selectIf3").params(map).execute();
+        assertThat(bean1.toString(), is("{a:1,b:A,c:#AC,d:1383122146000,e:101}"));
+
+        map = Maps.newHashMap();
+        map.put("a", 2);
+        map.put("e", 100);
+        map.put("c", "#AC");
+
+        bean1 = new Eql().selectFirst("selectIf3").params(map).execute();
+        assertThat(bean1, is(nullValue()));
+    }
+
+    @Test
     public void testUnless() {
         Map<String, Object> map = Maps.newHashMap();
         map.put("a", 1);

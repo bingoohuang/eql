@@ -30,6 +30,21 @@ C = 'AC'
 C = 'FALSE'
 -- end
 
+-- [selectIf3 returnType=org.n3r.eql.SimpleTest$Bean]
+SELECT A,B,C,D,E
+FROM EQL_TEST
+WHERE A = #a#
+AND
+-- if alike(e, 100)
+C = #c#
+/* if alike(a, '1') */ AND B = 'A' /* end */
+AND 1 = 1
+-- elseif alike(e, "200")
+C = 'AC'
+-- else
+C = 'FALSE'
+-- end
+
 -- [switchSelect returnType=org.n3r.eql.SimpleTest$Bean]
 SELECT A,B,C,D,E
 FROM EQL_TEST
