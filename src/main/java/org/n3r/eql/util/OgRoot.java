@@ -46,4 +46,10 @@ public class OgRoot extends HashMap<String, Object> {
     public boolean isNotBlank(Object target) {
         return !isBlank(target);
     }
+
+    public boolean alike(Object object1, Object object2) {
+        if (object1 == object2) return true;
+        if (object1 == null || object2 == null) return false;
+        return object1.equals(object2) || object1.toString().equals(object2.toString());
+    }
 }
