@@ -2,12 +2,14 @@ create database dba;
 create user 'dba'@'%' identified by 'dba';
 grant all privileges on dba.* to dba@'%';
 
+-- exported by mysql client: SHOW CREATE TABLE person;
 CREATE TABLE `person` (
   `id` varchar(100) DEFAULT NULL,
   `sex` varchar(1) DEFAULT NULL,
   `name` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- exported by command: mysqldump -udbb -pdbb dbb person
 -- for dba
 INSERT INTO `person` VALUES ('a001','0','red'),('a002','0','order123');
 
