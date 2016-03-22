@@ -2,6 +2,21 @@ create database dba;
 create user 'dba'@'%' identified by 'dba';
 grant all privileges on dba.* to dba@'%';
 
+CREATE TABLE `person` (
+  `id` varchar(100) DEFAULT NULL,
+  `sex` varchar(1) DEFAULT NULL,
+  `name` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- for dba
+INSERT INTO `person` VALUES ('a001','0','red'),('a002','0','order123');
+
+-- for dbb
+INSERT INTO `person` VALUES ('b001','0','blue');
+
+-- for dbc
+INSERT INTO `person` VALUES ('c001','1','black');
+
 create database dbb;
 create user 'dbb'@'%' identified by 'dbb';
 grant all privileges on dbb.* to dbb@'%';
