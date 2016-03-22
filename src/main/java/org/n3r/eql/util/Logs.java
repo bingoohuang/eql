@@ -1,7 +1,6 @@
 package org.n3r.eql.util;
 
 import org.n3r.eql.config.EqlConfig;
-import org.n3r.eql.map.EqlRun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -5,7 +5,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.n3r.eql.eqler.generators.ClassGenerator;
 import org.n3r.eql.ex.EqlConfigException;
-import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.util.Fucks;
 
 public class EqlerFactory {

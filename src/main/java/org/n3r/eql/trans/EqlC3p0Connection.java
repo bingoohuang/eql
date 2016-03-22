@@ -2,7 +2,6 @@ package org.n3r.eql.trans;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import org.n3r.eql.config.EqlConfig;
-import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.util.Fucks;
 
 import java.sql.Connection;

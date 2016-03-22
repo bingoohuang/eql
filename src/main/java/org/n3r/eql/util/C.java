@@ -3,7 +3,6 @@ package org.n3r.eql.util;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.io.Resources;
 
 import java.io.IOException;

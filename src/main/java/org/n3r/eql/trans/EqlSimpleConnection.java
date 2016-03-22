@@ -2,7 +2,6 @@ package org.n3r.eql.trans;
 
 import com.google.common.collect.Maps;
 import org.n3r.eql.config.EqlConfig;
-import org.n3r.eql.ex.EqlConfigException;
 import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.S;
 
