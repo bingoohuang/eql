@@ -1,7 +1,7 @@
 package org.n3r.eql.trans.spring;
 
 import org.aopalliance.aop.Advice;
-import org.n3r.eql.trans.spring.annotation.EqlTranactional;
+import org.n3r.eql.trans.spring.annotation.EqlTransactional;
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.support.AbstractPointcutAdvisor;
 import org.springframework.aop.support.StaticMethodMatcherPointcut;
@@ -14,7 +14,7 @@ public class EqlTransactionAdvisor extends AbstractPointcutAdvisor {
 
         @Override
         public boolean matches(Method method, Class<?> targetClass) {
-            return method.isAnnotationPresent(EqlTranactional.class);
+            return method.isAnnotationPresent(EqlTransactional.class);
         }
     };
 

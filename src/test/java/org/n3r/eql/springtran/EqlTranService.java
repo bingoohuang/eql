@@ -1,6 +1,6 @@
 package org.n3r.eql.springtran;
 
-import org.n3r.eql.trans.spring.annotation.EqlTranactional;
+import org.n3r.eql.trans.spring.annotation.EqlTransactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,14 +10,14 @@ public class EqlTranService {
     @Autowired
     private EqlTranEqler eqlTranEqler;
 
-    @EqlTranactional
+    @EqlTransactional
     public void addWithTranError() {
         eqlTranEqler.addOneRecord("a");
         eqlTranEqler.addOneRecord("b");
         int i = 1 / 0;
     }
 
-    @EqlTranactional
+    @EqlTransactional
     public void addWithTranSuccess() {
         eqlTranEqler.addOneRecord("a");
         eqlTranEqler.addOneRecord("b");
