@@ -3,6 +3,7 @@ package org.n3r.eql.util;
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
+import org.n3r.eql.base.EqlToProperties;
 
 import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
@@ -25,8 +26,12 @@ public class P {
             return map;
         }
 
-        mergeDeclaredProperties(bean, map);
-        mergeReadProperties(bean, map);
+        if (bean instanceof EqlToProperties) {
+            map.putAll(((EqlToProperties) bean).toProperties());
+        } else {
+            mergeDeclaredProperties(bean, map);
+            mergeReadProperties(bean, map);
+        }
 
         return map;
     }
