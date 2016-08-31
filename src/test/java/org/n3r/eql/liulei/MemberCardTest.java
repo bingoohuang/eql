@@ -27,6 +27,7 @@ MemberCardTest.testIterateAddRecords  16s 914ms
 MemberCardTest.testRawJdbcBatch        7s 289ms
 MemberCardTest.testRawJdbc             6s 642ms
 MemberCardTest.testInsertMultipleRows  1s 379ms
+MemberCardTest.testRawMultipleRows        779ms
  */
 public class MemberCardTest {
     @BeforeClass
@@ -69,6 +70,39 @@ public class MemberCardTest {
         List<MemberCard> memberCards = createMemberCards(strCardId);
 
         new Eql("dba").params(memberCards).execute();
+        int countRecords = new Eql("dba").params(strCardId).selectFirst("countRecords").execute();
+        assertThat(countRecords).isEqualTo(SIZE);
+    }
+
+    String sqlPrefix = "insert into member_card_week_times " +
+            "(MBR_CARD_ID, START_TIME, END_TIME, TIMES, UPDATE_TIME, AVAIL_TIMES, CREATE_TIME) values";
+    String valuePart = "( ?, ?, ?, '-1', NOW(), '-1', NOW()),";
+
+    @Test @SneakyThrows
+    public void testRawMultipleRows() {
+        String strCardId = "" + Id.next();
+        List<MemberCard> memberCards = createMemberCards(strCardId);
+
+        StringBuilder sql = new StringBuilder(sqlPrefix);
+        List<Object> params = new ArrayList<Object>(SIZE * 3);
+        for (MemberCard memberCard : memberCards) {
+            sql.append(valuePart);
+
+            params.add(strCardId);
+            params.add(memberCard.getStartTime());
+            params.add(memberCard.getEndTime());
+        }
+        sql.setLength(sql.length() - 1);
+
+        @Cleanup Connection dba = new Eql("dba").getConnection();
+        @Cleanup PreparedStatement ps = dba.prepareStatement(sql.toString());
+        for (int i = 0, ii = params.size(); i < ii; ++i) {
+            ps.setObject(i + 1, params.get(i));
+        }
+        ps.executeUpdate();
+
+        dba.commit();
+
         int countRecords = new Eql("dba").params(strCardId).selectFirst("countRecords").execute();
         assertThat(countRecords).isEqualTo(SIZE);
     }
@@ -125,8 +159,8 @@ public class MemberCardTest {
 
             DateTime startTime = dateTime.plusDays(i * 7);
 
-            memberCard.setStartTime(new Timestamp(dateTime.getMillis()));
-            memberCard.setEndTime(new Timestamp(startTime.plus(7).getMillis()));
+            memberCard.setStartTime(new Timestamp(startTime.getMillis()));
+            memberCard.setEndTime(new Timestamp(startTime.plusDays(7).getMillis()));
             memberCards.add(memberCard);
         }
         return memberCards;
