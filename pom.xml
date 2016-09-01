@@ -88,6 +88,12 @@
             <artifactId>blackcat-javaagent</artifactId>
             <version>0.0.1</version>
             <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.bingoohuang</groupId>
+                    <artifactId>blackcat-sdk</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
@@ -254,12 +260,14 @@
             <scope>test</scope>
         </dependency>
 
+<!--
         <dependency>
             <groupId>weblogic</groupId>
             <artifactId>wlfullclient</artifactId>
             <version>10.3</version>
             <scope>test</scope>
         </dependency>
+-->
 
         <dependency>
             <groupId>org.springframework</groupId>
