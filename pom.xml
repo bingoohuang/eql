@@ -253,7 +253,6 @@
             <version>1.0.13</version>
             <scope>test</scope>
         </dependency>
-<!--
 
         <dependency>
             <groupId>weblogic</groupId>
@@ -261,7 +260,6 @@
             <version>10.3</version>
             <scope>test</scope>
         </dependency>
--->
 
         <dependency>
             <groupId>org.springframework</groupId>

@@ -30,69 +30,54 @@ MemberCardTest.testInsertMultipleRows  1s 379ms
 MemberCardTest.testRawMultipleRows        779ms
  */
 public class MemberCardTest {
-    @BeforeClass
-    public static void beforeClass() {
+    final static long cardId = Id.next();
+    final static List<MemberCard> memberCards = createMemberCards();
+
+    @BeforeClass public static void beforeClass() {
         new Eql("dba").execute();
     }
 
-    @Before
-    public void beforeEachTest() {
+    @Before public void beforeEachTest() {
         new Eql("dba").execute();
     }
 
-    public static final int SIZE = 5200;
+    public static final int SIZE = 52 /* 52 weeks per year */ * 10 /* 100 years */;
 
-    @Test
-    public void testIterateAddRecords() {
-        String strCardId = "" + Id.next();
-        List<MemberCard> memberCards = createMemberCards(strCardId);
-
-        new Eql("dba").params(memberCards).execute();
-        int countRecords = new Eql("dba").params(strCardId).selectFirst("countRecords").execute();
-        assertThat(countRecords).isEqualTo(SIZE);
-    }
-
-    @Test
-    public void testAddRecords() {
-        String strCardId = "" + Id.next();
-        List<MemberCard> memberCards = createMemberCards(strCardId);
-
+    @Test public void testAddRecords() {
         for (MemberCard memberCard : memberCards) {
             new Eql("dba").params(memberCard).execute();
         }
-        int countRecords = new Eql("dba").params(strCardId).selectFirst("countRecords").execute();
-        assertThat(countRecords).isEqualTo(SIZE);
+        checkSize();
     }
 
-    @Test
-    public void testInsertMultipleRows() {
-        String strCardId = "" + Id.next();
-        List<MemberCard> memberCards = createMemberCards(strCardId);
+    @Test public void testIterateAddRecords() {
+        insertOneTime("testIterateAddRecords");
+    }
 
-        new Eql("dba").params(memberCards).execute();
-        int countRecords = new Eql("dba").params(strCardId).selectFirst("countRecords").execute();
-        assertThat(countRecords).isEqualTo(SIZE);
+    @Test public void testInsertMultipleRows() {
+        insertOneTime("testInsertMultipleRows");
+    }
+
+    public void insertOneTime(String sqlId) {
+        new Eql("dba").id(sqlId).params(memberCards).execute();
+        checkSize();
     }
 
     String sqlPrefix = "insert into member_card_week_times " +
             "(MBR_CARD_ID, START_TIME, END_TIME, TIMES, UPDATE_TIME, AVAIL_TIMES, CREATE_TIME) values";
-    String valuePart = "( ?, ?, ?, '-1', NOW(), '-1', NOW()),";
+    String valuePart = "(?, ?, ?, '-1', NOW(), '-1', NOW()),";
 
-    @Test @SneakyThrows
-    public void testRawMultipleRows() {
-        String strCardId = "" + Id.next();
-        List<MemberCard> memberCards = createMemberCards(strCardId);
-
+    @Test @SneakyThrows public void testRawMultipleRows() {
         StringBuilder sql = new StringBuilder(sqlPrefix);
         List<Object> params = new ArrayList<Object>(SIZE * 3);
         for (MemberCard memberCard : memberCards) {
             sql.append(valuePart);
 
-            params.add(strCardId);
+            params.add(cardId);
             params.add(memberCard.getStartTime());
             params.add(memberCard.getEndTime());
         }
-        sql.setLength(sql.length() - 1);
+        sql.setLength(sql.length() - 1); // remove last ,
 
         @Cleanup Connection dba = new Eql("dba").getConnection();
         @Cleanup PreparedStatement ps = dba.prepareStatement(sql.toString());
@@ -103,25 +88,23 @@ public class MemberCardTest {
 
         dba.commit();
 
-        int countRecords = new Eql("dba").params(strCardId).selectFirst("countRecords").execute();
-        assertThat(countRecords).isEqualTo(SIZE);
+        checkSize();
     }
 
-    @Test @SneakyThrows
-    public void testRawJdbc() {
-        String strCardId = "" + Id.next();
-        List<MemberCard> memberCards = createMemberCards(strCardId);
+    @Test @SneakyThrows public void testRawJdbc() {
         @Cleanup Connection dba = new Eql("dba").getConnection();
         @Cleanup PreparedStatement ps = dba.prepareStatement(sql);
         for (MemberCard memberCard : memberCards) {
-            ps.setString(1, strCardId);
-            ps.setTimestamp(2, memberCard.getStartTime());
-            ps.setTimestamp(3, memberCard.getEndTime());
+            setPsParams(ps, memberCard);
             ps.executeUpdate();
         }
         dba.commit();
 
-        int countRecords = new Eql("dba").params(strCardId).selectFirst("countRecords").execute();
+        checkSize();
+    }
+
+    private void checkSize() {
+        int countRecords = new Eql("dba").params(cardId).selectFirst("countRecords").execute();
         assertThat(countRecords).isEqualTo(SIZE);
     }
 
@@ -129,39 +112,38 @@ public class MemberCardTest {
             "(MBR_CARD_ID, START_TIME, END_TIME, TIMES, UPDATE_TIME, AVAIL_TIMES, CREATE_TIME) " +
             "values ( ?, ?, ?, '-1', NOW(), '-1', NOW())";
 
-    @Test @SneakyThrows
-    public void testRawJdbcBatch() {
-        String strCardId = "" + Id.next();
-        List<MemberCard> memberCards = createMemberCards(strCardId);
+    @Test @SneakyThrows public void testRawJdbcBatch() {
         @Cleanup Connection dba = new Eql("dba").getConnection();
         @Cleanup PreparedStatement ps = dba.prepareStatement(sql);
         for (MemberCard memberCard : memberCards) {
-            ps.setString(1, strCardId);
-            ps.setTimestamp(2, memberCard.getStartTime());
-            ps.setTimestamp(3, memberCard.getEndTime());
+            setPsParams(ps, memberCard);
             ps.addBatch();
         }
         ps.executeBatch();
         dba.commit();
 
-        int countRecords = new Eql("dba").params(strCardId).selectFirst("countRecords").execute();
-        assertThat(countRecords).isEqualTo(SIZE);
+        checkSize();
     }
 
-    private List<MemberCard> createMemberCards(String strCardId) {
+    @SneakyThrows
+    private void setPsParams(PreparedStatement ps, MemberCard memberCard) {
+        ps.setLong(1, memberCard.getMbrCardId());
+        ps.setTimestamp(2, memberCard.getStartTime());
+        ps.setTimestamp(3, memberCard.getEndTime());
+    }
+
+    private static List<MemberCard> createMemberCards() {
         DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
         DateTime dateTime = formatter.parseDateTime("2016-08-12 00:00:00");
 
         List<MemberCard> memberCards = new ArrayList<MemberCard>(SIZE);
         for (int i = 0; i < SIZE; i++) {
             MemberCard memberCard = new MemberCard();
-            memberCard.setMbrCardId(strCardId);
-
-            DateTime startTime = dateTime.plusDays(i * 7);
-
-            memberCard.setStartTime(new Timestamp(startTime.getMillis()));
-            memberCard.setEndTime(new Timestamp(startTime.plusDays(7).getMillis()));
             memberCards.add(memberCard);
+
+            memberCard.setMbrCardId(cardId);
+            memberCard.setStartTime(new Timestamp(dateTime.plusDays(i * 7).getMillis()));
+            memberCard.setEndTime(new Timestamp(dateTime.plusDays(i * 7 + 7).getMillis()));
         }
         return memberCards;
     }

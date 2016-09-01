@@ -57,12 +57,7 @@ public class Eql {
     }
 
     public Eql(int stackDeep) {
-        EqlConfig localConfig = Eqll.eqlConfigLocal.get();
-        if (localConfig == null) {
-            init(EqlConfigCache.getEqlConfig(DEFAULT_CONN_NAME), stackDeep);
-        } else {
-            init(localConfig, stackDeep);
-        }
+        init(EqlConfigCache.getEqlConfig(DEFAULT_CONN_NAME), stackDeep);
     }
 
     public Eql(String connectionName) {

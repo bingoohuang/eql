@@ -7,7 +7,6 @@ import com.google.common.collect.Maps;
 import org.junit.Test;
 import org.n3r.eql.map.EqlRun;
 
-import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 
@@ -19,9 +18,6 @@ import static org.junit.Assert.assertThat;
 public class ForTest {
     @Test
     public void test1() {
-        new Eql().id("dropTestTable").execute();
-        new Eql().id("createTestTable").params(new Timestamp(1383122146000l)).execute();
-
         Map<String, Object> map = Maps.newHashMap();
         map.put("list", ImmutableList.of("a", "b", "x"));
 
@@ -69,7 +65,7 @@ public class ForTest {
     public void queryOgnlSelection1() {
         new Eql("mysql").id("dkt_setup").execute();
 
-        List goodsAttrs = Lists.newArrayList(ImmutableMap.of("ATTR_ID", "2000", "attrType","1"), ImmutableMap.of("ATTR_ID", "2001", "attrType","0"));
+        List goodsAttrs = Lists.newArrayList(ImmutableMap.of("ATTR_ID", "2000", "attrType", "1"), ImmutableMap.of("ATTR_ID", "2001", "attrType", "0"));
         ImmutableMap<String, List> of = of("goodsAttrs", goodsAttrs);
         Eql eql = new Eql("mysql").select("haoye").params(of).dynamics(of);
         eql.execute();
@@ -84,7 +80,7 @@ public class ForTest {
     public void queryOgnlSelection2() {
         new Eql("mysql").id("dkt_setup").execute();
 
-        List goodsAttrs = Lists.newArrayList(ImmutableMap.of("ATTR_ID", "2000", "attrType","1"), ImmutableMap.of("ATTR_ID", "2001", "attrType","1"));
+        List goodsAttrs = Lists.newArrayList(ImmutableMap.of("ATTR_ID", "2000", "attrType", "1"), ImmutableMap.of("ATTR_ID", "2001", "attrType", "1"));
         ImmutableMap<String, List> of = of("goodsAttrs", goodsAttrs);
         Eql eql = new Eql("mysql").select("haoye").params(of).dynamics(of);
         eql.execute();

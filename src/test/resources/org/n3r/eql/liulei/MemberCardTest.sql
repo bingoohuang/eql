@@ -22,18 +22,19 @@ truncate table member_card_week_times;
 
 -- [testIterateAddRecords iterate]
 insert into member_card_week_times (MBR_CARD_ID, START_TIME, END_TIME, TIMES, UPDATE_TIME, AVAIL_TIMES, CREATE_TIME)
-values ( #mbrCardId#, #startTime#, #endTime#, '-1', NOW(), '-1', NOW())
+values ('#mbrCardId#', '#startTime#', '#endTime#', -1, NOW(), -1, NOW());
 
 -- [testAddRecords]
 insert into member_card_week_times (MBR_CARD_ID, START_TIME, END_TIME, TIMES, UPDATE_TIME, AVAIL_TIMES, CREATE_TIME)
-values ( #mbrCardId#, #startTime#, #endTime#, '-1', NOW(), '-1', NOW())
+values ('#mbrCardId#', '#startTime#', '#endTime#', -1, NOW(), -1, NOW());
 
 -- [testInsertMultipleRows]
 insert into member_card_week_times (MBR_CARD_ID, START_TIME, END_TIME, TIMES, UPDATE_TIME, AVAIL_TIMES, CREATE_TIME)
 values
 -- for item=card index=index collection=_1 separator=,
-(#card.mbrCardId#, #card.startTime#, #card.endTime#, '-1', NOW(), '-1', NOW())
+('#card.mbrCardId#', '#card.startTime#', '#card.endTime#', -1, NOW(), -1, NOW())
 -- end
+;
 
 -- [countRecords returnType=int]
-select count(*) from member_card_week_times where MBR_CARD_ID = ##
+select count(*) from member_card_week_times where MBR_CARD_ID = '##';

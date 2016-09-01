@@ -18,7 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class EqlParamsParser {
-    private static Pattern PARAM_PATTERN = Pattern.compile("#(.*?)#");
+    private static Pattern PARAM_PATTERN = Pattern.compile("'?#(.*?)#'?");
     public final static char SUB = (char) 26; // 0001 1010 26 1A SUB (substitute) 替补
     public final static char DC1 = (char) 17; // 0001 0001 17 11 DC1 (device control 1) 设备控制1
     public final static char DC2 = (char) 18;// 0001 0010 18 12 DC2 (device control 2) 设备控制2
@@ -142,14 +142,14 @@ public class EqlParamsParser {
     }
 
     private static final Pattern lastWord = Pattern.compile(".*\\b([\\w_\\d]+)\\b.*$", Pattern.DOTALL);
-    private static final Pattern questionPattern = Pattern.compile("#\\s*\\?\\s*(:.*)?\\s*#");
+    private static final Pattern questionPattern = Pattern.compile("'?#\\s*\\?\\s*(:.*)?\\s*#'?");
 
     private String inferVarName(EqlType sqlType, String rawSql, int startPos, int endPos) {
         String variableName = null;
         switch (sqlType) {
             case SELECT:
             case UPDATE:
-                variableName = inferVarNameInUpdatEQL(rawSql, startPos, endPos);
+                variableName = inferVarNameInUpdateSQL(rawSql, startPos, endPos);
                 break;
             case INSERT:
             case REPLACE:
@@ -175,11 +175,11 @@ public class EqlParamsParser {
             return inferVarNameInInsertSql(rawSql, endPos);
 
         if (updatePos >= 0 && insertPos < 0)
-            return inferVarNameInUpdatEQL(rawSql, startPos, endPos);
+            return inferVarNameInUpdateSQL(rawSql, startPos, endPos);
 
         int minPos = Math.min(updatePos, insertPos);
         if (minPos == updatePos && endPos < insertPos || minPos == insertPos && endPos > updatePos)
-            return inferVarNameInUpdatEQL(rawSql, startPos, endPos);
+            return inferVarNameInUpdateSQL(rawSql, startPos, endPos);
         if (minPos == updatePos && endPos > insertPos || minPos == insertPos && endPos < updatePos)
             return inferVarNameInInsertSql(rawSql, endPos);
 
@@ -213,7 +213,7 @@ public class EqlParamsParser {
         return null;
     }
 
-    private String inferVarNameInUpdatEQL(String rawSql, int startPos, int endPos) {
+    private String inferVarNameInUpdateSQL(String rawSql, int startPos, int endPos) {
         String substr = rawSql.substring(startPos, endPos);
         Matcher matcher = lastWord.matcher(substr);
         if (!matcher.matches()) throw new EqlConfigException("Unable to resolve #?#： " + substr);

@@ -67,7 +67,7 @@ public class EnumMappingTest {
         assertThat(eql.getEqlRun().getEvalSql(), is(equalTo("select sex from eql_sex where sex = '1'")));
     }
 
-    public static enum Sex {
+    public enum Sex {
         male,female
     }
 
@@ -76,7 +76,7 @@ public class EnumMappingTest {
         int age;
     }
 
-    public static enum Sex2 implements InternalValueable<String> {
+    public enum Sex2 implements InternalValueable<String> {
         male("1"),female("0");
         private final String value;
 

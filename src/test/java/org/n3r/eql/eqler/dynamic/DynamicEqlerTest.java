@@ -8,9 +8,8 @@ import org.n3r.eql.eqler.EqlerFactory;
 
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static com.google.common.truth.Truth.assertThat;
+
 
 public class DynamicEqlerTest {
     static DynamicEqler eqler;
@@ -23,49 +22,49 @@ public class DynamicEqlerTest {
     @Test
     public void echo() {
         Map<String, String> echo = eqler.echo("bingoo", "huang");
-        assertThat(echo.size(), is(2));
-        assertThat(echo.get("hello"), is(equalTo("bingoo")));
-        assertThat(echo.get("world"), is(equalTo("huang")));
+        assertThat(echo.size()).isEqualTo(2);
+        assertThat(echo.get("hello")).isEqualTo("bingoo");
+        assertThat(echo.get("world")).isEqualTo("huang");
     }
 
     @Test
     public void echoNamed() {
         Map<String, String> echo = eqler.echoNamed("bingoo", "huang", "echoNamed");
-        assertThat(echo.size(), is(2));
-        assertThat(echo.get("hello"), is(equalTo("bingoo")));
-        assertThat(echo.get("world"), is(equalTo("huang")));
+        assertThat(echo.size()).isEqualTo(2);
+        assertThat(echo.get("hello")).isEqualTo("bingoo");
+        assertThat(echo.get("world")).isEqualTo("huang");
     }
 
     @Test
     public void echoNamedWithSqlId() {
         Map<String, String> echo = eqler.echoNamedWithSqlId("bingoo", "huang", "echoNamed");
-        assertThat(echo.size(), is(2));
-        assertThat(echo.get("hello1"), is(equalTo("bingoo")));
-        assertThat(echo.get("world1"), is(equalTo("huang")));
+        assertThat(echo.size()).isEqualTo(2);
+        assertThat(echo.get("hello1")).isEqualTo("bingoo");
+        assertThat(echo.get("world1")).isEqualTo("huang");
     }
 
     @Test
     public void echoShared() {
         Map<String, String> echo = eqler.echoShared("bingoo", "huang");
-        assertThat(echo.size(), is(3));
-        assertThat(echo.get("hello"), is(equalTo("bingoo")));
-        assertThat(echo.get("world"), is(equalTo("huang")));
-        assertThat(echo.get("shared"), is(equalTo("bingoo")));
+        assertThat(echo.size()).isEqualTo(3);
+        assertThat(echo.get("hello")).isEqualTo("bingoo");
+        assertThat(echo.get("world")).isEqualTo("huang");
+        assertThat(echo.get("shared")).isEqualTo("bingoo");
     }
 
     @Test
     public void echoShareNamed() {
         Map<String, String> echo = eqler.echoShareNamed("bingoo", "huang");
-        assertThat(echo.size(), is(3));
-        assertThat(echo.get("hello"), is(equalTo("bingoo")));
-        assertThat(echo.get("world"), is(equalTo("huang")));
-        assertThat(echo.get("shared"), is(equalTo("bingoo")));
+        assertThat(echo.size()).isEqualTo(3);
+        assertThat(echo.get("hello")).isEqualTo("bingoo");
+        assertThat(echo.get("world")).isEqualTo("huang");
+        assertThat(echo.get("shared")).isEqualTo("bingoo");
     }
 
     @Test
     public void eqlConfig() {
         EqlConfig eqlConfig = EqlConfigCache.getEqlConfig("me");
         String echo = eqler.eqlConfig(eqlConfig);
-        assertThat(echo, is(equalTo("abc")));
+        assertThat(echo).isEqualTo("abc");
     }
 }

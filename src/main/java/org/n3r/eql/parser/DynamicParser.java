@@ -13,7 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DynamicParser {
-    private static Pattern DYNAMIC_PATTERN = Pattern.compile("\\$(.*?)\\$");
+    private static Pattern DYNAMIC_PATTERN = Pattern.compile("'?\\$(.*?)\\$'?");
     private EqlDynamic dynamicSql;
     private String rawSql;
 

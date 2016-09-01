@@ -13,7 +13,7 @@ import java.util.Map;
 
 @Data @NoArgsConstructor @AllArgsConstructor
 public class MemberCard implements EqlToProperties {
-    String mbrCardId;
+    long mbrCardId;
     Timestamp startTime, endTime;
     int times;
     Timestamp updateTime;
