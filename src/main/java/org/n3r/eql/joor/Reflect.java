@@ -10,10 +10,8 @@ import java.util.Map;
 /**
  * A wrapper for an {@link Object} or {@link Class} upon which reflective calls
  * can be made.
- * <p/>
- * An example of using <code>Reflect</code> is <code><pre>
+ * An example of using <code>Reflect</code> is <code>
  * // Static import all reflection methods to decrease verbosity
- * <p/>
  * // Wrap an Object / Class / class name with the on() method:
  * on("java.lang.String")
  * // Invoke constructors using the create() method:
@@ -21,7 +19,7 @@ import java.util.Map;
  * // Invoke methods using the call() method:
  * .call("toString")
  * // Retrieve the wrapped object
- *
+ *</code>
  * @author Lukas Eder
  */
 
@@ -34,7 +32,6 @@ public class Reflect {
 
     /**
      * Wrap a class name.
-     * <p/>
      * This is the same as calling <code>on(Class.forName(name))</code>
      *
      * @param name A fully qualified class name
@@ -48,7 +45,6 @@ public class Reflect {
 
     /**
      * Wrap a class.
-     * <p/>
      * Use this when you want to access static fields and methods on a
      * {@link Class} object, or as a basis for constructing objects of that
      * class using {@link #create(Object...)}
@@ -62,7 +58,6 @@ public class Reflect {
 
     /**
      * Wrap an object.
-     * <p/>
      * Use this when you want to access instance fields and methods on any
      * {@link Object}
      *
@@ -73,7 +68,7 @@ public class Reflect {
         return new Reflect(object);
     }
 
-    /**
+    /*
      * Conveniently render an {@link java.lang.reflect.AccessibleObject} accessible
      *
      * @param accessible The object to render accessible
@@ -125,7 +120,7 @@ public class Reflect {
     // Fluent Reflection API
     // ---------------------------------------------------------------------
 
-    /**
+    /*
      * Get the wrapped object
      *
      * @param <T> A convenience generic parameter for automatic unsafe casting
@@ -137,7 +132,6 @@ public class Reflect {
 
     /**
      * Set a field value.
-     * <p/>
      * This is roughly equivalent to {@link java.lang.reflect.Field#set(Object, Object)}. If the
      * wrapped object is a {@link Class}, then this will set a value to a static
      * member field. If the wrapped object is any other {@link Object}, then
@@ -179,14 +173,12 @@ public class Reflect {
         return unwrapValue;
     }
 
-    /**
+    /*
      * Get a field value.
-     * <p/>
      * This is roughly equivalent to {@link java.lang.reflect.Field#get(Object)}. If the wrapped
      * object is a {@link Class}, then this will get a value from a static
      * member field. If the wrapped object is any other {@link Object}, then
      * this will get a value from an instance member field.
-     * <p/>
      * If you want to "navigate" to a wrapped version of the field, use
      * {@link #field(String)} instead.
      *
@@ -201,7 +193,6 @@ public class Reflect {
 
     /**
      * Get a wrapped field.
-     * <p/>
      * This is roughly equivalent to {@link java.lang.reflect.Field#get(Object)}. If the wrapped
      * object is a {@link Class}, then this will wrap a static member field. If
      * the wrapped object is any other {@link Object}, then this wrap an
@@ -231,15 +222,13 @@ public class Reflect {
     /**
      * Get a Map containing field names and wrapped values for the fields'
      * values.
-     * <p/>
      * If the wrapped object is a {@link Class}, then this will return static
      * fields. If the wrapped object is any other {@link Object}, then this will
      * return instance fields.
-     * <p/>
-     * These two calls are equivalent <code><pre>
+     * These two calls are equivalent <code>
      * on(object).field("myField");
      * on(object).fields().get("myField");
-     * </pre></code>
+     * </code>
      *
      * @return A map containing field names and wrapped values.
      */
@@ -258,7 +247,6 @@ public class Reflect {
 
     /**
      * Call a method by its name.
-     * <p/>
      * This is a convenience method for calling
      * <code>call(name, new Object[0])</code>
      *
@@ -275,26 +263,23 @@ public class Reflect {
 
     /**
      * Call a method by its name.
-     * <p/>
      * This is roughly equivalent to {@link java.lang.reflect.Method#invoke(Object, Object...)}.
      * If the wrapped object is a {@link Class}, then this will invoke a static
      * method. If the wrapped object is any other {@link Object}, then this will
      * invoke an instance method.
-     * <p/>
      * Just like {@link java.lang.reflect.Method#invoke(Object, Object...)}, this will try to wrap
      * primitive types or unwrap primitive type wrappers if applicable. If
      * several methods are applicable, by that rule, the first one encountered
-     * is called. i.e. when calling <code><pre>
+     * is called. i.e. when calling <code>
      * on(...).call("method", 1, 1);
-     * </pre></code> The first of the following methods will be called:
-     * <code><pre>
+     * </code> The first of the following methods will be called:
+     * <code>
      * public void method(int param1, Integer param2);
      * public void method(Integer param1, int param2);
      * public void method(Number param1, Number param2);
      * public void method(Number param1, Object param2);
      * public void method(int param1, Object param2);
-     * </pre></code>
-     * <p/>
+     * </code>
      * The best matching method is searched for with the following strategy:
      * <ol>
      * <li>public method with exact signature match in class hierarchy</li>
@@ -392,7 +377,6 @@ public class Reflect {
 
     /**
      * Call a constructor.
-     * <p/>
      * This is a convenience method for calling
      * <code>create(new Object[0])</code>
      *
@@ -406,25 +390,23 @@ public class Reflect {
 
     /**
      * Call a constructor.
-     * <p/>
      * This is roughly equivalent to {@link java.lang.reflect.Constructor#newInstance(Object...)}.
      * If the wrapped object is a {@link Class}, then this will create a new
      * object of that class. If the wrapped object is any other {@link Object},
      * then this will create a new object of the same type.
-     * <p/>
      * Just like {@link java.lang.reflect.Constructor#newInstance(Object...)}, this will try to
      * wrap primitive types or unwrap primitive type wrappers if applicable. If
      * several constructors are applicable, by that rule, the first one
-     * encountered is called. i.e. when calling <code><pre>
+     * encountered is called. i.e. when calling <code>
      * on(C.class).create(1, 1);
-     * </pre></code> The first of the following constructors will be applied:
-     * <code><pre>
+     * </code> The first of the following constructors will be applied:
+     * <code>
      * public C(int param1, Integer param2);
      * public C(Integer param1, int param2);
      * public C(Number param1, Number param2);
      * public C(Number param1, Object param2);
      * public C(int param1, Object param2);
-     * </pre></code>
+     * </code>
      *
      * @param args The constructor arguments
      * @return The wrapped new object, to be used for further reflection.
@@ -462,7 +444,7 @@ public class Reflect {
     }
 
 
-    /**
+    /*
      * Create a proxy for the wrapped object allowing to typesafely invoke
      * methods on it using a custom interface
      *
@@ -576,7 +558,7 @@ public class Reflect {
     // Utility methods
     // ---------------------------------------------------------------------
 
-    /**
+    /*
      * Wrap an object created from a constructor
      */
     private static Reflect on(Constructor<?> constructor, Object... args) throws ReflectException {
@@ -587,7 +569,7 @@ public class Reflect {
         }
     }
 
-    /**
+    /*
      * Wrap an object returned from a method
      */
     private static Reflect on(Method method, Object object, Object... args) throws ReflectException {
@@ -605,9 +587,6 @@ public class Reflect {
         }
     }
 
-    /**
-     * Unwrap an object
-     */
     private static Object unwrap(Object object) {
         if (object instanceof Reflect) {
             return ((Reflect) object).get();
@@ -616,7 +595,7 @@ public class Reflect {
         return object;
     }
 
-    /**
+    /*
      * Get an array of types for an array of objects
      *
      * @see Object#getClass()
@@ -636,7 +615,7 @@ public class Reflect {
         return result;
     }
 
-    /**
+    /*
      * Load a class
      *
      * @see Class#forName(String)
@@ -649,7 +628,7 @@ public class Reflect {
         }
     }
 
-    /**
+    /*
      * Get the type of the wrapped object.
      *
      * @see Object#getClass()
@@ -662,7 +641,7 @@ public class Reflect {
         }
     }
 
-    /**
+    /*
      * Get a wrapper type for a primitive type, or the argument type itself, if
      * it is not a primitive type.
      */

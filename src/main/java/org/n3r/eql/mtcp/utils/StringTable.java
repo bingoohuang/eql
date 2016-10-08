@@ -7,7 +7,6 @@ import java.util.Map;
 /**
  * 处理形如下面的字符串数组组成的表
  * 表的第一行为表字段名称，null表示一行结束。
- * <p/>
  * tenantId, dbtype, host, port, dbname, username, password, null,
  * dba, mysql, localhost, 3306, dba, dba, dba, null,
  * dbb, mysql, localhost, 3306, dbb, dbb, dbb, null,

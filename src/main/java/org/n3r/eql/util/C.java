@@ -32,7 +32,7 @@ public class C {
         return callerClassName.replace('.', '/') + "." + extension;
     }
 
-    /**
+    /*
      * Load a class given its name. BL: We wan't to use a known ClassLoader--hopefully the heirarchy is set correctly.
      */
     @SuppressWarnings("unchecked")

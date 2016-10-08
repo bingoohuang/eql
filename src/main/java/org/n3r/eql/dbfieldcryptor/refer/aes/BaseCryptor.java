@@ -65,7 +65,6 @@ public abstract class BaseCryptor {
      *
      * @param data 需要解密的字符串
      * @return 解密后的字符串
-     * @throws Exception
      */
     public String decrypt(String data) {
         try {
