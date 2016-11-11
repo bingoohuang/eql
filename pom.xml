@@ -7,7 +7,7 @@
     </parent>
     <groupId>com.github.bingoohuang</groupId>
     <artifactId>eql</artifactId>
-    <version>0.0.70-SNAPSHOT</version>
+    <version>0.0.73-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>easy sql</name>
@@ -66,10 +66,34 @@
 
     <dependencies>
         <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.9.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.bingoohuang</groupId>
+            <artifactId>idworker-client</artifactId>
+            <version>0.0.7</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.10</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.github.bingoohuang</groupId>
             <artifactId>blackcat-javaagent</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
             <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.bingoohuang</groupId>
+                    <artifactId>blackcat-sdk</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
@@ -191,8 +215,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>15.0</version>
-            <classifier>cdi1.0</classifier>
+            <version>19.0</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -235,8 +258,8 @@
             <version>1.0.13</version>
             <scope>test</scope>
         </dependency>
-<!--
 
+<!--
         <dependency>
             <groupId>weblogic</groupId>
             <artifactId>wlfullclient</artifactId>
@@ -315,7 +338,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <skip>true</skip>
+                    <skip>false</skip>
                     <show>public</show>
                     <charset>UTF-8</charset>
                     <encoding>UTF-8</encoding>

@@ -37,9 +37,7 @@ public class EqlerScannerConfigurer implements BeanDefinitionRegistryPostProcess
 
     /**
      * This property lets you set the base package for your mapper interface files.
-     * <p/>
      * You can set more than one package by using a semicolon or comma as a separator.
-     * <p/>
      * Mappers will be searched for recursively starting in the specified package(s).
      *
      * @param basePackage base package name
@@ -49,23 +47,17 @@ public class EqlerScannerConfigurer implements BeanDefinitionRegistryPostProcess
     }
 
 
-    /**
-     * @param processPropertyPlaceHolders
-     */
+
     public void setProcessPropertyPlaceHolders(boolean processPropertyPlaceHolders) {
         this.processPropertyPlaceHolders = processPropertyPlaceHolders;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     public void setApplicationContext(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     public void setBeanName(String name) {
         this.beanName = name;
     }
@@ -88,23 +80,15 @@ public class EqlerScannerConfigurer implements BeanDefinitionRegistryPostProcess
         this.nameGenerator = nameGenerator;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     public void afterPropertiesSet() throws Exception {
         notNull(this.basePackage, "Property 'basePackage' is required");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
         // left intentionally blank
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
         if (this.processPropertyPlaceHolders) {
             processPropertyPlaceHolders();

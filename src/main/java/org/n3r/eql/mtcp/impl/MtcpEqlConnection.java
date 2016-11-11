@@ -1,7 +1,6 @@
 package org.n3r.eql.mtcp.impl;
 
 import org.n3r.eql.config.EqlConfig;
-import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.mtcp.MtcpDataSourceHandler;
 import org.n3r.eql.trans.AbstractEqlConnection;
 import org.n3r.eql.util.Fucks;

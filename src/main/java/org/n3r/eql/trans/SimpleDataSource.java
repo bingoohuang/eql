@@ -13,16 +13,14 @@ import java.lang.reflect.Proxy;
 import java.sql.*;
 import java.util.*;
 
-/**
+/*
  * This is a simple, synchronous, thread-safe database connection pool.
- * <p/>
  * REQUIRED PROPERTIES
  * -------------------
  * JDBC.Driver
  * JDBC.ConnectionURL
  * JDBC.Username
  * JDBC.Password
- * <p/>
  * Pool.MaximumActiveConnections
  * Pool.MaximumIdleConnections
  * Pool.MaximumCheckoutTime

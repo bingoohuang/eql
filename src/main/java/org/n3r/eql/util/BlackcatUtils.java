@@ -14,10 +14,10 @@ public class BlackcatUtils {
     public static boolean HasBlackcat = classExists(
             "com.github.bingoohuang.blackcat.javaagent.callback.Blackcat");
 
-    public static void log(String pattern, Object... args) {
+    public static void log(String msgType, String pattern, Object... args) {
         if (!HasBlackcat) return;
 
         com.github.bingoohuang.blackcat.javaagent.callback
-                .Blackcat.log(pattern, args);
+                .Blackcat.log(msgType, pattern, args);
     }
 }

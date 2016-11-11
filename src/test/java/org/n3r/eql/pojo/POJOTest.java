@@ -1,7 +1,9 @@
 package org.n3r.eql.pojo;
 
 
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.n3r.eql.Eql;
 import org.n3r.eql.pojo.annotations.EqlColumn;
 import org.n3r.eql.pojo.annotations.EqlId;
 import org.n3r.eql.pojo.annotations.EqlSkip;
@@ -13,6 +15,11 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class POJOTest {
+    @BeforeClass
+    public static void beforeClass() {
+        new Eql("mysql").execute("drop table if exists personx", "create table personx (id varchar(100), name varchar(100), age int)");
+    }
+
     @Test
     public void test1() {
         Personx person = new Personx();

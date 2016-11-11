@@ -20,14 +20,14 @@ public interface DataSourceConfigurator {
 
     /**
      * 获取连接池
-     * @return
+     * @return 连接池
      */
     DataSource getDataSource();
 
     /**
      * 销毁连接池
-     * @param tenantId
-     * @param metricsRegistry
+     * @param tenantId 商户id
+     * @param metricsRegistry 度量注册器
      */
     void destory(String tenantId, MetricRegistry metricsRegistry);
 

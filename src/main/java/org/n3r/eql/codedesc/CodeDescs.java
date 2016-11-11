@@ -3,7 +3,6 @@ package org.n3r.eql.codedesc;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.ex.EqlConfigException;
-import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.parser.OffsetAndOptionValue;

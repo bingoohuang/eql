@@ -7,7 +7,7 @@ P_RETMSG  OUT VARCHAR2
 )IS
 BEGIN
   P_HEAD := 'HELLO ';
-  P_SQL := '$$';
+  P_SQL := ''$$'';
   P_RETCODE := 'XXX';
   P_RETMSG := 'YYYY';
 END;

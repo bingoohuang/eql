@@ -90,7 +90,7 @@ public class EqlRun implements Cloneable {
             /* if (isForEvaluate() || evalLogger.isDebugEnabled()) */
             this.evalSql = parseEvalSql(index);
             evalLogger.debug(this.evalSql);
-            BlackcatUtils.log("SQL-EVAL", this.evalSql);
+            BlackcatUtils.log("SQL.EVAL", this.evalSql);
         } else {
             this.evalSql = evalSqlTemplate;
         }

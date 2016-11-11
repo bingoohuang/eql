@@ -3,7 +3,6 @@ package org.n3r.eql.util;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.io.Resources;
 
 import java.io.IOException;
@@ -33,7 +32,7 @@ public class C {
         return callerClassName.replace('.', '/') + "." + extension;
     }
 
-    /**
+    /*
      * Load a class given its name. BL: We wan't to use a known ClassLoader--hopefully the heirarchy is set correctly.
      */
     @SuppressWarnings("unchecked")

@@ -285,7 +285,7 @@ public class MethodGenerator<T> {
     private void returnType() {
         Class<?> returnTypeClass = method.getReturnType();
         Type tp = Type.getType(returnTypeClass);
-        if (tp.equals(Type.VOID_TYPE)) return;
+//        if (tp.equals(Type.VOID_TYPE)) return;
 
         MethodParam eqlRowMapper = methodAllParam.getEqlRowMapper();
         if (eqlRowMapper != null) {

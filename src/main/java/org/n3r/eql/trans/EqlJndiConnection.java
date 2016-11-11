@@ -1,7 +1,6 @@
 package org.n3r.eql.trans;
 
 import org.n3r.eql.config.EqlConfig;
-import org.n3r.eql.ex.EqlConfigException;
 import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.S;

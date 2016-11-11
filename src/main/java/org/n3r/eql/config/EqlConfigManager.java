@@ -10,9 +10,11 @@ import org.n3r.eql.trans.EqlTranFactory;
 import org.n3r.eql.util.S;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 public class EqlConfigManager {
     private static LoadingCache<EqlConfigDecorator, EqlTranFactory> eqlTranFactoryCache = CacheBuilder.newBuilder()
+            .expireAfterAccess(10, TimeUnit.MINUTES)
             .removalListener(new RemovalListener<EqlConfigDecorator, EqlTranFactory>() {
                 @Override
                 public void onRemoval(RemovalNotification<EqlConfigDecorator, EqlTranFactory> notification) {

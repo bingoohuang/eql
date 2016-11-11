@@ -123,7 +123,7 @@ String x = new Eql().selectFirst("autoSeq1")
 ```sql
 -- [autoSeq1]
 select 'X' from dual
-where 'x' = ##
+where 'x' = '##'
 ```
 
 * example 2
@@ -137,8 +137,8 @@ String x = new Eql().selectFirst("autoSeq2")
 ```sql
 -- [autoSeq2]
 select 'X' from dual
-where 'x' = ##
-and 'y' = ##
+where 'x' = '##'
+and 'y' = '##'
 ```
 
 * example 3
@@ -152,8 +152,8 @@ String x = new Eql().selectFirst("autoSeq3")
 ```sql
 -- [autoSeq3]
 select 'X' from dual
-where 'x' = #2#
-and 'y' = #1#
+where 'x' = '#2#'
+and 'y' = '#1#'
 ```
 
 #With parameters by properties name
@@ -169,8 +169,8 @@ String x = new Eql().selectFirst("bean")
 ```sql
 -- [bean]
 select 'X' from dual
-where 'x' = #x#
-and 'y' = #y#
+where 'x' = '#x#'
+and 'y' = '#y#'
 ```
 
 * example 2
@@ -184,8 +184,8 @@ String x = new Eql().selectFirst("map")
 ```sql
 -- [map]
 select 'X' from dual
-where 'a' = #x#
-and 'b' = #y#
+where 'a' = '#x#'
+and 'b' = '#y#'
 ```
 
 * example 3
@@ -199,8 +199,8 @@ String x = new Eql().selectFirst("map")
 ```sql
 -- [map]
 select 'X' from dual
-where 'a' = #_1#
-and 'b' = #_2#
+where 'a' = '#_1#'
+and 'b' = '#_2#'
 ```
 
 # Dynamic sql
@@ -229,23 +229,23 @@ String y = new Eql().selectFirst("ifDemo")
 -- [ifDemo]
 select 'X' from dual
 -- if x == "a"
-where 'a' = #x#
+where 'a' = '#x#'
 -- end
 
 -- [ifDemo2]
 select 'X' from dual
 -- if x == "a"
-where 'a' = #x#
+where 'a' = '#x#'
 -- else if x == "b"
-where 'b' = #x#
+where 'b' = '#x#'
 -- else
-where 'c' = ##
+where 'c' = '##'
 -- end
 
 -- or use more compact syntax
 
 -- [ifDemo]
-select 'X' from dual /* if x == "a" */  where 'a' = #x# /* end */
+select 'X' from dual /* if x == "a" */  where 'a' = '#x#' /* end */
 ```
 
 ## iff
@@ -254,12 +254,12 @@ select 'X' from dual /* if x == "a" */  where 'a' = #x# /* end */
 -- [ifDemo]
 select 'X' from dual
 -- iff x == "a"
-where 'a' = #x#
+where 'a' = '#x#'
 
 -- or use more compact syntax
 
 -- [ifDemo]
-select 'X' from dual /* iff x == "a" */  where 'a' = #x#
+select 'X' from dual /* iff x == "a" */  where 'a' = '#x#'
 ```
 
 to use STATIC fields:
@@ -288,7 +288,7 @@ public class OgnlStaticTest {
 select 'X'
 from DUAL
 -- iff state == @org.n3r.eql.OgnlStaticTest@STATE
-where 'x' = #x#
+where 'x' = '#x#'
 ```
 
 ## switch
@@ -357,7 +357,7 @@ WHERE A in (3,4)
 SELECT B
 FROM eql_TEST
 -- isNotEmpty a
-WHERE A = #a#
+WHERE A = '#a#'
 -- end
 ```
 
@@ -378,25 +378,25 @@ List<String> names = new Eql().params(Lists.newArrayList("1", "2")).execute();
 update author
 -- trim prefix=SET suffixOverrides=,
   -- iff username != null
-         username=#username#,
+         username='#username#',
   -- iff password != null
-         PASSWORD=#password#,
+         PASSWORD='#password#',
   -- iff email != null
-         email=#email#,
+         email='#email#',
   -- iff bio != null
-          bio=#bio#,
+          bio='#bio#',
 -- end
-where id=#id#
+where id='#id#'
 
 -- [selectBlog]
 SELECT STATE FROM BLOG
 -- trim prefix=WHERE prefixOverrides=AND|OR
    -- iff state != null
-          state = #state#
+          state = '#state#'
    -- iff title != null
-      AND title like #title#
+      AND title like '#title#'
    -- iff author != null and author.name != null
-      AND author_name like #author.name#
+      AND author_name like '#author.name#'
 -- end
 GROUP BY STATE
 ```
@@ -417,7 +417,7 @@ assertThat(page.getTotalRows(), is(10));
 -- [testPage]
 SELECT A,B,C,D,E
 FROM eql_TEST
-WHERE C = ##
+WHERE C = '##'
 ```
 
 # Dynamic table name
@@ -436,13 +436,13 @@ assertThat(str, is("x"));
 -- [replace1]
 SELECT 'x'
 FROM $$
-WHERE 'x' = ##
+WHERE 'x' = '##'
 
 
 -- [replace2]
 SELECT 'x'
 FROM $table$
-WHERE 'x' = ##
+WHERE 'x' = '##'
 ```
 
 # Batch execute
@@ -474,13 +474,13 @@ VALUES(##, ##, ##, ##, SYSDATE)
 
 ```sql
 -- [likeDemo]
-select 'x' from demo where name like #:Like#
+select 'x' from demo where name like '#:Like#'
 
 -- [leftLikeDemo]
-select 'x' from demo where name like #:LeftLike#
+select 'x' from demo where name like '#:LeftLike#'
 
 -- [rightLikeDemo]
-select 'x' from demo where name like #:RightLike#
+select 'x' from demo where name like '#:RightLike#'
 ```
 
 ```java
@@ -544,7 +544,7 @@ SELECT BOB FROM eql_BLOB
 SELECT 1 as seq, BOB as remark FROM eql_BLOB
 
 -- [updateBlob]
-UPDATE eql_BLOB SET BOB = #:LOB#
+UPDATE eql_BLOB SET BOB = '#:LOB#'
 ```
 
 # [Diamond-miner](https://github.com/bingoohuang/diamond-miner) support example
@@ -619,12 +619,12 @@ eql.close();
 -- [selectStmt]
 SELECT C
 FROM eql_TEST
-WHERE A = ##
+WHERE A = '##'
 
 -- [updateStmt]
 UPDATE eql_TEST
-SET C = #2#
-WHERE A = #1#
+SET C = '#2#'
+WHERE A = '#1#'
 ```
 
 # Custom result mapper example
@@ -920,13 +920,13 @@ create table eql_student(student_id int, name varchar(10), age int);
 
 -- [addStudent]
 insert into eql_student
-values(##, ##, ##)
+values('##', '##', '##')
 
 -- [queryStudentName]
-select name from eql_student where student_id = ##
+select name from eql_student where student_id = '##'
 
 -- [queryStudent]
-select student_id, name, age from eql_student where student_id = ##
+select student_id, name, age from eql_student where student_id = '##'
 ```
 
 ```java

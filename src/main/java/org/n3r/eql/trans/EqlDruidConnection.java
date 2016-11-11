@@ -2,7 +2,6 @@ package org.n3r.eql.trans;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import org.n3r.eql.config.EqlConfig;
-import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.O;
