@@ -11,14 +11,14 @@ import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlUpdateStatement;
 import com.alibaba.druid.sql.dialect.mysql.parser.MySqlStatementParser;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlASTVisitorAdapter;
 import com.alibaba.druid.sql.parser.ParserException;
-import com.alibaba.druid.sql.parser.SQLStatementParser;
-import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 
 import java.util.List;
 import java.util.Map;
@@ -27,9 +27,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
-    private final Logger log = LoggerFactory.getLogger(MySqlSensitiveFieldsParser.class);
+import static com.google.common.base.MoreObjects.firstNonNull;
 
+@Slf4j
+public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
     private final Map<String, Object> aliasTablesMap = Maps.newHashMap();
     private final Set<Integer> secureBindIndices = Sets.newHashSet();
     private final Set<Integer> secureResultIndices = Sets.newHashSet();
@@ -99,7 +100,8 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
     }
 
 
-    private static MySqlSensitiveFieldsParser parseStatement(MySqlSensitiveFieldsParser parser, SQLStatement sqlStatement) {
+    private static MySqlSensitiveFieldsParser parseStatement(
+            MySqlSensitiveFieldsParser parser, SQLStatement sqlStatement) {
         if (sqlStatement instanceof SQLSelectStatement) {
             parser.parseSelectQuery(((SQLSelectStatement) sqlStatement).getSelect().getQuery());
         } else if (sqlStatement instanceof MySqlDeleteStatement) {
@@ -126,7 +128,7 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
     }
 
     private static SQLStatement parseSql(String sql) {
-        SQLStatementParser parser = new MySqlStatementParser(sql);
+        val parser = new MySqlStatementParser(sql);
         List<SQLStatement> stmtList;
         try {
             stmtList = parser.parseStatementList();
@@ -151,14 +153,14 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
     private void parseHint(String hint) {
         Matcher matcher = bindPattern.matcher(hint);
         if (matcher.find()) {
-            Iterable<String> bindIndices = indexSplitter.split(matcher.group(1));
+            val bindIndices = indexSplitter.split(matcher.group(1));
             for (String bindIndex : bindIndices)
                 secureBindIndices.add(Integer.parseInt(bindIndex));
         }
 
         matcher = resultPattern.matcher(hint);
         if (matcher.find()) {
-            Iterable<String> resultIndices = indexSplitter.split(matcher.group(1));
+            val resultIndices = indexSplitter.split(matcher.group(1));
             for (String resultIndex : resultIndices)
                 secureResultIndices.add(Integer.parseInt(resultIndex));
         }
@@ -180,7 +182,8 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
         parseTable(queryBlock.getFrom());
         parseSelectItems(queryBlock.getSelectList());
         adjustSubQueryBindIndicesOfFrom();
-        if (queryBlock.getWhere() != null) queryBlock.getWhere().accept(adapter);
+        if (queryBlock.getWhere() != null)
+            queryBlock.getWhere().accept(adapter);
     }
 
     private void adjustSubQueryBindIndicesOfFrom() {
@@ -192,11 +195,12 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
     }
 
     private void parseDelete(MySqlDeleteStatement deleteStatement) {
-        SQLExprTableSource tableSource = (SQLExprTableSource) deleteStatement.getTableSource();
+        val tableSource = (SQLExprTableSource) deleteStatement.getTableSource();
         if (tableSource.getExpr() instanceof SQLIdentifierExpr)
             addTableAlias(tableSource, (SQLIdentifierExpr) tableSource.getExpr());
 
-        if (deleteStatement.getWhere() != null) deleteStatement.getWhere().accept(adapter);
+        if (deleteStatement.getWhere() != null)
+            deleteStatement.getWhere().accept(adapter);
     }
 
     private void parseCall(SQLCallStatement callStatement) {
@@ -204,9 +208,9 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
         boolean isOraFunc = callStatement.getOutParameter() != null;
         if (isOraFunc && isSecureField(1)) secureBindIndices.add(1);
 
-        List<SQLExpr> parameters = callStatement.getParameters();
+        val parameters = callStatement.getParameters();
         for (int i = 0, ii = parameters.size(); i < ii; ++i) {
-            SQLExpr parameter = parameters.get(i);
+            val parameter = parameters.get(i);
             parameter.accept(adapter);
             int paramIndex = i + 1 + (isOraFunc ? 1 : 0);
 
@@ -214,20 +218,20 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
             if (parameter instanceof SQLVariantRefExpr) {
                 secureBindIndices.add(variantIndex + (isOraFunc ? 1 : 0));
             } else {
-                log.warn("secure field is not passed as a single value in sql [" + sql + "]");
+                log.warn("secure field is not passed as a single value in sql [{}", sql);
             }
         }
     }
 
     private void parseUpdate(MySqlUpdateStatement updateStatement) {
-        SQLTableSource tableSource = updateStatement.getTableSource();
+        val tableSource = updateStatement.getTableSource();
         if (tableSource instanceof SQLExprTableSource) {
-            SQLExprTableSource ets = (SQLExprTableSource) tableSource;
+            val ets = (SQLExprTableSource) tableSource;
             addTableAlias(ets.getAlias(), (SQLIdentifierExpr) ets.getExpr());
         }
 
-        List<SQLUpdateSetItem> items = updateStatement.getItems();
-        SQLUpdateSetItem item0 = items.get(0);
+        val items = updateStatement.getItems();
+        val item0 = items.get(0);
         if (items.size() == 1 && item0.getColumn() instanceof SQLListExpr
                 && item0.getValue() instanceof SQLQueryExpr) {
             // update xxx set (a,b) = (select ... from) where
@@ -236,12 +240,13 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
             walkUpdateItems(items);
         }
 
-        if (updateStatement.getWhere() != null) updateStatement.getWhere().accept(adapter);
+        if (updateStatement.getWhere() != null)
+            updateStatement.getWhere().accept(adapter);
     }
 
     private void walkUpdateSelect(SQLUpdateSetItem item) {
-        SQLListExpr sqlListExpr = (SQLListExpr) item.getColumn();
-        List<SQLExpr> items = sqlListExpr.getItems();
+        val sqlListExpr = (SQLListExpr) item.getColumn();
+        val items = sqlListExpr.getItems();
         Set<Integer> secureFieldIndices = Sets.newHashSet();
         for (int i = 0, ii = items.size(); i < ii; ++i) {
             SQLExpr expr = items.get(i);
@@ -250,22 +255,25 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
             }
         }
 
-        SQLQueryExpr value = (SQLQueryExpr) item.getValue();
+        val value = (SQLQueryExpr) item.getValue();
 
-        SQLSelectQueryBlock queryBlock = (SQLSelectQueryBlock) value.getSubQuery().getQuery();
+        val queryBlock = (SQLSelectQueryBlock) value.getSubQuery().getQuery();
 
         parseTable(queryBlock.getFrom());
         parseSelectItemsInUpdate(secureFieldIndices, queryBlock.getSelectList());
 
-        if (queryBlock.getWhere() != null) queryBlock.getWhere().accept(adapter);
+        if (queryBlock.getWhere() != null)
+            queryBlock.getWhere().accept(adapter);
 
     }
 
-    private void parseSelectItemsInUpdate(Set<Integer> secureFieldIndices, List<SQLSelectItem> selectList) {
+    private void parseSelectItemsInUpdate(
+            Set<Integer> secureFieldIndices, List<SQLSelectItem> selectList) {
         for (int i = 0, ii = selectList.size(); i < ii; ++i) {
-            SQLSelectItem item = selectList.get(i);
+            val item = selectList.get(i);
             item.accept(adapter);
-            if (secureFieldIndices.contains(i) && item.getExpr() instanceof SQLVariantRefExpr) {
+            if (secureFieldIndices.contains(i)
+                    && item.getExpr() instanceof SQLVariantRefExpr) {
                 secureBindIndices.add(variantIndex);
             }
         }
@@ -273,15 +281,16 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
 
     private void walkUpdateItems(List<SQLUpdateSetItem> items) {
         for (int i = 0, ii = items.size(); i < ii; ++i) {
-            SQLUpdateSetItem item = items.get(i);
+            val item = items.get(i);
             item.accept(adapter);
 
             boolean isSecureField = false;
             if (item.getColumn() instanceof SQLPropertyExpr) {
-                SQLPropertyExpr expr = (SQLPropertyExpr) item.getColumn();
+                val expr = (SQLPropertyExpr) item.getColumn();
                 isSecureField = isSecureField(expr);
             } else if (item.getColumn() instanceof SQLIdentifierExpr) {
-                isSecureField = isSecureField((SQLIdentifierExpr) item.getColumn());
+                val column = (SQLIdentifierExpr) item.getColumn();
+                isSecureField = isSecureField(column);
             }
 
             if (!isSecureField) continue;
@@ -289,7 +298,7 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
             if (item.getValue() instanceof SQLVariantRefExpr) {
                 secureBindIndices.add(variantIndex);
             } else {
-                log.warn("secure field is not updated as a single value in sql [" + sql + "]");
+                log.warn("secure field is not updated as a single value in sql [{}]", sql);
             }
         }
     }
@@ -297,7 +306,7 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
 
     // only check one situation of right ? like: A.PCARD_CODE = upper(?)
     private void checkOnlyOneAsk(SQLExpr right) {
-        final AtomicInteger rightVariantIndex = new AtomicInteger(0);
+        val rightVariantIndex = new AtomicInteger(0);
         right.accept(new MySqlASTVisitorAdapter() {
             @Override
             public boolean visit(SQLVariantRefExpr x) {
@@ -306,7 +315,8 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
             }
         });
 
-        if (rightVariantIndex.get() == 1) secureBindIndices.add(variantIndex + 1);
+        if (rightVariantIndex.get() == 1)
+            secureBindIndices.add(variantIndex + 1);
     }
 
 
@@ -363,13 +373,13 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
 
     private void parseTable(SQLTableSource from) {
         if (from instanceof SQLExprTableSource) {
-            SQLExprTableSource source = (SQLExprTableSource) from;
+            val source = (SQLExprTableSource) from;
 
             if (source.getExpr() instanceof SQLIdentifierExpr)
                 addTableAlias(from, (SQLIdentifierExpr) source.getExpr());
 
         } else if (from instanceof SQLJoinTableSource) {
-            SQLJoinTableSource joinTableSource = (SQLJoinTableSource) from;
+            val joinTableSource = (SQLJoinTableSource) from;
             parseTable(joinTableSource.getLeft());
             parseTable(joinTableSource.getRight());
 
@@ -377,9 +387,9 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
             SQLExpr conditionOn = joinTableSource.getCondition();
             if (conditionOn != null) conditionOn.accept(adapter);
         } else if (from instanceof SQLSubqueryTableSource) {
-            SQLSubqueryTableSource tableSource = (SQLSubqueryTableSource) from;
-            SQLSelectQuery query = tableSource.getSelect().getQuery();
-            MySqlSensitiveFieldsParser subParser = createSubQueryParser(query, QueryBelongs.FROM);
+            val tableSource = (SQLSubqueryTableSource) from;
+            val query = tableSource.getSelect().getQuery();
+            val subParser = createSubQueryParser(query, QueryBelongs.FROM);
             addTableAlias(from, subParser);
         }
     }
@@ -398,7 +408,7 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
     }
 
     private void addTableAlias(String alias, String tableName) {
-        aliasTablesMap.put(Objects.firstNonNull(alias, tableName), tableName);
+        aliasTablesMap.put(firstNonNull(alias, tableName), tableName);
     }
 
 
@@ -418,11 +428,11 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
 
     private void parseSelectItems(List<SQLSelectItem> sqlSelectItems) {
         for (int itemIndex = 0, ii = sqlSelectItems.size(); itemIndex < ii; ++itemIndex) {
-            SQLSelectItem item = sqlSelectItems.get(itemIndex);
+            val item = sqlSelectItems.get(itemIndex);
             String alias = item.getAlias();
 
             if (item.getExpr() instanceof SQLIdentifierExpr) {
-                SQLIdentifierExpr expr = (SQLIdentifierExpr) item.getExpr();
+                val expr = (SQLIdentifierExpr) item.getExpr();
 
                 if (isSecureField(expr)) {
                     secureResultIndices.add(itemIndex + 1);
@@ -430,10 +440,10 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
                 }
 
             } else if (item.getExpr() instanceof SQLPropertyExpr) {
-                SQLPropertyExpr expr = (SQLPropertyExpr) item.getExpr();
+                val expr = (SQLPropertyExpr) item.getExpr();
                 if (isSecureField(expr)) {
                     if ("*".equals(expr.getName())) {
-                        Object tableName = aliasTablesMap.get(expr.getOwner().toString());
+                        val tableName = aliasTablesMap.get(expr.getOwner().toString());
                         copyResultIndicesAndLabels(itemIndex, tableName);
 
                     } else {
@@ -443,18 +453,18 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
                 }
             } else if (item.getExpr() instanceof SQLAllColumnExpr) {
                 if (isSecureField((SQLAllColumnExpr) item.getExpr())) {
-                    Object tableName = getOneTableName();
+                    val tableName = getOneTableName();
                     copyResultIndicesAndLabels(itemIndex, tableName);
                 }
 
             } else if (item.getExpr() instanceof SQLQueryExpr) {
-                SQLQueryExpr expr = (SQLQueryExpr) item.getExpr();
-                SQLSelectQuery subQuery = expr.getSubQuery().getQuery();
-                MySqlSensitiveFieldsParser subParser = createSubQueryParser(subQuery, QueryBelongs.SELECT);
+                val expr = (SQLQueryExpr) item.getExpr();
+                val subQuery = expr.getSubQuery().getQuery();
+                val subParser = createSubQueryParser(subQuery, QueryBelongs.SELECT);
 
                 if (subParser.inResultIndices(1)) {
                     secureResultIndices.add(itemIndex + 1);
-                    Set<String> labels = subParser.getSecureResultLabels();
+                    val labels = subParser.getSecureResultLabels();
                     secureResultLabels.add(cleanQuotesAndToUpper(alias == null ? labels.iterator().next() : alias));
                 }
             }
@@ -463,7 +473,7 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
 
     private void copyResultIndicesAndLabels(int itemIndex, Object tableName) {
         if (tableName instanceof MySqlSensitiveFieldsParser) {
-            MySqlSensitiveFieldsParser parser = (MySqlSensitiveFieldsParser) tableName;
+            val parser = (MySqlSensitiveFieldsParser) tableName;
             for (Integer resultIndex : parser.getSecureResultIndices()) {
                 secureResultIndices.add(resultIndex + itemIndex);
             }
@@ -471,13 +481,14 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
         }
     }
 
-    private MySqlSensitiveFieldsParser createSubQueryParser(SQLSelectQuery subQuery, QueryBelongs mode) {
-        MySqlSensitiveFieldsParser subParser = new MySqlSensitiveFieldsParser(secureFields, sql);
+    private MySqlSensitiveFieldsParser createSubQueryParser(
+            SQLSelectQuery subQuery, QueryBelongs mode) {
+        val subParser = new MySqlSensitiveFieldsParser(secureFields, sql);
         subParser.parseSelectQuery(subQuery);
 
         switch (mode) {
             case FROM:
-                BindVariant bindAndVariant = new BindVariant(subParser.getVariantIndex(),
+                val bindAndVariant = new BindVariant(subParser.getVariantIndex(),
                         subParser.getSecureBindIndices());
                 subQueryBindAndVariantOfFrom.add(bindAndVariant);
                 break;
@@ -493,14 +504,14 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
     }
 
     private void parseReplace(MySqlReplaceStatement x) {
-        SQLExprTableSource tableSource = x.getTableSource();
+        val tableSource = x.getTableSource();
         if (tableSource.getExpr() instanceof SQLIdentifierExpr)
             addTableAlias(tableSource, (SQLIdentifierExpr) tableSource.getExpr());
 
-        List<SQLExpr> columns = x.getColumns();
-        List<Integer> secureFieldsIndices = walkInsertColumns(columns);
+        val columns = x.getColumns();
+        val secureFieldsIndices = walkInsertColumns(columns);
 
-        List<SQLInsertStatement.ValuesClause> valuesList = x.getValuesList();
+        val valuesList = x.getValuesList();
 
         // may be insert ... select ...
         if (valuesList != null) {
@@ -514,14 +525,14 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
     }
 
     private void parseInsert(SQLInsertInto x) {
-        SQLExprTableSource tableSource = x.getTableSource();
+        val tableSource = x.getTableSource();
         if (tableSource.getExpr() instanceof SQLIdentifierExpr)
             addTableAlias(tableSource, (SQLIdentifierExpr) tableSource.getExpr());
 
-        List<SQLExpr> columns = x.getColumns();
-        List<Integer> secureFieldsIndices = walkInsertColumns(columns);
+        val columns = x.getColumns();
+        val secureFieldsIndices = walkInsertColumns(columns);
 
-        SQLInsertStatement.ValuesClause valuesClause = x.getValues();
+        val valuesClause = x.getValues();
         // may be insert ... select ...
         if (valuesClause != null) {
             List<SQLExpr> values = valuesClause.getValues();
@@ -532,8 +543,9 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
         }
     }
 
-    private void parseQuery4Insert(List<Integer> secureFieldsIndices, SQLSelectQueryBlock queryBlock) {
-        List<SQLSelectItem> selectList = queryBlock.getSelectList();
+    private void parseQuery4Insert(
+            List<Integer> secureFieldsIndices, SQLSelectQueryBlock queryBlock) {
+        val selectList = queryBlock.getSelectList();
         for (int itemIndex = 0, ii = selectList.size(); itemIndex < ii; ++itemIndex) {
             SQLSelectItem item = selectList.get(itemIndex);
             item.accept(adapter);
@@ -546,7 +558,8 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
 
         parseTable(queryBlock.getFrom());
 
-        if (queryBlock.getWhere() != null) queryBlock.getWhere().accept(adapter);
+        if (queryBlock.getWhere() != null)
+            queryBlock.getWhere().accept(adapter);
     }
 
     private void walkInsertValues(List<Integer> secureFieldsIndices, List<SQLExpr> values) {
@@ -554,8 +567,10 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
             SQLExpr expr = values.get(i);
             expr.accept(adapter);
             if (secureFieldsIndices.contains(i)) {
-                if (expr instanceof SQLVariantRefExpr) secureBindIndices.add(variantIndex);
-                else log.warn("secure field is not inserted as a single value in sql [" + sql + "]");
+                if (expr instanceof SQLVariantRefExpr)
+                    secureBindIndices.add(variantIndex);
+                else
+                    log.warn("secure field is not inserted as a single value in sql [" + sql + "]");
             }
         }
     }
@@ -631,27 +646,14 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
         return variantIndex;
     }
 
-    static enum QueryBelongs {
+    enum QueryBelongs {
         FROM, SELECT
     }
 
-
+    @AllArgsConstructor @Getter
     static class BindVariant {
         private Integer variantIndex;
         private Set<Integer> bindIndices;
-
-        public BindVariant(Integer variantIndex, Set<Integer> bindIndices) {
-            this.variantIndex = variantIndex;
-            this.bindIndices = bindIndices;
-        }
-
-        public Integer getVariantIndex() {
-            return variantIndex;
-        }
-
-        public Set<Integer> getBindIndices() {
-            return bindIndices;
-        }
     }
 
 }

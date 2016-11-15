@@ -1,7 +1,6 @@
 package org.n3r.eql.cache;
 
 
-import com.google.common.base.Objects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.n3r.eql.impl.EqlUniqueSqlId;
@@ -14,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 public class EqlCacheSettings {
     static Logger logger = LoggerFactory.getLogger(EqlCacheSettings.class);
@@ -65,7 +66,7 @@ public class EqlCacheSettings {
     }
 
     public static EqlCacheProvider getCacheProvider(EqlUniqueSqlId uniquEQLId, String cacheModel) {
-        String model = Objects.firstNonNull(cacheModel, EqlCacheSettings.DEFAULT_GUAVA_CACHE_MODEL);
+        String model = firstNonNull(cacheModel, EqlCacheSettings.DEFAULT_GUAVA_CACHE_MODEL);
 
         EqlCacheModelKey cacheModelKey = new EqlCacheModelKey(uniquEQLId.getSqlClassPath(), model);
         EqlCacheProvider provider = eqlCacheModels.getIfPresent(cacheModelKey);

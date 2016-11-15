@@ -3,6 +3,7 @@ package org.n3r.eql.dbfieldcryptor.parser;
 import com.alibaba.druid.sql.dialect.oracle.parser.OracleStatementParser;
 import com.alibaba.druid.sql.parser.SQLStatementParser;
 import com.google.common.collect.Sets;
+import lombok.val;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -52,8 +53,7 @@ public class OracleSensitiveFieldsParserTest {
     @Test
     public void testLiulei() {
         HashSet<String> liuleiSecuretFields = Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO");
-        OracleSensitiveFieldsParser parser;
-        parser = OracleSensitiveFieldsParser.parseSql(liuleiSql, liuleiSecuretFields);
+        val parser = OracleSensitiveFieldsParser.parseSql(liuleiSql, liuleiSecuretFields);
 
         Assert.assertEquals(Sets.newHashSet(1), parser.getSecureResultIndices());
         Assert.assertEquals(Sets.newHashSet("PSPTNO"), parser.getSecureResultLabels());
@@ -153,8 +153,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testInsertSelect() {
-        OracleSensitiveFieldsParser parser = OracleSensitiveFieldsParser.parseSql(sql,
-                securetFields);
+        val parser = OracleSensitiveFieldsParser.parseSql(sql, securetFields);
 
         Assert.assertEquals(Sets.newHashSet(1, 35), parser.getSecureBindIndices());
     }
@@ -163,8 +162,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testInsertAll() {
-        OracleSensitiveFieldsParser parser = OracleSensitiveFieldsParser.parseSql(insertAllSql,
-                securetFields);
+        val parser = OracleSensitiveFieldsParser.parseSql(insertAllSql, securetFields);
         Assert.assertEquals(Sets.newHashSet(34, 1, 100, 23, 67, 111, 78, 56, 89, 12, 122, 45), parser.getSecureBindIndices());
     }
 
@@ -324,8 +322,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testSelect() {
-        OracleSensitiveFieldsParser parser = OracleSensitiveFieldsParser.parseSql(selectSql,
-                securetFields);
+        val parser = OracleSensitiveFieldsParser.parseSql(selectSql, securetFields);
         Assert.assertEquals(Sets.newHashSet(2, 35, 41), parser.getSecureResultIndices());
     }
 
@@ -354,8 +351,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testUnion() {
-        OracleSensitiveFieldsParser parser = OracleSensitiveFieldsParser.parseSql(unionSql,
-                Sets.newHashSet("TD_G_ATTR.ATTR_CODE", "TD_B_COMMPARA.PARAM_NAME"));
+        val parser = OracleSensitiveFieldsParser.parseSql(unionSql, Sets.newHashSet("TD_G_ATTR.ATTR_CODE", "TD_B_COMMPARA.PARAM_NAME"));
         Assert.assertEquals(Sets.newHashSet(1, 2), parser.getSecureResultIndices());
     }
 
@@ -363,8 +359,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testFunctionSql() {
-        OracleSensitiveFieldsParser parser = OracleSensitiveFieldsParser.parseSql(fnSql,
-                Sets.newHashSet("F_SYS_GETGOODSEQID.1"));
+        val parser = OracleSensitiveFieldsParser.parseSql(fnSql, Sets.newHashSet("F_SYS_GETGOODSEQID.1"));
         Assert.assertEquals(Sets.newHashSet(1), parser.getSecureBindIndices());
     }
 
@@ -422,8 +417,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testPagEQL() {
-        OracleSensitiveFieldsParser parser = OracleSensitiveFieldsParser.parseSql(pagEQL,
-                Sets.newHashSet("TD_P_BROADBAND.CITY_CODE"));
+        val parser = OracleSensitiveFieldsParser.parseSql(pagEQL, Sets.newHashSet("TD_P_BROADBAND.CITY_CODE"));
         Assert.assertEquals(Sets.newHashSet(3), parser.getSecureResultIndices());
     }
 
@@ -508,7 +502,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testUpdateSetQuery() {
-        OracleSensitiveFieldsParser parser = OracleSensitiveFieldsParser.parseSql(updateSetQuery,
+        val parser = OracleSensitiveFieldsParser.parseSql(updateSetQuery,
                 Sets.newHashSet("TF_R_PHNBR_IDLE.NICE_RULE", "TF_R_PHCODE_IDLE.SERIAL_NUMBER"));
         Assert.assertEquals(Sets.newHashSet(1, 5), parser.getSecureBindIndices());
     }
@@ -517,8 +511,8 @@ public class OracleSensitiveFieldsParserTest {
     public void testQuery1() {
         String sql = "select d, f, a, b, c from table1 where c = ? and a = ? and b = ?";
 
-        final Set<String> securetFieldsConfig = Sets.newHashSet("TABLE1.A", "TABLE1.B");
-        OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
+        val securetFieldsConfig = Sets.newHashSet("TABLE1.A", "TABLE1.B");
+        val visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(3, 4));
@@ -527,11 +521,11 @@ public class OracleSensitiveFieldsParserTest {
 
         sql = "select d, f, a, b, c from table1 where c = ? || ',' || ? and a = ? and b = ?";
 
-        visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
+        val visitorAdapter2 = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
-        securetResultIndice = visitorAdapter.getSecureResultIndices();
+        securetResultIndice = visitorAdapter2.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(3, 4));
-        securetBindIndice = visitorAdapter.getSecureBindIndices();
+        securetBindIndice = visitorAdapter2.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(3, 4));
     }
 
@@ -541,8 +535,7 @@ public class OracleSensitiveFieldsParserTest {
         String sql = "select t.a, t.b, t.c from table1 t where t.a = ?";
 
         final Set<String> securetFieldsConfig = Sets.newHashSet("TABLE1.A", "TABLE1.B");
-        OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
-                .parseSql(sql, securetFieldsConfig);
+        val visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(1, 2));
@@ -555,8 +548,7 @@ public class OracleSensitiveFieldsParserTest {
         String sql = "select t1.a, t1.b, t2.c from table1 t1, table2 t2 where t1.id = ? and t1.id = t2.id and t2.d = ?";
         final Set<String> fields = Sets.newHashSet("TABLE1.A", "TABLE1.B", "TABLE2.D");
 
-        OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
-                .parseSql(sql, fields);
+        val visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, fields);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(1, 2));
@@ -579,8 +571,7 @@ public class OracleSensitiveFieldsParserTest {
         final Set<String> securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO",
                 "TF_B_ORDER_NETIN.CUST_NAME");
 
-        OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
-                .parseSql(sql, securetFieldsConfig);
+        val visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(1, 4));
@@ -646,8 +637,7 @@ public class OracleSensitiveFieldsParserTest {
         final Set<String> securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO",
                 "TF_B_ORDER_NETIN.CUST_NAME");
 
-        OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
-                .parseSql(sql, securetFieldsConfig);
+        val visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(27, 29));
@@ -737,8 +727,7 @@ public class OracleSensitiveFieldsParserTest {
         final Set<String> securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO",
                 "TF_B_ORDER_NETIN.CUST_NAME");
 
-        OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
-                .parseSql(sql, securetFieldsConfig);
+        val visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
@@ -801,8 +790,7 @@ public class OracleSensitiveFieldsParserTest {
                 "           AND BD.PSPT_TYPE_CODE = C.PARA_CODE1(+)";
         final Set<String> securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_BROADBAND.PSPT_NO");
 
-        OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
-                .parseSql(sql, securetFieldsConfig);
+        val visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(14));
@@ -869,8 +857,7 @@ public class OracleSensitiveFieldsParserTest {
     public void testOrderSelect() {
         final Set<String> securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_BROADBAND.PSPT_NO");
 
-        OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
-                .parseSql(orderSql, securetFieldsConfig);
+        val visitorAdapter = OracleSensitiveFieldsParser.parseSql(orderSql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(14));
@@ -899,8 +886,7 @@ public class OracleSensitiveFieldsParserTest {
     public void testInsert1() {
         String sql = "insert into table1(a, b, c) values(?, ?, ?)";
         final Set<String> securetFieldsConfig = Sets.newHashSet("TABLE1.A", "TABLE1.B");
-        OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
-                .parseSql(sql, securetFieldsConfig);
+        val visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
@@ -908,11 +894,11 @@ public class OracleSensitiveFieldsParserTest {
         assertEquals(securetBindIndice, Sets.newHashSet(1, 2));
 
         sql = "insert into table1(a, b, c) values(? || 'x' || ?, ?, ?)";
-        visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
+        val visitorAdapter2 = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
-        securetResultIndice = visitorAdapter.getSecureResultIndices();
+        securetResultIndice = visitorAdapter2.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
-        securetBindIndice = visitorAdapter.getSecureBindIndices();
+        securetBindIndice = visitorAdapter2.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(3));
     }
 
@@ -920,8 +906,7 @@ public class OracleSensitiveFieldsParserTest {
     public void testUpdate() {
         String sql = "update table1 t1 set t1.a = ?, t1.b = ?, t1.c = ?";
         final Set<String> securetFieldsConfig = Sets.newHashSet("TABLE1.A", "TABLE1.B");
-        OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
-                .parseSql(sql, securetFieldsConfig);
+        val visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
@@ -929,11 +914,10 @@ public class OracleSensitiveFieldsParserTest {
         assertEquals(securetBindIndice, Sets.newHashSet(1, 2));
 
         sql = "update table1  set a = ? || 'X' || ?, b = ?, c = ?";
-        visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
-
-        securetResultIndice = visitorAdapter.getSecureResultIndices();
+        val visitorAdapter2 = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
+        securetResultIndice = visitorAdapter2.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
-        securetBindIndice = visitorAdapter.getSecureBindIndices();
+        securetBindIndice = visitorAdapter2.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(3));
     }
 
@@ -955,9 +939,8 @@ public class OracleSensitiveFieldsParserTest {
                 "e.email,e.phone_number,e.hire_date,e.job_id, " +
                 "e.salary,e.commission_pct,e.manager_id,?)";
 
-        final Set<String> securetFieldsConfig = Sets.newHashSet("COPY_EMP.FIRST_NAME", "COPY_EMP.DEPARTMENT_ID");
-        OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
-                .parseSql(sql, securetFieldsConfig);
+        val securetFieldsConfig = Sets.newHashSet("COPY_EMP.FIRST_NAME", "COPY_EMP.DEPARTMENT_ID");
+        val visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
@@ -969,8 +952,7 @@ public class OracleSensitiveFieldsParserTest {
     public void testProcedure() {
         String sql = "{call abc.myproc(?,?,?)}";
         final Set<String> securetFieldsConfig = Sets.newHashSet("ABC.MYPROC.2");
-        OracleSensitiveFieldsParser visitorAdapter = OracleSensitiveFieldsParser
-                .parseSql(sql, securetFieldsConfig);
+        val visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
@@ -978,11 +960,11 @@ public class OracleSensitiveFieldsParserTest {
         assertEquals(securetBindIndice, Sets.newHashSet(2));
 
         sql = "{call abc.myproc(? || 'x' || ?,?,?)}";
-        visitorAdapter = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
+        val visitorAdapter2 = OracleSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
-        securetResultIndice = visitorAdapter.getSecureResultIndices();
+        securetResultIndice = visitorAdapter2.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
-        securetBindIndice = visitorAdapter.getSecureBindIndices();
+        securetBindIndice = visitorAdapter2.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(3));
     }
 
@@ -990,8 +972,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testHintSql() throws Exception {
-        OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
-                .parseSql(hintSql, Sets.newHashSet(""));
+        val visitor = OracleSensitiveFieldsParser.parseSql(hintSql, Sets.newHashSet(""));
 
         assertEquals(Sets.newHashSet(1, 2), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(1), visitor.getSecureResultIndices());
@@ -1018,8 +999,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testFuncSql() throws Exception {
-        OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
-                .parseSql(funcSql, Sets.newHashSet("TF_B_BESPEAK_REG.PCARD_CODE"));
+        val visitor = OracleSensitiveFieldsParser.parseSql(funcSql, Sets.newHashSet("TF_B_BESPEAK_REG.PCARD_CODE"));
 
         assertEquals(Sets.newHashSet(1), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(3), visitor.getSecureResultIndices());
@@ -1105,8 +1085,8 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testSubQueryIn() throws Exception {
-        OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
-                .parseSql(subQuery, Sets.newHashSet("TF_B_ORDER_POST.POST_ADDR", "TD_B_COMMPARA.PARA_CODE2",
+        val visitor = OracleSensitiveFieldsParser.parseSql(subQuery,
+                Sets.newHashSet("TF_B_ORDER_POST.POST_ADDR", "TD_B_COMMPARA.PARA_CODE2",
                         "TF_B_ORDER.ORDER_ID", "TF_B_ORDER_POST.CITY_CODE", "TD_B_COMMPARA.PARAM_CODE"));
 
         assertEquals(Sets.newHashSet(1, 2, 4, 7, 9), visitor.getSecureBindIndices());
@@ -1122,8 +1102,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testMyPage() throws Exception {
-        OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
-                .parseSql(myPagEQL, Sets.newHashSet("TABLE.B"));
+        val visitor = OracleSensitiveFieldsParser.parseSql(myPagEQL, Sets.newHashSet("TABLE.B"));
 
         assertEquals(Sets.newHashSet(1), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(2), visitor.getSecureResultIndices());
@@ -1134,8 +1113,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testStartSql() throws Exception {
-        OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
-                .parseSql(starSql, Sets.newHashSet("TAB.B"));
+        val visitor = OracleSensitiveFieldsParser.parseSql(starSql, Sets.newHashSet("TAB.B"));
 
         assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(3), visitor.getSecureResultIndices());
@@ -1191,8 +1169,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testMergEQL() throws Exception {
-        OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
-                .parseSql(mergEQL, Sets.newHashSet("TF_B_TAOBAO_NETIN.PSPT_NO"));
+        val visitor = OracleSensitiveFieldsParser.parseSql(mergEQL, Sets.newHashSet("TF_B_TAOBAO_NETIN.PSPT_NO"));
 
         assertEquals(Sets.newHashSet(13), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(), visitor.getSecureResultIndices());
@@ -1227,8 +1204,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testZjSql() throws Exception {
-        OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
-                .parseSql(zjSql, Sets.newHashSet("TF_B_BESPEAK_INFO.PSPT_NO"));
+        val visitor = OracleSensitiveFieldsParser.parseSql(zjSql, Sets.newHashSet("TF_B_BESPEAK_INFO.PSPT_NO"));
 
         assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(3), visitor.getSecureResultIndices());
@@ -1272,8 +1248,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testWhcIntervalAliasSql() throws Exception {
-        OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
-                .parseSql(whcSql, Sets.newHashSet("TF_B_ORDER_POST.POST_ADDR"));
+        val visitor = OracleSensitiveFieldsParser.parseSql(whcSql, Sets.newHashSet("TF_B_ORDER_POST.POST_ADDR"));
 
         assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(13), visitor.getSecureResultIndices());
@@ -1376,8 +1351,7 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testPsptNoSql() throws Exception {
-        OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
-                .parseSql(psptNoSql, Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO"));
+        val visitor = OracleSensitiveFieldsParser.parseSql(psptNoSql, Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO"));
 
         assertEquals(Sets.newHashSet(9), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(), visitor.getSecureResultIndices());
@@ -1428,8 +1402,8 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testMenuSql() throws Exception {
-        OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
-                .parseSql(menuSql, Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO"));
+        val visitor = OracleSensitiveFieldsParser.parseSql(menuSql,
+                Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO"));
 
         assertNull(visitor);
     }
@@ -1459,9 +1433,8 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testAlias() throws Exception {
-        OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
-                .parseSql(aliasSql, Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
-
+        val visitor = OracleSensitiveFieldsParser.parseSql(aliasSql,
+                Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
 
         assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(3, 5), visitor.getSecureResultIndices());
@@ -1495,8 +1468,8 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testAlias2() throws Exception {
-        OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
-                .parseSql(aliasSql2, Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
+        val visitor = OracleSensitiveFieldsParser.parseSql(aliasSql2,
+                Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
 
 
         assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
@@ -1509,8 +1482,8 @@ public class OracleSensitiveFieldsParserTest {
 
     @Test
     public void testPartition() {
-        OracleSensitiveFieldsParser visitor = OracleSensitiveFieldsParser
-                .parseSql(partitionSql, Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
+        val visitor = OracleSensitiveFieldsParser.parseSql(partitionSql,
+                Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
         assertNull(visitor);
     }
 

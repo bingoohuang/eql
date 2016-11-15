@@ -15,7 +15,7 @@ I don't like XML in ibatis.
 ]]>
 </select>
 ```
-Wooh, for a simple sql of only three lines, we need add a CDATA block to use **>** (I always forget how to write CDATA, and every time I have to lookup XML CDATA reference). It's so bad. And also the **select** is redundant because the SQL itself is telling us it is a SELECT SQL and not some others. 
+Wooh, for a simple sql of only three lines, we need add a CDATA block to use **>** (I always forget how to write CDATA, and every time I have to lookup XML CDATA reference). It's so bad. And also the **select** is redundant because the SQL itself is telling us it is a SELECT SQL and not some others.
 
 + excuse 2:
 
@@ -62,7 +62,7 @@ I don't like XML. I like free text and freedom. And so I created EQL which is re
 
 ```java
 String str = new Eql().selectFirst("demo").execute();
-``` 
+```
 
 * write an eql in Demo.eql
 
@@ -457,7 +457,7 @@ for (int i = 0; i < 10; ++i) {
     int ret = eql.insert("insertPrizeBingoo")
            .params(orderNo, "Olympic", "" + prizeItem, userId)
            .execute();
-    
+
     assertEquals(0, ret);
 }
 
@@ -522,7 +522,7 @@ public static class AsResult {
     private String state;
     private String remark;
     private int seq;
-    
+
     // setters ang getters
 }
 ```
@@ -580,7 +580,7 @@ And then in java code
 String str = new Eql("diamond").selectFirst("diamondDemo").execute();
 System.out.println(str);
 ```
-     
+
 # Reuse jdbc statements to select/update repeatedly.
 
 ```java
@@ -672,7 +672,7 @@ Eqll.choose(new EqlPropertiesConfig(
 
 Supported configs are listed below:
 
-## **connection.impl**   
+## **connection.impl**
 + Meaning: Full qualified class name(FQCN) that implemented `org.n3r.eql.trans.EqlConnection` interface.
 + Default: When jndiName is set, use `org.n3r.eql.trans.EqlJndiConnection`, otherwise `org.n3r.eql.trans.EqlSimpleConnection`.
 + Samples: `org.n3r.eql.trans.EqlC3p0Connection` or your custom implementation.
@@ -739,7 +739,7 @@ Supported configs are listed below:
 
 # Integrated with [diamond-client](https://github.com/bingoohuang/diamond-miner)
 ## Read connection configuration from diamond
-* Add a diamond stone: 
+* Add a diamond stone:
 
 ```
 group=EqlConfig,dataId=DEFAULT,content=
@@ -895,7 +895,7 @@ public interface StudentEqler {
 
     @Sql("insert into eql_student values(#studentId#, #name#, #age#)")
     int addStudent(Student student);
-    
+
     @Sql("insert into eql_student values(#a#, #b#, #c#)")
     int addStudentAnotherWay(@NamedParam("a") int studentId, @NamedParam("b") String name, @NamedParam("c") int age);
 
@@ -945,7 +945,7 @@ public void test() {
                     "Student{studentId=2, name='huang', age=124}, " +
                     "Student{studentId=3, name='dingoo', age=125}]"
     )));
-    
+
     Student student1 = eqler.queryStudent(1);
     assertThat(student1.toString(), is(equalTo("Student{studentId=1, name='bingoo', age=123}")));
 
@@ -960,3 +960,27 @@ public void test() {
 # TODO
 + Inline comment such as `/* iff ... */` is parsed by regular expression, and this method will not ignore `/* ... */` in the literal string such as `'literal string /* if xxx */'`.
 
+# FAQ
+## MySQLNonTransientConnectionException
+```
+com.mysql.jdbc.exceptions.jdbc4.MySQLNonTransientConnectionException: Communications link failure during rollback(). Transaction resolution unknown.
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)
+	at com.mysql.jdbc.Util.handleNewInstance(Util.java:377)
+	at com.mysql.jdbc.Util.getInstance(Util.java:360)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:956)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:935)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:924)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:870)
+	at com.mysql.jdbc.ConnectionImpl.rollback(ConnectionImpl.java:4606)
+	at org.n3r.eql.trans.SimpleDataSource.popConnection(SimpleDataSource.java:638)
+	at org.n3r.eql.trans.SimpleDataSource.getConnection(SimpleDataSource.java:207)
+	at org.n3r.eql.trans.EqlSimpleConnection.getConnection(EqlSimpleConnection.java:17)
+	at org.n3r.eql.trans.EqlJdbcTran.getConn(EqlJdbcTran.java:58)
+	at org.n3r.eql.Eql.createConn(Eql.java:105)
+	at org.n3r.eql.Eql.execute(Eql.java:157)
+```
+
+Try use url like  `jdbc:mysql://192.168.99.100:13306/dba?useUnicode=true&&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=3000&autoReconnect=true` instead of `jdbc:mysql://192.168.99.100:13306/dba`

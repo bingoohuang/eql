@@ -6,12 +6,13 @@ import com.alibaba.druid.sql.ast.statement.SQLExprTableSource;
 import com.alibaba.druid.sql.ast.statement.SQLSelectItem;
 import com.alibaba.druid.sql.ast.statement.SQLTableSource;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import java.util.List;
 import java.util.Map;
+
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 public class MysqlSelectVisitor extends MysqlMatrixVisitor {
     protected final Map<String, String> aliasTablesMap = Maps.newHashMap();
@@ -104,7 +105,7 @@ public class MysqlSelectVisitor extends MysqlMatrixVisitor {
     }
 
     private void addTableAlias(String alias, String tableName) {
-        aliasTablesMap.put(Objects.firstNonNull(alias, tableName), tableName);
+        aliasTablesMap.put(firstNonNull(alias, tableName), tableName);
     }
 
 }
