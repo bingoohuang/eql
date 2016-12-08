@@ -3,9 +3,9 @@ package org.n3r.eql.eqler;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import lombok.SneakyThrows;
 import org.n3r.eql.eqler.generators.ClassGenerator;
 import org.n3r.eql.ex.EqlConfigException;
-import org.n3r.eql.util.Fucks;
 
 public class EqlerFactory {
     private static LoadingCache<Class, Object> eqlerCache =
@@ -19,21 +19,18 @@ public class EqlerFactory {
             });
 
     public static <T> T getEqler(final Class<T> eqlerClass) {
-        ensureEqlerClassIsAnInterface(eqlerClass);
+        ensureClassIsAnInterface(eqlerClass);
         return (T) eqlerCache.getUnchecked(eqlerClass);
     }
 
+    @SneakyThrows
     private static <T> T createObject(Class<T> clazz) {
-        try {
-            return clazz.newInstance();
-        } catch (Exception e) {
-            throw Fucks.fuck(e);
-        }
+        return clazz.newInstance();
     }
 
-    private static <T> void ensureEqlerClassIsAnInterface(Class<T> eqlerClass) {
-        if (eqlerClass.isInterface()) return;
+    private static <T> void ensureClassIsAnInterface(Class<T> clazz) {
+        if (clazz.isInterface()) return;
 
-        throw new EqlConfigException(eqlerClass + " is not an interface");
+        throw new EqlConfigException(clazz + " is not an interface");
     }
 }

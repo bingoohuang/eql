@@ -119,6 +119,10 @@ public class S {
         return Strings.repeat("" + ch, times);
     }
 
+    public static boolean equals(String s1, String s2) {
+        return s1 != null ? s1.equals(s2) : s2 == null;
+    }
+
     public static boolean equalsIgnoreCase(String s1, String s2) {
         return s1 != null ? s1.equalsIgnoreCase(s2) : s2 == null;
     }

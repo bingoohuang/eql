@@ -1,10 +1,10 @@
 package org.n3r.eql;
 
 import com.google.common.base.Throwables;
+import lombok.SneakyThrows;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.n3r.eql.util.Closes;
-import org.n3r.eql.util.Fucks;
 
 import java.sql.Timestamp;
 
@@ -62,6 +62,7 @@ public class TransactionTest {
         }
     }
 
+    @SneakyThrows
     private void commit(int a, String b) {
         EqlTran tran = new Eql().newTran();
         try {
@@ -74,7 +75,7 @@ public class TransactionTest {
             tran.commit();
         } catch (Exception ex) {
             tran.rollback();
-            throw Fucks.fuck(ex);
+            throw ex;
         } finally {
             Closes.closeQuietly(tran);
         }

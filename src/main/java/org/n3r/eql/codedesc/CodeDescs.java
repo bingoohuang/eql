@@ -1,5 +1,6 @@
 package org.n3r.eql.codedesc;
 
+import lombok.SneakyThrows;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.ex.EqlConfigException;
@@ -8,13 +9,11 @@ import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.parser.OffsetAndOptionValue;
 import org.n3r.eql.spec.Spec;
 import org.n3r.eql.spec.SpecParser;
-import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.Rs;
 import org.n3r.eql.util.S;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,21 +29,18 @@ public class CodeDescs {
         return new CodeDescResultSetHandler(currEqlRun, eqlConfig, sqlClassPath, rs, descs, tagSqlId).createProxy();
     }
 
+    @SneakyThrows
     private static boolean existsReturnDescColumns(List<CodeDesc> descs, ResultSet rs) {
-        try {
-            ResultSetMetaData metaData = rs.getMetaData();
-            for (int i = 0, ii = metaData.getColumnCount(); i < ii; ++i) {
-                String columnName = Rs.lookupColumnName(metaData, i + 1);
+        ResultSetMetaData metaData = rs.getMetaData();
+        for (int i = 0, ii = metaData.getColumnCount(); i < ii; ++i) {
+            String columnName = Rs.lookupColumnName(metaData, i + 1);
 
-                for (CodeDesc codeDesc : descs) {
-                    if (codeDesc.getColumnName().equals(columnName)) return true;
-                }
+            for (CodeDesc codeDesc : descs) {
+                if (codeDesc.getColumnName().equals(columnName)) return true;
             }
-
-            return false;
-        } catch (SQLException e) {
-            throw Fucks.fuck(e);
         }
+
+        return false;
     }
 
     public static List<CodeDesc> parseOption(EqlBlock eqlBlock, String desc) {

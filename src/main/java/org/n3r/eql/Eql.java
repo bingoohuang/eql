@@ -2,6 +2,9 @@ package org.n3r.eql;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+import lombok.Cleanup;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.n3r.eql.codedesc.CodeDescs;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigCache;
@@ -17,20 +20,17 @@ import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.trans.spring.EqlTransactionManager;
 import org.n3r.eql.util.*;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings("unchecked") @Slf4j
 public class Eql {
     public static final String DEFAULT_CONN_NAME = "DEFAULT";
     public static final int STACKTRACE_DEEP_FOUR = 4;
     public static final int STACKTRACE_DEEP_FIVE = 5;
-
-    protected static Logger logger = LoggerFactory.getLogger(Eql.class);
 
     protected EqlConfigDecorator eqlConfig;
     protected EqlBlock eqlBlock;
@@ -140,7 +140,7 @@ public class Eql {
         return eqlRuns;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") @SneakyThrows
     public <T> T execute(String... directSqls) {
         checkPreconditions(directSqls);
 
@@ -181,8 +181,8 @@ public class Eql {
             if (!isAllSelect) tranCommit();
         } catch (Throwable e) {
             if (!isAllSelect) tranRollback();
-            logger.error("exec sql {} exception", currRun == null ? "none" : currRun.getPrintSql(), e);
-            throw Fucks.fuck(e);
+            log.error("exec sql {} exception", currRun == null ? "none" : currRun.getPrintSql(), e);
+            throw e;
         } finally {
             resetState();
             close();
@@ -313,34 +313,31 @@ public class Eql {
             return;
         }
 
-        if (S.isBlank(defaultSqlId)) throw new EqlExecuteException("No sqlid defined!");
+        if (S.isBlank(defaultSqlId))
+            throw new EqlExecuteException("No sqlid defined!");
 
         initSqlId(defaultSqlId, STACKTRACE_DEEP_FIVE);
     }
 
+    @SneakyThrows
     protected Object runEql() {
         try {
             return currRun.getSqlType().isDdl() ? execDdl() : pageExecute();
         } catch (Exception ex) {
-            if (!currRun.getEqlBlock().isOnerrResume()) throw Fucks.fuck(ex);
-            else logger.warn("execute sql {} error {}", currRun.getPrintSql(), ex.getMessage());
+            if (!currRun.getEqlBlock().isOnerrResume()) throw ex;
+            else
+                log.warn("execute sql {} error {}", currRun.getPrintSql(), ex.getMessage());
         }
 
         return 0;
     }
 
+    @SneakyThrows
     private boolean execDdl() {
-        Statement stmt = null;
-        logger.debug("ddl sql for {}: {}", getSqlId(), currRun.getPrintSql());
-        try {
-            stmt = currRun.getConnection().createStatement();
-            EqlUtils.setQueryTimeout(eqlConfig, stmt);
-            return stmt.execute(currRun.getRunSql());
-        } catch (SQLException ex) {
-            throw Fucks.fuck(ex);
-        } finally {
-            Closes.closeQuietly(stmt);
-        }
+        log.debug("ddl sql for {}: {}", getSqlId(), currRun.getPrintSql());
+        @Cleanup Statement stmt = currRun.getConnection().createStatement();
+        EqlUtils.setQueryTimeout(eqlConfig, stmt);
+        return stmt.execute(currRun.getRunSql());
     }
 
     private Object pageExecute() throws SQLException {
@@ -399,20 +396,21 @@ public class Eql {
         return batch.addBatch(currRun);
     }
 
+    @SneakyThrows
     private void prepareStmt(EStmt stmt) {
         PreparedStatement ps = null;
+
         try {
             ps = prepareSql();
-
             stmt.setPreparedStatment(ps);
             stmt.setEqlRun(currRun);
             stmt.setSqlClassPath(sqlClassPath);
-            stmt.setLogger(logger);
+            stmt.setLogger(log);
             stmt.params(params);
             stmt.setEqlTran(externalTran != null ? externalTran : internalTran);
         } catch (Exception ex) {
             Closes.closeQuietly(ps);
-            throw Fucks.fuck(ex);
+            throw ex;
         }
     }
 
@@ -649,7 +647,7 @@ public class Eql {
     }
 
     public Logger getLogger() {
-        return logger;
+        return log;
     }
 
     public Eql returnType(String returnTypeName) {

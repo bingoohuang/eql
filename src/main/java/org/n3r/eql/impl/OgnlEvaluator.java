@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class OgnlEvaluator implements ExpressionEvaluator {
     @Override
     public Object eval(String expr, EqlRun eqlRun) {
-        if (eqlRun.hasIterateOption()) {
+        if (eqlRun.isIterateOption()) {
             Object iterableOrArray = eqlRun.getIterateParams();
             ArrayList<Object> result = new ArrayList<Object>();
             if (iterableOrArray instanceof Iterable) {

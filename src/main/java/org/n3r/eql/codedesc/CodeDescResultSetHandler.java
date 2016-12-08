@@ -1,9 +1,9 @@
 package org.n3r.eql.codedesc;
 
+import lombok.SneakyThrows;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.O;
 import org.n3r.eql.util.Rs;
 import org.n3r.eql.util.S;
@@ -44,30 +44,28 @@ public class CodeDescResultSetHandler implements InvocationHandler {
         }
     }
 
+    @SneakyThrows
     private int findCodeIndex(String columnName) {
-        try {
-            ResultSetMetaData metaData = resultSet.getMetaData();
-            int columnCount = metaData.getColumnCount();
-            for (int i = 1; i <= columnCount; ++i) { // first find the desc column index
-                String lookupColumnName = Rs.lookupColumnName(metaData, i);
-                if (S.equalsIgnoreCase(columnName, lookupColumnName)) {
-                    for (int j = i - 1; j >= 1; --j) {
-                        // then back find the first column(not desc column) to view as code
-                        String jColumnName = Rs.lookupColumnName(metaData, j);
-                        if (!codeDescsContainsColumnName(jColumnName)) return j;
-                    }
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
+        for (int i = 1; i <= columnCount; ++i) { // first find the desc column index
+            String lookupColumnName = Rs.lookupColumnName(metaData, i);
+            if (S.equalsIgnoreCase(columnName, lookupColumnName)) {
+                for (int j = i - 1; j >= 1; --j) {
+                    // then back find the first column(not desc column) to view as code
+                    String jColumnName = Rs.lookupColumnName(metaData, j);
+                    if (!codeDescsContainsColumnName(jColumnName)) return j;
                 }
             }
-
-            throw new EqlExecuteException("unable to find code column");
-        } catch (SQLException e) {
-            throw Fucks.fuck(e);
         }
+
+        throw new EqlExecuteException("unable to find code column");
     }
 
     private boolean codeDescsContainsColumnName(String jColumnName) {
         for (CodeDesc codeDesc : codeDescs) {
-            if (codeDesc.getColumnName().equalsIgnoreCase(jColumnName)) return true;
+            if (codeDesc.getColumnName().equalsIgnoreCase(jColumnName))
+                return true;
         }
         return false;
     }

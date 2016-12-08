@@ -21,13 +21,13 @@ public class StudentEqlerTest {
 
         List<Student> students = eqler.queryAllStudents();
         assertThat(students.toString()).isEqualTo(
-                "[Student{studentId=1, name='bingoo', age=123}, " +
-                        "Student{studentId=2, name='huang', age=124}, " +
-                        "Student{studentId=3, name='dingoo', age=125}]"
+                "[Student(studentId=1, name=bingoo, age=123), " +
+                        "Student(studentId=2, name=huang, age=124), " +
+                        "Student(studentId=3, name=dingoo, age=125)]"
         );
 
         Student student1 = eqler.queryStudent(1);
-        assertThat(student1.toString()).isEqualTo("Student{studentId=1, name='bingoo', age=123}");
+        assertThat(student1.toString()).isEqualTo("Student(studentId=1, name=bingoo, age=123)");
 
         Map<String, Object> student2 = eqler.queryStudentMap(2);
         assertThat(student2.toString()).isEqualTo("{name=huang, student_id=2, age=124}");

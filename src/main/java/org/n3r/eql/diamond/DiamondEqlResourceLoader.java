@@ -5,6 +5,9 @@ import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.n3r.diamond.client.DiamondListenerAdapter;
 import org.n3r.diamond.client.DiamondManager;
 import org.n3r.diamond.client.DiamondStone;
@@ -14,9 +17,6 @@ import org.n3r.eql.impl.EqlResourceLoaderHelper;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.impl.FileEqlResourceLoader;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.util.Fucks;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -25,8 +25,8 @@ import java.util.concurrent.ExecutionException;
 import static org.n3r.eql.impl.EqlResourceLoaderHelper.updateBlockCache;
 import static org.n3r.eql.impl.EqlResourceLoaderHelper.updateFileCache;
 
+@Slf4j
 public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
-    static Logger log = LoggerFactory.getLogger(FileEqlResourceLoader.class);
     static Cache<String, Optional<Map<String, EqlBlock>>> fileCache;
     static LoadingCache<EqlUniqueSqlId, Optional<EqlBlock>> sqlCache;
     static FileEqlResourceLoader fileLoader = new FileEqlResourceLoader();
@@ -55,10 +55,12 @@ public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
         return load(this, classPath);
     }
 
-    private Map<String, EqlBlock> load(final EqlResourceLoader eqlResourceLoader,
-                                       final String sqlClassPath) {
+    @SneakyThrows
+    private Map<String, EqlBlock> load(
+            final EqlResourceLoader eqlResourceLoader,
+            final String sqlClassPath) {
         final String dataId = sqlClassPath.replaceAll("/", ".");
-        Callable<Optional<Map<String, EqlBlock>>> valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
+        val valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
             @Override
             public Optional<Map<String, EqlBlock>> call() throws Exception {
                 DiamondManager diamondManager = new DiamondManager("EQL", dataId);
@@ -84,7 +86,7 @@ public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
         try {
             return fileCache.get(sqlClassPath, valueLoader).orNull();
         } catch (ExecutionException e) {
-            throw Fucks.fuck(Throwables.getRootCause(e));
+            throw Throwables.getRootCause(e);
         }
     }
 

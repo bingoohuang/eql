@@ -1,15 +1,14 @@
 package org.n3r.eql.trans;
 
 import com.google.common.collect.Maps;
+import lombok.SneakyThrows;
 import org.n3r.eql.EqlTran;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.Closes;
-import org.n3r.eql.util.Fucks;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Map;
 
 public class EqlJdbcTran implements EqlTran {
@@ -24,29 +23,21 @@ public class EqlJdbcTran implements EqlTran {
     public void start() {
     }
 
-    @Override
+    @Override @SneakyThrows
     public void commit() {
         for (Connection connection : connections.values()) {
-            try {
-                connection.commit();
-            } catch (SQLException e) {
-                throw Fucks.fuck(e);
-            }
+            connection.commit();
         }
     }
 
-    @Override
+    @Override @SneakyThrows
     public void rollback() {
         for (Connection connection : connections.values()) {
-            try {
-                connection.rollback();
-            } catch (SQLException e) {
-                throw Fucks.fuck(e);
-            }
+            connection.rollback();
         }
     }
 
-    @Override
+    @Override @SneakyThrows
     public Connection getConn(EqlConfig eqlConfig, EqlRun eqlRun) {
         String dbName = eqlConnection.getDbName(eqlConfig, eqlRun);
         Connection connection = connections.get(dbName);
@@ -60,11 +51,7 @@ public class EqlJdbcTran implements EqlTran {
         if (connection == null) throw new EqlExecuteException(
                 "EqlJdbcTran could not start transaction. " +
                         " Cause: The DataSource returned a null connection.");
-        try {
-            if (connection.getAutoCommit()) connection.setAutoCommit(false);
-        } catch (SQLException e) {
-            throw Fucks.fuck(e);
-        }
+        if (connection.getAutoCommit()) connection.setAutoCommit(false);
 
         connections.put(dbName, connection);
         if (eqlRun != null) eqlRun.setConnection(connection);

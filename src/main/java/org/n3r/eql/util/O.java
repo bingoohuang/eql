@@ -5,16 +5,15 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
+import lombok.SneakyThrows;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.joor.Reflect;
-import org.n3r.eql.joor.ReflectException;
 import org.n3r.eql.spec.ParamsAppliable;
 import org.n3r.eql.spec.Spec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.*;
@@ -98,13 +97,9 @@ public class O {
         return false;
     }
 
+    @SneakyThrows
     public static <T> T createObject(Class<T> clazz, Spec spec) {
-        Object object;
-        try {
-            object = Reflect.on(spec.getName()).create().get();
-        } catch (ReflectException e) {
-            throw Fucks.fuck(e);
-        }
+        Object object = Reflect.on(spec.getName()).create().get();
 
         if (!clazz.isInstance(object)) {
             throw new EqlExecuteException(spec.getName() + " does not implement " + clazz);
@@ -158,22 +153,18 @@ public class O {
         return false;
     }
 
+    @SneakyThrows
     public static Optional<Object> invokeMethod(Object bean, Method method) {
         try {
             return Optional.fromNullable(method.invoke(bean));
         } catch (InvocationTargetException e) {
-            throw Fucks.fuck(e.getCause() != null ? e.getCause() : e);
-        } catch (Exception e) {
-            throw Fucks.fuck(e);
+            throw e.getCause() != null ? e.getCause() : e;
         }
     }
 
+    @SneakyThrows
     public static BeanInfo getBeanInfo(Class<?> aClass) {
-        try {
-            return Introspector.getBeanInfo(aClass);
-        } catch (IntrospectionException e) {
-            throw Fucks.fuck(e);
-        }
+        return Introspector.getBeanInfo(aClass);
     }
 
     public interface ValueGettable {

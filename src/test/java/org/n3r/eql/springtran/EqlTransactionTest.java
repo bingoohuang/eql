@@ -11,12 +11,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = EqlTransactionTestConfig.class)
 public class EqlTransactionTest {
-    @Autowired
-    private EqlTranService eqlTranService;
+    @Autowired EqlTranService eqlTranService;
 
     @Before
     public void before() {

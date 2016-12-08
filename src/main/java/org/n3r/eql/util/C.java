@@ -1,11 +1,12 @@
 package org.n3r.eql.util;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.google.common.io.Resources;
+import lombok.SneakyThrows;
+import lombok.val;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
@@ -15,13 +16,13 @@ public class C {
         try {
             Class.forName(className);
             return true;
-        } catch(Throwable e ) { // including ClassNotFoundException
+        } catch (Throwable e) { // including ClassNotFoundException
             return false;
         }
     }
 
     public static String getSqlClassPath(int num, String extension) {
-        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+        val stackTraceElements = Thread.currentThread().getStackTrace();
 
         // Remark: when running on IBM jdk (eg. IBM JDK 1.6),
         // the first stackTraceElement will be getStackTraceImpl with
@@ -55,7 +56,7 @@ public class C {
      * @return The context classloader.
      */
     public static ClassLoader getClassLoader() {
-        return Objects.firstNonNull(
+        return MoreObjects.firstNonNull(
                 Thread.currentThread().getContextClassLoader(),
                 EqlUtils.class.getClassLoader());
     }
@@ -78,27 +79,19 @@ public class C {
         return url != null;
     }
 
+    @SneakyThrows
     public static String classResourceToString(String classPath) {
         URL url = getClassLoader().getResource(classPath);
         if (url == null) return null;
 
-        try {
-            return Resources.toString(url, Charsets.UTF_8);
-        } catch (IOException e) {
-            throw Fucks.fuck(e);
-        }
-
+        return Resources.toString(url, Charsets.UTF_8);
     }
 
+    @SneakyThrows
     public static List<String> classResourceToLines(String classPath) {
         URL url = getClassLoader().getResource(classPath);
         if (url == null) return null;
 
-        try {
-            return Resources.readLines(url, Charsets.UTF_8);
-        } catch (IOException e) {
-            throw Fucks.fuck(e);
-        }
-
+        return Resources.readLines(url, Charsets.UTF_8);
     }
 }

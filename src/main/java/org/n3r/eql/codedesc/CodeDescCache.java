@@ -3,6 +3,7 @@ package org.n3r.eql.codedesc;
 import com.google.common.base.Optional;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.Miner;
 import org.n3r.diamond.client.Minerable;
@@ -15,14 +16,12 @@ import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.Closes;
 import org.n3r.eql.util.EqlUtils;
-import org.n3r.eql.util.Fucks;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 
 public class CodeDescCache {
     public static final String EQL_CACHE = "EQL.CACHE.DESC";
@@ -65,6 +64,7 @@ public class CodeDescCache {
         return minerable.getString(key);
     }
 
+    @SneakyThrows
     private static Optional<DefaultCodeDescMapper> getOrCreateMapper(final EqlRun currEqlRun,
                                                                      final EqlConfigDecorator eqlConfig,
                                                                      final CodeDesc codeDesc,
@@ -72,35 +72,27 @@ public class CodeDescCache {
                                                                      Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>> subCache,
                                                                      final EqlCacheKey eqlCacheKey,
                                                                      final String tagSqlId) {
-        try {
-            return subCache.get(eqlCacheKey, new Callable<Optional<DefaultCodeDescMapper>>() {
-                @Override
-                public Optional<DefaultCodeDescMapper> call() throws Exception {
-                    DefaultCodeDescMapper mapper = createCodeDescMapper(eqlBlock, currEqlRun, eqlConfig, codeDesc,
-                            eqlCacheKey.getUniquEQLId().getSqlClassPath(), tagSqlId);
-                    return Optional.fromNullable(mapper);
-                }
-            });
-        } catch (ExecutionException e) {
-            throw Fucks.fuck(e);
-        }
+        return subCache.get(eqlCacheKey, new Callable<Optional<DefaultCodeDescMapper>>() {
+            @Override
+            public Optional<DefaultCodeDescMapper> call() throws Exception {
+                DefaultCodeDescMapper mapper = createCodeDescMapper(eqlBlock, currEqlRun, eqlConfig, codeDesc,
+                        eqlCacheKey.getUniquEQLId().getSqlClassPath(), tagSqlId);
+                return Optional.fromNullable(mapper);
+            }
+        });
     }
 
+    @SneakyThrows
     private static Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>> getOrCreateSubCache(final EqlUniqueSqlId uniquEQLId) {
-        try {
-            return cacheDict.get(uniquEQLId, new Callable<Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>>>() {
-                @Override
-                public Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>> call() throws Exception {
-                    String sqlIdVersion = getSqlIdCacheVersion(uniquEQLId);
-                    cachEQLIdVersion.put(uniquEQLId, Optional.fromNullable(sqlIdVersion));
-                    return CacheBuilder.newBuilder().build();
-                }
-            });
-        } catch (ExecutionException e) {
-            throw Fucks.fuck(e);
-        }
+        return cacheDict.get(uniquEQLId, new Callable<Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>>>() {
+            @Override
+            public Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>> call() throws Exception {
+                String sqlIdVersion = getSqlIdCacheVersion(uniquEQLId);
+                cachEQLIdVersion.put(uniquEQLId, Optional.fromNullable(sqlIdVersion));
+                return CacheBuilder.newBuilder().build();
+            }
+        });
     }
-
 
     private static DefaultCodeDescMapper createCodeDescMapper(EqlBlock eqlBlock,
                                                               EqlRun currEqlRun,
@@ -110,10 +102,12 @@ public class CodeDescCache {
         try {
             Map<String, Object> executionContext = EqlUtils.newExecContext(codeDesc.getParams(), null);
             List<EqlRun> eqlRuns = eqlBlock.createEqlRunsByEqls(tagSqlId, eqlConfig, executionContext, codeDesc.getParams(), null);
-            if (eqlRuns.size() != 1) throw new EqlExecuteException("only one select sql supported ");
+            if (eqlRuns.size() != 1)
+                throw new EqlExecuteException("only one select sql supported ");
 
             EqlRun eqlRun = eqlRuns.get(0);
-            if (!eqlRun.isLastSelectSql()) throw new EqlExecuteException("only one select sql supported ");
+            if (!eqlRun.isLastSelectSql())
+                throw new EqlExecuteException("only one select sql supported ");
 
             PreparedStatement ps = null;
             ResultSet rs = null;
@@ -127,7 +121,8 @@ public class CodeDescCache {
                 rs.setFetchSize(100);
 
                 int columnCount = rs.getMetaData().getColumnCount();
-                if (columnCount < 2) throw new EqlExecuteException("should at least two columns used as code and desc");
+                if (columnCount < 2)
+                    throw new EqlExecuteException("should at least two columns used as code and desc");
 
                 DefaultCodeDescMapper mapper = new DefaultCodeDescMapper();
                 while (rs.next()) {

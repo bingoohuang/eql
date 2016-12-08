@@ -1,5 +1,6 @@
 package org.n3r.eql.param;
 
+import lombok.Getter;
 import org.n3r.eql.util.S;
 
 import java.sql.Timestamp;
@@ -7,19 +8,11 @@ import java.util.Date;
 
 public class ParamValueDealer {
     private EqlParamPlaceholder placeHolder;
-    private  Object boundParam;
-    private Object paramValue;
+    @Getter Object boundParam;
+    @Getter Object paramValue;
 
     public ParamValueDealer(EqlParamPlaceholder placeHolder) {
         this.placeHolder = placeHolder;
-    }
-
-    public Object getBoundParam() {
-        return boundParam;
-    }
-
-    public Object getParamValue() {
-        return paramValue;
     }
 
     public void dealSingleValue(Object value) {

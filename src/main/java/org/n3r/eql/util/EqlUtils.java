@@ -2,11 +2,12 @@ package org.n3r.eql.util;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.n3r.eql.base.ExpressionEvaluator;
+import lombok.Cleanup;
+import lombok.SneakyThrows;
+import lombok.val;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.map.EqlRun;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -14,37 +15,22 @@ import java.util.Map;
 
 @SuppressWarnings("unchecked")
 public class EqlUtils {
-    static Logger logger = LoggerFactory.getLogger(EqlUtils.class);
-
     public static void compatibleWithUserToUsername(Map<String, String> params) {
         if (params.containsKey("username")) return;
-        if (params.containsKey("user")) params.put("username", params.get("user"));
+        if (params.containsKey("user"))
+            params.put("username", params.get("user"));
     }
 
+    @SneakyThrows
     public static String getDriverNameFromConnection(DataSource dataSource) {
-        Connection connection = null;
-
-        try {
-            connection = dataSource.getConnection();
-            return connection.getMetaData().getDriverName();
-        } catch (SQLException e) {
-            throw Fucks.fuck(e);
-        } finally {
-            Closes.closeQuietly(connection);
-        }
+        @Cleanup val connection = dataSource.getConnection();
+        return connection.getMetaData().getDriverName();
     }
 
+    @SneakyThrows
     public static String getJdbcUrlFromConnection(DataSource dataSource) {
-        Connection connection = null;
-
-        try {
-            connection = dataSource.getConnection();
-            return connection.getMetaData().getURL();
-        } catch (SQLException e) {
-            throw Fucks.fuck(e);
-        } finally {
-            Closes.closeQuietly(connection);
-        }
+        @Cleanup val connection = dataSource.getConnection();
+        return connection.getMetaData().getURL();
     }
 
     public static Map<String, Object> newExecContext(Object[] params, Object[] dynamics) {
@@ -63,7 +49,8 @@ public class EqlUtils {
         }
 
         executionContext.put("_dynamics", dynamics);
-        if (dynamics != null) executionContext.put("_dynamicsCount", dynamics.length);
+        if (dynamics != null)
+            executionContext.put("_dynamicsCount", dynamics.length);
 
         return executionContext;
     }
@@ -83,10 +70,12 @@ public class EqlUtils {
         return returnSql;
     }
 
-    public static PreparedStatement prepareSQL(String sqlClassPath, EqlConfig eqlConfig, EqlRun eqlRun, String sqlId, String tagSqlId) throws SQLException {
-        Logger sqlLogger = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "prepare");
+    @SneakyThrows
+    public static PreparedStatement prepareSQL(
+            String sqlClassPath, EqlConfig eqlConfig, EqlRun eqlRun, String sqlId, String tagSqlId) {
+        Logger log = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "prepare");
 
-        sqlLogger.debug(eqlRun.getPrintSql());
+        log.debug(eqlRun.getPrintSql());
         BlackcatUtils.log("SQL.PREPARE", eqlRun.getPrintSql());
 
         Connection conn = eqlRun.getConnection();
@@ -107,8 +96,8 @@ public class EqlUtils {
         return defaultValue;
     }
 
-
-    public static void setQueryTimeout(EqlConfig eqlConfig, Statement stmt) throws SQLException {
+    @SneakyThrows
+    public static void setQueryTimeout(EqlConfig eqlConfig, Statement stmt) {
         int queryTimeout = getConfigInt(eqlConfig, "query.timeout.seconds", 60);
         if (queryTimeout <= 0) queryTimeout = 60;
 
@@ -116,10 +105,11 @@ public class EqlUtils {
     }
 
     public static Iterable<?> evalCollection(String collectionExpr, EqlRun eqlRun) {
-        ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
+        val evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
         Object value = evaluator.eval(collectionExpr, eqlRun);
         if (value instanceof Iterable) return (Iterable<?>) value;
-        if (value != null && value.getClass().isArray()) return Lists.newArrayList((Object[]) value);
+        if (value != null && value.getClass().isArray())
+            return Lists.newArrayList((Object[]) value);
 
         throw new RuntimeException(collectionExpr + " in "
                 + eqlRun.getParamBean() + " is not an expression of a collection");

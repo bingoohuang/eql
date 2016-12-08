@@ -1,6 +1,7 @@
 package org.n3r.eql.impl;
 
 import com.google.common.collect.Lists;
+import lombok.AllArgsConstructor;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.param.EqlParamPlaceholder;
 
@@ -9,14 +10,10 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
+@AllArgsConstructor
 public class EqlProc {
     private final EqlRun eqlRun;
     private final EqlRsRetriever rsRetriever;
-
-    public EqlProc(EqlRun eqlRun, EqlRsRetriever rsRetriever) {
-        this.eqlRun = eqlRun;
-        this.rsRetriever = rsRetriever;
-    }
 
     public Object dealProcedure(PreparedStatement ps) throws SQLException {
         return execAndRetrieveProcedureRet(eqlRun, (CallableStatement) ps);

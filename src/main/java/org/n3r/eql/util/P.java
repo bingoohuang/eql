@@ -3,11 +3,16 @@ package org.n3r.eql.util;
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
+import lombok.Cleanup;
+import lombok.SneakyThrows;
 import org.n3r.eql.base.EqlToProperties;
 
 import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -62,44 +67,30 @@ public class P {
         }
     }
 
+    @SneakyThrows
     public static Properties toProperties(String properties) {
         Properties result = new Properties();
 
-        try {
-            byte[] bytes = properties.getBytes(Charsets.UTF_8);
-            result.load(new ByteArrayInputStream(bytes));
-        } catch (IOException e) {
-            throw Fucks.fuck(e);
-        }
+        byte[] bytes = properties.getBytes(Charsets.UTF_8);
+        result.load(new ByteArrayInputStream(bytes));
 
         return result;
     }
 
+    @SneakyThrows
     public static Properties toProperties(File file) {
         Properties result = new Properties();
 
-        FileInputStream fis = null;
-        try {
-            fis = new FileInputStream(file);
-            result.load(fis);
-        } catch (IOException e) {
-            throw Fucks.fuck(e);
-        } finally {
-            Closes.closeQuietly(fis);
-        }
+        @Cleanup FileInputStream fis = new FileInputStream(file);
+        result.load(fis);
 
         return result;
     }
 
+    @SneakyThrows
     public static Properties toProperties(InputStream is) {
         Properties result = new Properties();
-
-        try {
-            result.load(is);
-        } catch (IOException e) {
-            throw Fucks.fuck(e);
-        }
-
+        result.load(is);
         return result;
     }
 }

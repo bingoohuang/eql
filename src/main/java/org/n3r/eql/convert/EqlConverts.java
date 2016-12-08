@@ -1,7 +1,8 @@
 package org.n3r.eql.convert;
 
+import lombok.SneakyThrows;
+import lombok.val;
 import org.n3r.eql.map.RsAware;
-import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.Rs;
 
 import java.lang.annotation.Annotation;
@@ -13,14 +14,12 @@ import java.util.Collection;
 import java.util.List;
 
 public class EqlConverts {
-
     public static Object convertValue(
             RsAware rs, int index,
             Collection<EqlConvertAnn> eqlConvertAnns, Object value
     ) {
-
         if (eqlConvertAnns.size() > 0) {
-            Object originalValue = Rs.getResultSetValue(rs, index, null);
+            val originalValue = Rs.getResultSetValue(rs, index, null);
             value = convert(eqlConvertAnns, originalValue);
         }
         return value;
@@ -31,11 +30,11 @@ public class EqlConverts {
     ) {
         Object ret = value;
 
-        for (EqlConvertAnn eqlConvertAnn : eqlConvertAnns) {
-            Class<? extends EqlConverter>[] clazz = eqlConvertAnn.convert.value();
+        for (val eqlConvertAnn : eqlConvertAnns) {
+            val clazz = eqlConvertAnn.convert.value();
 
-            for (Class<? extends EqlConverter> aClass : clazz) {
-                EqlConverter eqlConverter = newInstance(aClass);
+            for (val aClass : clazz) {
+                val eqlConverter = newInstance(aClass);
                 ret = eqlConverter.convert(eqlConvertAnn.annotation, ret);
             }
         }
@@ -43,31 +42,30 @@ public class EqlConverts {
         return ret;
     }
 
+    @SneakyThrows
     private static EqlConverter newInstance(Class<? extends EqlConverter> aClass) {
-        try {
-            return aClass.newInstance();
-        } catch (Exception e) {
-            throw Fucks.fuck(e);
-        }
+        return aClass.newInstance();
     }
 
-    public static void searchEqlConvertAnns(Annotation[] annotations, List<EqlConvertAnn> ecas) {
-        for (Annotation annotation : annotations) {
+    public static void searchEqlConvertAnns(
+            Annotation[] annotations, List<EqlConvertAnn> ecas) {
+        for (val annotation : annotations) {
             if (annotation instanceof Retention) continue;
             if (annotation instanceof Target) continue;
             if (annotation instanceof Documented) continue;
 
-            Class<? extends Annotation> type = annotation.annotationType();
-            EqlConvert convert = type.getAnnotation(EqlConvert.class);
+            val type = annotation.annotationType();
+            val convert = type.getAnnotation(EqlConvert.class);
             if (convert != null)
                 ecas.add(new EqlConvertAnn(convert, annotation));
 
-            Annotation[] annotations1 = type.getAnnotations();
+            val annotations1 = type.getAnnotations();
             searchEqlConvertAnns(annotations1, ecas);
         }
     }
 
-    public static void searchEqlConvertAnns(AccessibleObject accessibleObject, List<EqlConvertAnn> ecas) {
+    public static void searchEqlConvertAnns(
+            AccessibleObject accessibleObject, List<EqlConvertAnn> ecas) {
         searchEqlConvertAnns(accessibleObject.getAnnotations(), ecas);
     }
 }

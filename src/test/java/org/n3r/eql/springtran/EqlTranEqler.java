@@ -1,10 +1,8 @@
 package org.n3r.eql.springtran;
 
-import org.n3r.eql.eqler.annotations.Eqler;
 import org.n3r.eql.eqler.annotations.EqlerConfig;
 import org.n3r.eql.eqler.annotations.Sql;
 
-@Eqler
 @EqlerConfig("mysql")
 public interface EqlTranEqler {
     @Sql({
