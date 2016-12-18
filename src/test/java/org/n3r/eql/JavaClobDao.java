@@ -19,8 +19,8 @@ public interface JavaClobDao {
     @Sql("INSERT INTO IMAGE_BASE64(IMAGE_NAME, BASE64) VALUES(#imageName#, #base64#)")
     void addImageBase64(JavaClobTest.ImageBase64 imageBase64);
 
-    @Sql("SELECT IMAGE_NAME, BASE64 FROM IMAGE_BASE64")
-    List<JavaClobTest.ImageBase64> queryAll();
+    @Sql("SELECT IMAGE_NAME, BASE64 FROM IMAGE_BASE64 WHERE IMAGE_NAME = ##")
+    JavaClobTest.ImageBase64 queryImageBase64(String imageName);
 
     @Sql("UPDATE IMAGE_BASE64 SET BASE64 = #base64# WHERE IMAGE_NAME = #imageName#")
     int updateImageBase64(JavaClobTest.ImageBase64 imageBase64);
