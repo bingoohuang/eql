@@ -39,6 +39,7 @@ public class Logs {
         String sqlClassPathNullable = sqlClassPath == null ? "null" : sqlClassPath;
         String thisSqlId = S.isNotBlank(tagSqlId) ? tagSqlId : sqlId;
         String loggerName = loggerPrefix + '.' + sqlClassPathNullable.replace('/', '.') + '.' + thisSqlId + '.' + tag;
-        return LoggerFactory.getLogger(loggerName);
+        String stripDollarLoggerName = loggerName.replace('$', '_');
+        return LoggerFactory.getLogger(stripDollarLoggerName);
     }
 }

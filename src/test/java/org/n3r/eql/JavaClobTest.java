@@ -9,6 +9,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.n3r.eql.eqler.EqlerFactory;
+import org.n3r.eql.eqler.annotations.EqlerConfig;
+import org.n3r.eql.eqler.annotations.Sql;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -30,6 +34,29 @@ if(obj instanceof String && ((String) obj).length() >= 4000) {
  * @author bingoohuang [bingoohuang@gmail.com] Created on 2016/12/18.
  */
 public class JavaClobTest {
+    @EqlerConfig("orcl")
+    public interface JavaClobDao {
+        @Sql("CREATE TABLE IMAGE_BASE64( IMAGE_NAME VARCHAR2(100) PRIMARY KEY, BASE64 CLOB)")
+        void createImageBase64();
+
+        @Sql("DROP TABLE IMAGE_BASE64")
+        void dropImageBase64();
+
+        @Sql("INSERT INTO IMAGE_BASE64(IMAGE_NAME, BASE64) VALUES(#imageName#, #base64#)")
+        void addImageBase64(JavaClobTest.ImageBase64 imageBase64);
+
+        @Sql("SELECT IMAGE_NAME, BASE64 FROM IMAGE_BASE64 WHERE IMAGE_NAME = ##")
+        JavaClobTest.ImageBase64 queryImageBase64(String imageName);
+
+        @Sql("UPDATE IMAGE_BASE64 SET BASE64 = #base64# WHERE IMAGE_NAME = #imageName#")
+        int updateImageBase64(JavaClobTest.ImageBase64 imageBase64);
+    }
+
+    public static void main(String[] args) {
+        Logger log = LoggerFactory.getLogger("eql.org.n3r.eql.JavaClobTest$JavaClobDaoImpl");
+        log.debug("something");
+    }
+
     static JavaClobDao javaClobDao = EqlerFactory.getEqler(JavaClobDao.class);
 
     @BeforeClass
@@ -41,7 +68,6 @@ public class JavaClobTest {
     public static void afterClass() {
         javaClobDao.dropImageBase64();
     }
-
 
     @Test
     public void test() {
