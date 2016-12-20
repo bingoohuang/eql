@@ -3,12 +3,12 @@ package org.n3r.eql.parser;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.n3r.eql.base.DynamicLanguageDriver;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.impl.DefaultDynamicLanguageDriver;
 import org.n3r.eql.settings.EqlFileGlobalSettings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 /**
  * Parse a whole eql file.
  */
+@Slf4j
 public class EqlParser {
     static Pattern blockPattern = Pattern.compile("\\[\\s*([\\w\\.\\-\\d]+)\\b(.*)\\]");
 
@@ -29,7 +30,6 @@ public class EqlParser {
     private EqlBlock block = null;
     private EqlResourceLoader eqlResourceLoader;
     private boolean sqlParseDelay;
-    Logger log = LoggerFactory.getLogger(EqlParser.class);
 
     public EqlParser(EqlResourceLoader eqlResourceLoader, String sqlClassPath) {
         this.eqlResourceLoader = eqlResourceLoader;
@@ -131,7 +131,7 @@ public class EqlParser {
 
         if (classPath.equals(sqlClassPath)) return true;
 
-        Map<String, EqlBlock> importRes = eqlResourceLoader.load(classPath);
+        val importRes = eqlResourceLoader.load(classPath);
         if (ParserUtils.isBlank(patterns)) {
             importSqlBlocks(cleanLine, importRes);
             return true;
@@ -171,7 +171,7 @@ public class EqlParser {
         }
 
         blocks.put(eqlBlock.getSqlId(), eqlBlock);
-        sqlLines = Lists.newArrayList();
+        sqlLines = Lists.<String>newArrayList();
     }
 
     private void parsePreviousBlock() {

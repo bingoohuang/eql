@@ -3,6 +3,7 @@ package org.n3r.eql.liulei;
 
 import lombok.Cleanup;
 import lombok.SneakyThrows;
+import lombok.val;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -10,6 +11,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.n3r.eql.Eql;
+import org.n3r.eql.eqler.EqlerFactory;
 import org.n3r.idworker.Id;
 
 import java.sql.Connection;
@@ -56,6 +58,24 @@ public class MemberCardTest {
 
     @Test public void testInsertMultipleRows() {
         insertOneTime("testInsertMultipleRows");
+    }
+
+    @Test public void testInsertMultipleRowsInDao() {
+        val dao = EqlerFactory.getEqler(MemberCardDao.class);
+        dao.insertMultipleRows(memberCards);
+        checkSize();
+    }
+
+    @Test public void testInsertMultipleRowsInDao2() {
+        val dao = EqlerFactory.getEqler(MemberCardDao.class);
+        dao.insertMultipleRows2(memberCards);
+        checkSize();
+    }
+
+    @Test public void testIterateAddRecordsInDao() {
+        val dao = EqlerFactory.getEqler(MemberCardDao.class);
+        dao.iterateAddRecords(memberCards);
+        checkSize();
     }
 
     public void insertOneTime(String sqlId) {

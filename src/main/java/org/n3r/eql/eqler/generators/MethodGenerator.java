@@ -1,11 +1,13 @@
 package org.n3r.eql.eqler.generators;
 
 import com.google.common.collect.Maps;
+import lombok.val;
 import org.n3r.eql.Eql;
 import org.n3r.eql.EqlPage;
 import org.n3r.eql.EqlTran;
 import org.n3r.eql.EqlTranable;
 import org.n3r.eql.config.EqlConfig;
+import org.n3r.eql.eqler.OnErr;
 import org.n3r.eql.eqler.annotations.*;
 import org.n3r.eql.impl.EqlBatch;
 import org.n3r.eql.map.EqlRowMapper;
@@ -41,11 +43,10 @@ public class MethodGenerator<T> {
     public MethodGenerator(ClassWriter classWriter, Method method, Class<T> eqlerClass) {
         this.method = method;
         this.eqlerClass = eqlerClass;
-        EqlerConfig eqlerConfig = method.getAnnotation(EqlerConfig.class);
-        this.eqlerConfig = eqlerConfig != null ?
-                eqlerConfig : eqlerClass.getAnnotation(EqlerConfig.class);
-        this.eqlClassName = this.eqlerConfig != null ?
-                Type.getInternalName(this.eqlerConfig.eql()) : EQL;
+        val methodEqlerConfig = method.getAnnotation(EqlerConfig.class);
+        val classEqlerConfig = eqlerClass.getAnnotation(EqlerConfig.class);
+        this.eqlerConfig = methodEqlerConfig != null ? methodEqlerConfig : classEqlerConfig;
+        this.eqlClassName = this.eqlerConfig != null ? Type.getInternalName(this.eqlerConfig.eql()) : EQL;
         this.classUseSqlFile = eqlerClass.getAnnotation(UseSqlFile.class);
         this.mv = classWriter.visitMethod(ACC_PUBLIC, method.getName(),
                 Type.getMethodDescriptor(method), null, null);
@@ -67,6 +68,7 @@ public class MethodGenerator<T> {
         id();
         returnType();
         limit();
+        options();
         execute();
         result();
 
@@ -238,6 +240,26 @@ public class MethodGenerator<T> {
             mv.visitTypeInsn(CHECKCAST, Type.getInternalName(returnType));
             mv.visitInsn(ARETURN);
         }
+    }
+
+    private void options() {
+        SqlOptions sqlOptions = method.getAnnotation(SqlOptions.class);
+        if (sqlOptions == null) return;
+
+        mv.visitLdcInsn(createOptions(sqlOptions));
+        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "options",
+                sig(Eql.class, String.class), false);
+    }
+
+    private String createOptions(SqlOptions sqlOptions) {
+        val optionsStr = new StringBuilder();
+        if (sqlOptions.iterate()) optionsStr.append(" iterate ");
+        if (sqlOptions.onErr() == OnErr.Resume)
+            optionsStr.append(" onerr=resume ");
+        String split = sqlOptions.split();
+        if (S.isNotEmpty(split)) optionsStr.append(" split=").append(split);
+
+        return optionsStr.toString();
     }
 
     private void execute() {

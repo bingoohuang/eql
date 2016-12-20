@@ -1,9 +1,13 @@
 package org.n3r.eql.parser;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.val;
 import org.n3r.eql.EqlPage;
 import org.n3r.eql.cache.EqlCacheKey;
 import org.n3r.eql.cache.EqlCacheProvider;
@@ -11,7 +15,6 @@ import org.n3r.eql.cache.EqlCacheSettings;
 import org.n3r.eql.codedesc.CodeDesc;
 import org.n3r.eql.codedesc.CodeDescs;
 import org.n3r.eql.config.EqlConfigDecorator;
-import org.n3r.eql.impl.DefaultDynamicLanguageDriver;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.map.EqlType;
@@ -26,19 +29,19 @@ import java.util.List;
 import java.util.Map;
 
 public class EqlBlock {
-    private Map<String, String> options = Maps.newHashMap();
-    private Class<?> returnType;
-    private String onerr;
-    private String split;
+    @Getter Map<String, String> options = Maps.newHashMap();
+    @Getter Class<?> returnType;
+    @Getter String split;
 
-    private List<Sql> sqls = Lists.newArrayList();
-    private Collection<String> sqlLines;
-    private EqlUniqueSqlId uniqueSqlId;
+    @Getter @Setter List<Sql> sqls = Lists.<Sql>newArrayList();
+    @Getter @Setter Collection<String> sqlLines;
+    @Getter EqlUniqueSqlId uniqueSqlId;
     private EqlCacheProvider cacheProvider;
-    private String returnTypeName;
-    private boolean iterateOption;
-    private List<CodeDesc> codeDescs;
-    private boolean override;
+    @Getter @Setter String returnTypeName;
+    @Getter boolean iterateOption;
+    @Getter List<CodeDesc> codeDescs;
+    @Getter @Setter boolean override;
+    @Getter boolean onErrResume;
 
     public EqlBlock(String sqlClassPath, String sqlId, String options, int startLineNo) {
         this.uniqueSqlId = new EqlUniqueSqlId(sqlClassPath, sqlId);
@@ -47,12 +50,16 @@ public class EqlBlock {
         initSomeOptions();
     }
 
-    public EqlBlock() {
+    public EqlBlock(String options) {
         this.uniqueSqlId = new EqlUniqueSqlId("<DirectSql>", "auto");
+        this.options = BlockOptionsParser.parseOptions(options);
+
+        initSomeOptions();
     }
 
     private void initSomeOptions() {
-        onerr = options.get("onerr");
+        String onerr = options.get("onerr");
+        onErrResume = "resume".equalsIgnoreCase(onerr);
         returnTypeName = options.get("returnType");
         iterateOption = options.containsKey("iterate");
         codeDescs = CodeDescs.parseOption(this, options.get("desc"));
@@ -71,25 +78,29 @@ public class EqlBlock {
         cacheProvider = EqlCacheSettings.getCacheProvider(uniqueSqlId, cacheModel);
     }
 
-    public List<Sql> getSqls() {
-        return sqls;
-    }
-
-    public List<EqlRun> createEqlRuns(String tagSqlId, EqlConfigDecorator eqlConfig, Map<String, Object> executionContext,
-                                      Object[] params, Object[] dynamics, String[] directSqls) {
+    public List<EqlRun> createEqlRuns(
+            String tagSqlId, EqlConfigDecorator eqlConfig,
+            Map<String, Object> executionContext,
+            Object[] params, Object[] dynamics, String[] directSqls) {
         return directSqls.length == 0
-                ? createEqlRunsByEqls(tagSqlId, eqlConfig, executionContext, params, dynamics)
-                : createEqlRunsByDirectSqls(tagSqlId, eqlConfig, executionContext, params, dynamics, directSqls);
+                ? createEqlRunsByEqls(tagSqlId, eqlConfig,
+                executionContext, params, dynamics)
+                : createEqlRunsByDirectSqls(tagSqlId, eqlConfig,
+                executionContext, params, dynamics, directSqls);
     }
 
-    public List<EqlRun> createEqlRunsByEqls(String tagSqlId, EqlConfigDecorator eqlConfig, Map<String, Object> executionContext,
-                                            Object[] params, Object[] dynamics) {
+    public List<EqlRun> createEqlRunsByEqls(
+            String tagSqlId,
+            EqlConfigDecorator eqlConfig,
+            Map<String, Object> executionContext,
+            Object[] params, Object[] dynamics) {
         Object paramBean = O.createSingleBean(params);
 
-        List<EqlRun> eqlRuns = Lists.newArrayList();
+        List<EqlRun> eqlRuns = Lists.<EqlRun>newArrayList();
         EqlRun lastSelectSql = null;
         for (Sql sql : sqls) {
-            EqlRun eqlRun = newEqlRun(tagSqlId, eqlConfig, executionContext, params, dynamics, paramBean);
+            EqlRun eqlRun = newEqlRun(tagSqlId, eqlConfig,
+                    executionContext, params, dynamics, paramBean);
 
             String sqlStr = sql.evalSql(eqlRun);
             sqlStr = EqlUtils.trimLastUnusedPart(sqlStr);
@@ -106,41 +117,31 @@ public class EqlBlock {
         return eqlRuns;
     }
 
+    public List<EqlRun> createEqlRunsByDirectSqls(
+            String tagSqlId, EqlConfigDecorator eqlConfig,
+            Map<String, Object> executionContext,
+            Object[] params, Object[] dynamics, String[] sqls) {
+
+        val languageDriver = eqlConfig.getSqlResourceLoader().getDynamicLanguageDriver();
+        val blockParser = new EqlBlockParser(languageDriver, false);
+        List<String> sqlLines = Lists.<String>newArrayList();
+        Splitter splitter = Splitter.on('\n').omitEmptyStrings();
+        for (String sqlStr : sqls) {
+            Iterable<String> lines = splitter.split(sqlStr);
+            for (val line : lines) sqlLines.add(line);
+
+            sqlLines.add(";");
+        }
+
+        blockParser.parse(this, sqlLines);
+
+        return createEqlRunsByEqls(tagSqlId, eqlConfig, executionContext, params, dynamics);
+    }
 
     private void addEqlRun(EqlConfigDecorator eqlConfig, EqlRun eqlRun, String sqlStr) {
         EqlParamsParser.parseParams(eqlRun, sqlStr);
         new DynamicReplacer().replaceDynamics(eqlConfig, eqlRun);
     }
-
-    public List<EqlRun> createEqlRunsByDirectSqls(
-            String tagSqlId, EqlConfigDecorator eqlConfig,
-            Map<String, Object> executionContext,
-            Object[] params, Object[] dynamics, String[] sqls) {
-        Object paramBean = O.createSingleBean(params);
-
-        List<EqlRun> eqlRuns = Lists.newArrayList();
-        EqlRun lastSelectSql = null;
-        int sqlNo = 0;
-        for (String sqlStr : sqls) {
-            String seqTagSqlId = sqls.length == 1 ? tagSqlId : (tagSqlId + "." + (++sqlNo));
-            EqlRun eqlRun = newEqlRun(seqTagSqlId, eqlConfig, executionContext, params, dynamics, paramBean);
-
-            Sql sql = new DefaultDynamicLanguageDriver().parse(Lists.newArrayList(sqlStr));
-            String parsedSqlStr = sql.evalSql(eqlRun);
-            sqlStr = EqlUtils.trimLastUnusedPart(parsedSqlStr);
-            if (S.isBlank(sqlStr)) continue;
-
-            eqlRuns.add(eqlRun);
-            addEqlRun(eqlConfig, eqlRun, sqlStr);
-
-            if (eqlRun.getSqlType() == EqlType.SELECT) lastSelectSql = eqlRun;
-        }
-
-        if (lastSelectSql != null) lastSelectSql.setLastSelectSql(true);
-
-        return eqlRuns;
-    }
-
 
     private EqlRun newEqlRun(
             String tagSqlId, EqlConfigDecorator eqlConfig,
@@ -158,44 +159,12 @@ public class EqlBlock {
         return eqlRun;
     }
 
-    public boolean isOnerrResume() {
-        return "resume".equalsIgnoreCase(onerr);
-    }
-
-    public Class<?> getReturnType() {
-        return returnType;
-    }
-
-    public Map<String, String> getOptions() {
-        return options;
-    }
-
-    public void setSqls(List<Sql> sqls) {
-        this.sqls = sqls;
-    }
-
-    public Collection<? extends String> getSqlLines() {
-        return sqlLines;
-    }
-
-    public void setSqlLines(List<String> sqlLines) {
-        this.sqlLines = sqlLines;
-    }
-
-    public String getSplit() {
-        return split;
-    }
-
     public void tryParseSqls() {
         for (Sql sql : sqls) {
             if (sql instanceof DelaySql) {
                 ((DelaySql) sql).parseSql();
             }
         }
-    }
-
-    public EqlUniqueSqlId getUniqueSqlId() {
-        return uniqueSqlId;
     }
 
     public String getUniqueSqlIdStr() {
@@ -206,15 +175,16 @@ public class EqlBlock {
         return uniqueSqlId.getSqlId();
     }
 
-    public Optional<Object> getCachedResult(Object[] params, Object[] dynamics, EqlPage page) {
+    public Optional<Object> getCachedResult(
+            Object[] params, Object[] dynamics, EqlPage page) {
         if (cacheProvider == null) return null;
 
         EqlCacheKey cacheKey = new EqlCacheKey(uniqueSqlId, params, dynamics, page);
-        Optional<Object> cache = cacheProvider.getCache(cacheKey);
+        val cache = cacheProvider.getCache(cacheKey);
         if (cache != null && page != null) {
-            EqlUniqueSqlId totalRowSqlId = uniqueSqlId.newTotalRowSqlId();
+            val totalRowSqlId = uniqueSqlId.newTotalRowSqlId();
             cacheKey = new EqlCacheKey(totalRowSqlId, params, dynamics, page);
-            Optional<Object> totalNumber = cacheProvider.getCache(cacheKey);
+            val totalNumber = cacheProvider.getCache(cacheKey);
             if (totalNumber.isPresent())
                 page.setTotalRows((Integer) totalNumber.get());
         }
@@ -226,37 +196,15 @@ public class EqlBlock {
         if (cacheProvider == null) return;
         if (!currRun.isLastSelectSql()) return;
 
-        EqlCacheKey cacheKey = new EqlCacheKey(uniqueSqlId, currRun.getParams(), currRun.getDynamics(), page);
+        EqlCacheKey cacheKey = new EqlCacheKey(uniqueSqlId,
+                currRun.getParams(), currRun.getDynamics(), page);
         cacheProvider.setCache(cacheKey, currRun.getResult());
 
         if (page != null) {
-            EqlUniqueSqlId totalRowSqlId = uniqueSqlId.newTotalRowSqlId();
-            cacheKey = new EqlCacheKey(totalRowSqlId, currRun.getParams(), currRun.getDynamics(), page);
+            val totalRowSqlId = uniqueSqlId.newTotalRowSqlId();
+            cacheKey = new EqlCacheKey(totalRowSqlId,
+                    currRun.getParams(), currRun.getDynamics(), page);
             cacheProvider.setCache(cacheKey, page.getTotalRows());
         }
-    }
-
-    public String getReturnTypeName() {
-        return returnTypeName;
-    }
-
-    public void setReturnTypeName(String returnTypeName) {
-        this.returnTypeName = returnTypeName;
-    }
-
-    public boolean hasIterateOption() {
-        return iterateOption;
-    }
-
-    public List<CodeDesc> getCodeDescs() {
-        return codeDescs;
-    }
-
-    public boolean isOverride() {
-        return override;
-    }
-
-    public void setOverride(boolean override) {
-        this.override = override;
     }
 }

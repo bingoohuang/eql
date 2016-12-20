@@ -13,6 +13,7 @@ public class LikeTest {
     public static void beforeClass() {
         new Eql("mysql").id("before").execute();
     }
+
     @AfterClass
     public static void afterClass() {
         new Eql("mysql").id("after").execute();
@@ -36,6 +37,15 @@ public class LikeTest {
         assertEquals("x", x);
 
         x = new Eql("mysql").id("rightLikeDemo").params("x").limit(1).execute();
+        assertNull(x);
+    }
+
+    @Test
+    public void testEscape() {
+        String x = new Eql("mysql").id("likeWithEscape").params("b").limit(1).execute();
+        assertEquals("x", x);
+
+        x = new Eql("mysql").id("likeWithEscape").params("%").limit(1).execute();
         assertNull(x);
     }
 }

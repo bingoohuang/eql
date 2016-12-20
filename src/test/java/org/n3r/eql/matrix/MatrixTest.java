@@ -1,10 +1,7 @@
 package org.n3r.eql.matrix;
 
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.rules.Timeout;
 import org.n3r.eql.Eql;
 import org.n3r.eql.EqlTran;
 import org.n3r.eql.Eqll;
@@ -14,8 +11,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class MatrixTest {
-    @Rule
-    public TestRule globalTimeout = new Timeout(1000);
+//    @Rule
+//    public TestRule globalTimeout = new Timeout(10000);
 
 
     @BeforeClass

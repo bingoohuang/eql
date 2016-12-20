@@ -139,8 +139,12 @@ public class S {
         return -1;
     }
 
+    public static boolean startsWith(String str, String sub) {
+        return str != null && str.startsWith(sub);
+    }
+
     public static boolean endsWith(String str, String end) {
-        return str != null ? str.endsWith(end) : false;
+        return str != null && str.endsWith(end);
     }
 
     public static String upperCase(String str) {
@@ -185,5 +189,36 @@ public class S {
 
     public static String wrap(Object s, char wrapChar) {
         return "" + wrapChar + s + wrapChar;
+    }
+
+    public static String sub(String str, int start) {
+        if (str == null) {
+            return null;
+        }
+
+        // handle negatives, which means last n characters
+        if (start < 0)
+            start = str.length() + start; // remember start is negative
+        if (start < 0) start = 0;
+        if (start > str.length()) return "";
+
+        return str.substring(start);
+    }
+
+    public static String unQuote(String s1, String quote) {
+        if (s1 == null) return null;
+
+        String sub = s1;
+        int doubleQuote = 0;
+        if (s1.startsWith(quote)) {
+            sub = s1.substring(quote.length());
+            ++doubleQuote;
+        }
+        if (sub.endsWith(quote)) {
+            sub = sub.substring(0, sub.length() - quote.length());
+            ++doubleQuote;
+        }
+
+        return doubleQuote == 2 ? sub : s1;
     }
 }

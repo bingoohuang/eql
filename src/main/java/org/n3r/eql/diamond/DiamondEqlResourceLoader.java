@@ -40,11 +40,11 @@ public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
     public EqlBlock loadEqlBlock(String sqlClassPath, String sqlId) {
         load(this, sqlClassPath);
 
-        EqlUniqueSqlId key = new EqlUniqueSqlId(sqlClassPath, sqlId);
-        Optional<EqlBlock> blockOptional = sqlCache.getUnchecked(key);
+        val key = new EqlUniqueSqlId(sqlClassPath, sqlId);
+        val blockOptional = sqlCache.getUnchecked(key);
         if (blockOptional.isPresent()) return blockOptional.get();
 
-        EqlBlock eqlBlock = fileLoader.loadEqlBlock(sqlClassPath, sqlId);
+        val eqlBlock = fileLoader.loadEqlBlock(sqlClassPath, sqlId);
         if (eqlBlock != null) return eqlBlock;
 
         throw new RuntimeException("unable to find sql id " + sqlId);
@@ -59,13 +59,12 @@ public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
     private Map<String, EqlBlock> load(
             final EqlResourceLoader eqlResourceLoader,
             final String sqlClassPath) {
-        final String dataId = sqlClassPath.replaceAll("/", ".");
+        val dataId = sqlClassPath.replaceAll("/", ".");
         val valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
             @Override
             public Optional<Map<String, EqlBlock>> call() throws Exception {
-                DiamondManager diamondManager = new DiamondManager("EQL", dataId);
-                String sqlContent = diamondManager.getDiamond();
-                diamondManager.addDiamondListener(new DiamondListenerAdapter() {
+                val manager = new DiamondManager("EQL", dataId);
+                manager.addDiamondListener(new DiamondListenerAdapter() {
                     @Override
                     public void accept(DiamondStone diamondStone) {
                         String eql = diamondStone.getContent();
@@ -73,6 +72,7 @@ public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
                     }
                 });
 
+                val sqlContent = manager.getDiamond();
                 if (sqlContent == null) {
                     log.warn("classpath sql {} not found", dataId);
                     return Optional.absent();

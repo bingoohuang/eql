@@ -5,6 +5,7 @@ import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -18,7 +19,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.n3r.eql.impl.EqlResourceLoaderHelper.updateFileCache;
 
-@Slf4j
+@Slf4j @NoArgsConstructor
 public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
     static Cache<String, Optional<Map<String, EqlBlock>>> fileCache;
     static LoadingCache<EqlUniqueSqlId, Optional<EqlBlock>> sqlCache;
@@ -26,9 +27,6 @@ public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
     static {
         fileCache = CacheBuilder.newBuilder().build();
         sqlCache = EqlResourceLoaderHelper.buildSqlCache(fileCache);
-    }
-
-    public FileEqlResourceLoader() {
     }
 
     @Override
