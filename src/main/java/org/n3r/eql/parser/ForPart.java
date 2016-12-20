@@ -1,5 +1,7 @@
 package org.n3r.eql.parser;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.util.S;
@@ -9,28 +11,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@AllArgsConstructor
 public class ForPart implements EqlPart {
-    private MultiPart part;
+    @Getter private MultiPart part;
     private String item;
     private String index;
     private String collection;
     private String open;
     private String separator;
     private String close;
-
-    public ForPart(MultiPart part, String item, String index, String collection, String open, String separator, String close) {
-        this.part = part;
-        this.item = item;
-        this.index = index;
-        this.collection = collection;
-        this.open = open;
-        this.separator = separator;
-        this.close = close;
-    }
-
-    public MultiPart getSqlPart() {
-        return part;
-    }
 
     private static Pattern PARAM_PATTERN = Pattern.compile("#\\s*(.+?)\\s*#");
     private static Pattern DYNAMIC_PATTERN = Pattern.compile("\\$\\s*(.+?)\\s*\\$");
@@ -46,8 +35,8 @@ public class ForPart implements EqlPart {
         Map<String, Object> context = new HashMap<String, Object>(preContext);
         eqlRun.setExecutionContext(context);
 
-        Pattern itemPattern = Pattern.compile("\\b" + item + "\\b");
-        Pattern indexPattern = Pattern.compile("\\b" + index + "\\b");
+        Pattern itemPattern = Pattern.compile("\\b(?<!.)" + item + "\\b");
+        Pattern indexPattern = Pattern.compile("\\b(?<!.)" + index + "\\b");
 
         int i = -1;
         for (Object itemObj : items) {
@@ -81,7 +70,8 @@ public class ForPart implements EqlPart {
             startIndex = matcher.end();
             String expr = matcher.group(1);
 
-            if (item.equals(expr)) str.append(S.wrap(collection + "[" + idx + "]", ch));
+            if (item.equals(expr))
+                str.append(S.wrap(collection + "[" + idx + "]", ch));
             else if (this.index.equals(expr)) str.append(idx);
             else {
                 String s = itemPattern.matcher(expr).replaceAll(collection + "[" + idx + "]");
@@ -95,7 +85,6 @@ public class ForPart implements EqlPart {
 
         return str.toString();
     }
-
 
 
 }

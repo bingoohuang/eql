@@ -66,6 +66,12 @@ public class MemberCardTest {
         checkSize();
     }
 
+    @Test public void insertMultipleRowsFengyuReportedBug() {
+        val dao = EqlerFactory.getEqler(MemberCardDao.class);
+        dao.insertMultipleRowsFengyuReportedBug(memberCards);
+        checkSize();
+    }
+
     @Test public void testInsertMultipleRowsInDao2() {
         val dao = EqlerFactory.getEqler(MemberCardDao.class);
         dao.insertMultipleRows2(memberCards);

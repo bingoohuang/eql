@@ -16,9 +16,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -27,19 +26,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
-    private final Logger log = LoggerFactory.getLogger(OracleSensitiveFieldsParser.class);
-
     private final Map<String, Object> aliasTablesMap = Maps.newHashMap();
     private final Set<Integer> secureBindIndices = Sets.newHashSet();
     private final Set<Integer> secureResultIndices = Sets.newHashSet();
     private final Set<String> secureResultLabels = Sets.newHashSet();
 
-    private final List<BindVariant> subQueryBindAndVariantOfFrom = Lists.newArrayList();
+    private final List<BindVariant> subQueryBindAndVariantOfFrom = Lists.<BindVariant>newArrayList();
 
     private final Set<String> secureFields;
 
-    private int variantIndex = 0;
+    private @Getter int variantIndex = 0;
     private final String sql;
 
     private OracleASTVisitorAdapter adapter = new OracleASTVisitorAdapter() {
@@ -591,7 +589,7 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     }
 
     private List<Integer> walkInsertColumns(List<SQLExpr> columns) {
-        List<Integer> secureFieldsIndices = Lists.newArrayList();
+        List<Integer> secureFieldsIndices = Lists.<Integer>newArrayList();
         for (int i = 0, ii = columns.size(); i < ii; ++i) {
             SQLExpr column = columns.get(i);
             if (column instanceof SQLIdentifierExpr) {
@@ -655,10 +653,6 @@ public class OracleSensitiveFieldsParser implements SensitiveFieldsParser {
     @Override
     public String getSql() {
         return sql;
-    }
-
-    public int getVariantIndex() {
-        return variantIndex;
     }
 
     enum QueryBelongs {

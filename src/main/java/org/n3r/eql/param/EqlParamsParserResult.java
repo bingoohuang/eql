@@ -1,8 +1,10 @@
 package org.n3r.eql.param;
 
 
+import lombok.Data;
 import org.n3r.eql.map.EqlType;
 
+@Data
 public class EqlParamsParserResult {
     private EqlType sqlType;
     private String runSql;
@@ -12,59 +14,7 @@ public class EqlParamsParserResult {
     private EqlParamPlaceholder[] placeHolders;
     private String evalSqlTemplate;
 
-    public void setSqlType(EqlType sqlType) {
-        this.sqlType = sqlType;
-    }
-
-    public EqlType getSqlType() {
-        return sqlType;
-    }
-
-    public void setRunSql(String runSql) {
-        this.runSql = runSql;
-    }
-
-    public String getRunSql() {
-        return runSql;
-    }
-
-    public void setPlaceholderNum(int placeholderNum) {
-        this.placeholderNum = placeholderNum;
-    }
-
-    public int getPlaceholderNum() {
-        return placeholderNum;
-    }
-
-    public void setPlaceHolderType(PlaceholderType placeHolderType) {
-        this.placeHolderType = placeHolderType;
-    }
-
-    public PlaceholderType getPlaceHolderType() {
-        return placeHolderType;
-    }
-
-    public void setPlaceHolderOutType(PlaceholderType placeHolderOutType) {
-        this.placeHolderOutType = placeHolderOutType;
-    }
-
-    public PlaceholderType getPlaceHolderOutType() {
-        return placeHolderOutType;
-    }
-
-    public void setPlaceHolders(EqlParamPlaceholder[] placeHolders) {
-        this.placeHolders = placeHolders;
-    }
-
-    public EqlParamPlaceholder[] getPlaceHolders() {
-        return placeHolders;
-    }
-
     public void setEvalSqlTemplate(String evalSqlTemplate) {
         this.evalSqlTemplate = evalSqlTemplate.replaceAll("\\r?\\n", " ");
-    }
-
-    public String getEvalSqlTemplate() {
-        return evalSqlTemplate;
     }
 }

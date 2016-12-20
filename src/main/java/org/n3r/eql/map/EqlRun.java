@@ -23,7 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 public class EqlRun implements Cloneable {
-    public List<Pair<Integer, Object>> realParams = Lists.newArrayList();
+    public List<Pair<Integer, Object>> realParams = Lists.<Pair<Integer, Object>>newArrayList();
+
     @Setter List<Object> boundParams;
     @Getter @Setter Connection connection;
     @Getter String evalSql;
@@ -37,7 +38,7 @@ public class EqlRun implements Cloneable {
         realParams.add(Pair.of(index, value));
     }
 
-    List<Pair<Integer, Integer>> outParameters = Lists.newArrayList();
+    List<Pair<Integer, Integer>> outParameters = Lists.<Pair<Integer, Integer>>newArrayList();
 
     public void registerOutParameter(int index, int type) {
         outParameters.add(Pair.of(index, type));
@@ -102,7 +103,7 @@ public class EqlRun implements Cloneable {
     }
 
     private String parseEvalSql(int batchIndex) {
-        StringBuilder eval = new StringBuilder();
+        val eval = new StringBuilder();
         int startPos = 0;
         int index = -1;
         int size = boundParams.size();

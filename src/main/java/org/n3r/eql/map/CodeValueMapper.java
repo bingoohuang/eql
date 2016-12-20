@@ -1,21 +1,19 @@
 package org.n3r.eql.map;
 
 import com.google.common.collect.Maps;
+import lombok.AllArgsConstructor;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 
+@AllArgsConstructor
 public class CodeValueMapper implements EqlRowMapper {
     private Map<String, String> map;
 
 
     public CodeValueMapper() {
         this.map = Maps.newHashMap();
-    }
-
-    public CodeValueMapper(Map<String, String> map) {
-        this.map = map;
     }
 
     @Override

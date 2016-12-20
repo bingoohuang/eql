@@ -14,7 +14,6 @@ import static org.n3r.eql.param.EqlParamsParser.SUB;
 @Data
 public class EqlParamPlaceholder {
     public enum InOut {IN, OUT, INOUT;}
-
     public enum Like {None, Like, LeftLike, RightLike;}
 
     private int outType = Types.VARCHAR;
@@ -57,13 +56,13 @@ public class EqlParamPlaceholder {
         }
     }
 
-
     private void parseEscape(PlaceHolderTemp holder, String evalSqlTemplate) {
-        String fromSub = S.wrap(holder.getQuestionSeq(), SUB);
+        val fromSub = S.wrap(holder.getQuestionSeq(), SUB);
         int fromSubIndex = evalSqlTemplate.indexOf(fromSub) + fromSub.length();
 
-        val escapePattern = Pattern.compile("\\s+ESCAPE\\s+(\\S+)", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-        String substring = evalSqlTemplate.substring(fromSubIndex);
+        val escapePattern = Pattern.compile("\\s+ESCAPE\\s+(\\S+)",
+                Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+        val substring = evalSqlTemplate.substring(fromSubIndex);
         val matcher = escapePattern.matcher(substring);
         setEscape(matcher.find());
 

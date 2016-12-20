@@ -1,18 +1,15 @@
 package org.n3r.eql.matrix.sqlparser;
 
+import lombok.Value;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.matrix.MatrixTableFieldValue;
 import org.n3r.eql.matrix.RealPartition;
 import org.n3r.eql.matrix.RulesSet;
 
+@Value
 public class DefaultMatrixSqlParseResult implements MatrixSqlParseResult {
-    private final SqlFieldIndex[] sqlFieldIndexes;
     private final RulesSet ruleSet;
-
-    public DefaultMatrixSqlParseResult(RulesSet ruleSet, SqlFieldIndex[] sqlFieldIndexes) {
-        this.ruleSet = ruleSet;
-        this.sqlFieldIndexes = sqlFieldIndexes;
-    }
+    private final SqlFieldIndex[] sqlFieldIndexes;
 
     @Override
     public String getDatabaseName(EqlRun eqlRun) {

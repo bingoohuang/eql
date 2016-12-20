@@ -6,7 +6,7 @@ import org.n3r.eql.map.EqlRun;
 import java.util.List;
 
 public class MultiPart implements EqlPart {
-    private List<EqlPart> parts = Lists.newArrayList();
+    private List<EqlPart> parts = Lists.<EqlPart>newArrayList();
 
     @Override
     public String evalSql(EqlRun eqlRun) {

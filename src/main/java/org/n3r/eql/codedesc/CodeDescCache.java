@@ -77,7 +77,7 @@ public class CodeDescCache {
             @Override
             public Optional<DefaultCodeDescMapper> call() throws Exception {
                 val mapper = createCodeDescMapper(eqlBlock, currEqlRun, eqlConfig, codeDesc,
-                        eqlCacheKey.getUniquEQLId().getSqlClassPath(), tagSqlId);
+                        eqlCacheKey.getUniqueSQLId().getSqlClassPath(), tagSqlId);
                 return Optional.fromNullable(mapper);
             }
         });

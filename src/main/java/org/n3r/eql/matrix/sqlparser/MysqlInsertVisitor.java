@@ -10,13 +10,12 @@ import java.util.List;
 
 public class MysqlInsertVisitor extends MysqlMatrixVisitor {
 
-
     public boolean visit(MySqlInsertStatement x) {
         String tableName = x.getTableName().getSimpleName();
 
         if (!ruleSet.relativeTo(tableName)) return false;
 
-        List<SqlFieldIndex> sqlFieldIndexes = Lists.newArrayList();
+        List<SqlFieldIndex> sqlFieldIndexes = Lists.<SqlFieldIndex>newArrayList();
         for (int i = 0; i < x.getColumns().size(); ++i) {
             SQLExpr columnExpr = x.getColumns().get(i);
             if (columnExpr instanceof SQLIdentifierExpr) {

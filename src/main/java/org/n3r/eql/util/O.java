@@ -6,12 +6,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.spec.ParamsAppliable;
 import org.n3r.eql.spec.Spec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.beans.BeanInfo;
 import java.beans.Introspector;
@@ -21,10 +20,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-@SuppressWarnings("unchecked")
+@Slf4j @SuppressWarnings("unchecked")
 public class O {
-    static Logger log = LoggerFactory.getLogger(O.class);
-
     public static <T> T populate(
             T object, Map<String, String> map,
             PropertyValueFilter... propertyValueFilters) {
@@ -44,10 +41,10 @@ public class O {
             if (ok) params.remove(propertyName);
         }
 
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            log.warn("{}:{} is not recognized",
-                    entry.getKey(), entry.getValue());
-        }
+//        for (Map.Entry<String, String> entry : params.entrySet()) {
+//            log.warn("{}:{} is not recognized",
+//                    entry.getKey(), entry.getValue());
+//        }
 
         return object;
     }

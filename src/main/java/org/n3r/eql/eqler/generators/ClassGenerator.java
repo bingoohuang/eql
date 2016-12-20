@@ -52,7 +52,7 @@ public class ClassGenerator<T> {
     private byte[] createEqlImplClassBytes() {
         constructor();
 
-        for (Method method : eqlerClass.getMethods()) {
+        for (val method : eqlerClass.getMethods()) {
             if (TranableMethodGenerator.isEqlTranableMethod(method)) {
                 val generator = new TranableMethodGenerator(classWriter, method, eqlerClass);
                 generator.generate();
@@ -71,7 +71,7 @@ public class ClassGenerator<T> {
     }
 
     private ClassWriter createClassWriter() {
-        final String implSourceName = implName.replace('.', '/');
+        val implSourceName = implName.replace('.', '/');
         val cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         String[] interfaces = {Type.getInternalName(eqlerClass)};
         cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, implSourceName,

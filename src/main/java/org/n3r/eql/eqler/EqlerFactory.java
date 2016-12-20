@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import lombok.SneakyThrows;
+import lombok.val;
 import org.n3r.eql.eqler.generators.ClassGenerator;
 import org.n3r.eql.ex.EqlConfigException;
 
@@ -12,7 +13,7 @@ public class EqlerFactory {
             CacheBuilder.newBuilder().build(new CacheLoader<Class, Object>() {
                 @Override
                 public Object load(Class eqlerClass) throws Exception {
-                    ClassGenerator generator = new ClassGenerator(eqlerClass);
+                    val generator = new ClassGenerator(eqlerClass);
                     Class<?> eqlImplClass = generator.generate();
                     return createObject(eqlImplClass);
                 }

@@ -8,7 +8,8 @@ import java.util.regex.Pattern;
 public class BlockOptionsParser {
     private static Pattern OPTION_PATTERN = Pattern.compile("\\b(\\w+)\\b\\s*(=?)\\s*");
 
-    public static Map<String, String> parseOptions(String optionsStr, OptionValueParser... optionValueParsers) {
+    public static Map<String, String> parseOptions(
+            String optionsStr, OptionValueParser... optionValueParsers) {
         HashMap<String, String> options = new HashMap<String, String>();
         if (optionsStr == null ) return options;
 

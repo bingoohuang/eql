@@ -122,8 +122,14 @@ public class EqlBlock {
             Map<String, Object> executionContext,
             Object[] params, Object[] dynamics, String[] sqls) {
 
-        val languageDriver = eqlConfig.getSqlResourceLoader().getDynamicLanguageDriver();
-        val blockParser = new EqlBlockParser(languageDriver, false);
+        parseDirectSqlBlock(eqlConfig, sqls);
+
+        return createEqlRunsByEqls(tagSqlId, eqlConfig, executionContext, params, dynamics);
+    }
+
+    private void parseDirectSqlBlock(EqlConfigDecorator eqlConfig, String[] sqls) {
+        val langDriver = eqlConfig.getSqlResourceLoader().getDynamicLanguageDriver();
+        val blockParser = new EqlBlockParser(langDriver, false);
         List<String> sqlLines = Lists.<String>newArrayList();
         Splitter splitter = Splitter.on('\n').omitEmptyStrings();
         for (String sqlStr : sqls) {
@@ -134,8 +140,6 @@ public class EqlBlock {
         }
 
         blockParser.parse(this, sqlLines);
-
-        return createEqlRunsByEqls(tagSqlId, eqlConfig, executionContext, params, dynamics);
     }
 
     private void addEqlRun(EqlConfigDecorator eqlConfig, EqlRun eqlRun, String sqlStr) {

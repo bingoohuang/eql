@@ -583,7 +583,7 @@ public class EqlParserTest {
         EqlPart eqlPart1 = sqlParts.part(1);
         assertThat(eqlPart1 instanceof ForPart, is(true));
         ForPart part = (ForPart) eqlPart1;
-        assertThat(((LiteralPart)part.getSqlPart().part(0)).getSql(), is("#item#\n"));
+        assertThat(((LiteralPart)part.getPart().part(0)).getSql(), is("#item#\n"));
     }
 
     @Test(expected=Exception.class)

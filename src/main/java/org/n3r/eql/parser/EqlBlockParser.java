@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 public class EqlBlockParser {
+    private DynamicLanguageDriver dynamicLanguageDriver;
     private final boolean sqlParseDelay;
     private List<Sql> sqls = Lists.<Sql>newArrayList();
-    private DynamicLanguageDriver dynamicLanguageDriver;
 
     public EqlBlockParser(DynamicLanguageDriver dynamicLanguageDriver, boolean sqlParseDelay) {
         this.dynamicLanguageDriver = dynamicLanguageDriver;

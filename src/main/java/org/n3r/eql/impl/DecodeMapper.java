@@ -1,6 +1,7 @@
 package org.n3r.eql.impl;
 
 import com.google.common.collect.Maps;
+import lombok.Getter;
 import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.util.Pair;
 
@@ -11,7 +12,7 @@ import java.util.Map;
 public class DecodeMapper implements EqlRowMapper {
     final Map<String, Pair<String, String>> def = Maps.newHashMap();
 
-    Map<String, String> map = Maps.newHashMap();
+    @Getter Map<String, String> map = Maps.newHashMap();
 
     public DecodeMapper(String... defs) {
         for (int i = 0; i + 3 <= defs.length; i += 3) {
@@ -29,9 +30,5 @@ public class DecodeMapper implements EqlRowMapper {
         map.put(pair._2, value);
 
         return null;
-    }
-
-    public Map<String, String> getMap() {
-        return map;
     }
 }

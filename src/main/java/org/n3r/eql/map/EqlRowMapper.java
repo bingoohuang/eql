@@ -16,6 +16,4 @@ public interface EqlRowMapper {
      * column values (that is, there's no need to catch SQLException)
      */
     Object mapRow(ResultSet rs, int rowNum, boolean isSingleColumn) throws SQLException;
-
-
 }

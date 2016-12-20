@@ -1,5 +1,6 @@
 package org.n3r.eql.dbfieldcryptor.proxy;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.n3r.eql.dbfieldcryptor.SensitiveCryptor;
 import org.n3r.eql.dbfieldcryptor.parser.SensitiveFieldsParser;
@@ -9,22 +10,12 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 
-@Slf4j
+@Slf4j @AllArgsConstructor
 public class ResultSetHandler implements InvocationHandler {
     private ResultSet resultSet;
     private SensitiveFieldsParser parser;
     private SensitiveCryptor cryptor;
-
-    public ResultSetHandler(
-            ResultSet resultSet,
-            SensitiveFieldsParser parser,
-            SensitiveCryptor cryptor) throws SQLException {
-        this.resultSet = resultSet;
-        this.parser = parser;
-        this.cryptor = cryptor;
-    }
 
     @Override
     public Object invoke(

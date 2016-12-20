@@ -36,11 +36,11 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
     private final Set<Integer> secureResultIndices = Sets.newHashSet();
     private final Set<String> secureResultLabels = Sets.newHashSet();
 
-    private final List<BindVariant> subQueryBindAndVariantOfFrom = Lists.newArrayList();
+    private final List<BindVariant> subQueryBindAndVariantOfFrom = Lists.<BindVariant>newArrayList();
 
     private final Set<String> secureFields;
 
-    private int variantIndex = 0;
+    private @Getter int variantIndex = 0;
     private final String sql;
 
     private MySqlASTVisitorAdapter adapter = new MySqlASTVisitorAdapter() {
@@ -576,7 +576,7 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
     }
 
     private List<Integer> walkInsertColumns(List<SQLExpr> columns) {
-        List<Integer> secureFieldsIndices = Lists.newArrayList();
+        List<Integer> secureFieldsIndices = Lists.<Integer>newArrayList();
         for (int i = 0, ii = columns.size(); i < ii; ++i) {
             SQLExpr column = columns.get(i);
             if (column instanceof SQLIdentifierExpr) {
@@ -640,10 +640,6 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
     @Override
     public String getSql() {
         return sql;
-    }
-
-    public int getVariantIndex() {
-        return variantIndex;
     }
 
     enum QueryBelongs {

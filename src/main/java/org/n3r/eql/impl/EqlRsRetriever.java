@@ -1,5 +1,8 @@
 package org.n3r.eql.impl;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.SneakyThrows;
 import org.n3r.eql.base.AfterPropertiesSet;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.map.*;
@@ -18,12 +21,12 @@ import java.util.List;
 import java.util.Map;
 
 public class EqlRsRetriever {
-    private EqlBlock eqlBlock;
+    @Setter private EqlBlock eqlBlock;
     private static int DEFAULT_MAXROWS = 100000;
-    private int maxRows = DEFAULT_MAXROWS;
-    private EqlRowMapper eqlRowMapper;
-    private String returnTypeName;
-    private Class<?> returnType;
+    @Setter private int maxRows = DEFAULT_MAXROWS;
+    @Setter private EqlRowMapper eqlRowMapper;
+    @Getter @Setter private String returnTypeName;
+    @Getter @Setter private Class<?> returnType;
 
     public Object convert(ResultSet rs, EqlRun subSql) throws SQLException {
         return maxRows <= 1 || subSql.isWillReturnOnlyOneRow() ? firstRow(rs) : selectList(rs);
@@ -70,7 +73,8 @@ public class EqlRsRetriever {
     private static Object mapResult(Object result, final EqlRowMapper rowMapper) {
         // TODO: to use asm other than reflection
         Method mappingResult = findEqlMappingResultMethod(rowMapper.getClass());
-        if (mappingResult != null) return O.invokeMethod(rowMapper, mappingResult).orNull();
+        if (mappingResult != null)
+            return O.invokeMethod(rowMapper, mappingResult).orNull();
 
         return result;
     }
@@ -88,7 +92,8 @@ public class EqlRsRetriever {
         return null;
     }
 
-    private Object rowBeanCreate(EqlRowMapper rowMapper, boolean isSingleColumn, ResultSet rs, int rowNum) throws SQLException {
+    @SneakyThrows
+    private Object rowBeanCreate(EqlRowMapper rowMapper, boolean isSingleColumn, ResultSet rs, int rowNum) {
         Object rowBean = rowMapper.mapRow(rs, rowNum, isSingleColumn);
         if (isSingleColumn) rowBean = convertSingleValue(rowBean, rs);
 
@@ -101,18 +106,21 @@ public class EqlRsRetriever {
     private EqlRowMapper getRowMapper(ResultSetMetaData metaData) throws SQLException {
         if (eqlRowMapper != null) return eqlRowMapper;
 
-        if (returnType == null && eqlBlock != null) returnType = eqlBlock.getReturnType();
+        if (returnType == null && eqlBlock != null)
+            returnType = eqlBlock.getReturnType();
 
         if (returnType != null && EqlRowMapper.class.isAssignableFrom(returnType))
             return Reflect.on(returnType).create().get();
 
-        if (returnType != null && !Map.class.isAssignableFrom(returnType)) return new EqlBeanRowMapper(returnType);
+        if (returnType != null && !Map.class.isAssignableFrom(returnType))
+            return new EqlBeanRowMapper(returnType);
 
         return metaData.getColumnCount() > 1 ? new EqlMapMapper() : new EqlSingleValueMapper();
     }
 
     public EqlCallableReturnMapper getCallableReturnMapper() {
-        if (returnType == null && eqlBlock != null) returnType = eqlBlock.getReturnType();
+        if (returnType == null && eqlBlock != null)
+            returnType = eqlBlock.getReturnType();
 
         if (returnType != null && EqlCallableReturnMapper.class.isAssignableFrom(returnType))
             return Reflect.on(returnType).create().get();
@@ -124,7 +132,8 @@ public class EqlRsRetriever {
     }
 
     private Object convertSingleValue(Object value, ResultSet rs) throws SQLException {
-        if (returnType == null && eqlBlock != null) returnType = eqlBlock.getReturnType();
+        if (returnType == null && eqlBlock != null)
+            returnType = eqlBlock.getReturnType();
 
         String returnTypeName = this.returnTypeName;
         if (returnTypeName == null)
@@ -148,7 +157,8 @@ public class EqlRsRetriever {
         }
 
         if ("boolean".equalsIgnoreCase(returnTypeName) || returnType == Boolean.class || returnType == boolean.class) {
-            if (value instanceof Number) return ((Number) value).shortValue() == 1;
+            if (value instanceof Number)
+                return ((Number) value).shortValue() == 1;
             return value == null ? null : Boolean.parseBoolean(value.toString());
         }
 
@@ -166,36 +176,7 @@ public class EqlRsRetriever {
         return value;
     }
 
-    public void setEqlBlock(EqlBlock eqlBlock) {
-        this.eqlBlock = eqlBlock;
-    }
-
-    public void setMaxRows(int maxRows) {
-        this.maxRows = maxRows;
-    }
-
-
-    public void setEqlRowMapper(EqlRowMapper eqlRowMapper) {
-        this.eqlRowMapper = eqlRowMapper;
-    }
-
-    public void setReturnTypeName(String returnTypeName) {
-        this.returnTypeName = returnTypeName;
-    }
-
-    public void setReturnType(Class<?> returnType) {
-        this.returnType = returnType;
-    }
-
     public void resetMaxRows() {
         this.maxRows = DEFAULT_MAXROWS;
-    }
-
-    public Class<?> getReturnType() {
-        return returnType;
-    }
-
-    public String getReturnTypeName() {
-        return returnTypeName;
     }
 }

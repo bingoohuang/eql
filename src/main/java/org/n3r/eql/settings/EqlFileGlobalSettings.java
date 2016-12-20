@@ -1,15 +1,12 @@
 package org.n3r.eql.settings;
 
-
+import lombok.extern.slf4j.Slf4j;
 import org.n3r.eql.cache.EqlCacheSettings;
 import org.n3r.eql.codedesc.CodeDescSettings;
 import org.n3r.eql.util.KeyValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class EqlFileGlobalSettings {
-    static Logger logger = LoggerFactory.getLogger(EqlFileGlobalSettings.class);
-
     public static void process(String sqlClassPath, String globalSettings) {
         KeyValue globalSettingKeyValue = KeyValue.parse(globalSettings);
 
@@ -20,7 +17,7 @@ public class EqlFileGlobalSettings {
             KeyValue cacheModelSetting = globalSettingKeyValue.removeKeyPrefix("desc");
             CodeDescSettings.processSetting(sqlClassPath, cacheModelSetting);
         } else {
-            logger.warn("unrecognized global settings {} ", globalSettings);
+            log.warn("unrecognized global settings {} ", globalSettings);
         }
     }
 

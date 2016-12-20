@@ -22,7 +22,10 @@ import org.n3r.eql.trans.spring.EqlTransactionManager;
 import org.n3r.eql.util.*;
 import org.slf4j.Logger;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -429,7 +432,8 @@ public class Eql {
         }
     }
 
-    private Object execDmlNoBatch() throws SQLException {
+    @SneakyThrows
+    private Object execDmlNoBatch() {
         ResultSet rs = null;
         PreparedStatement ps = null;
         try {
@@ -476,7 +480,7 @@ public class Eql {
         }
     }
 
-    private PreparedStatement prepareSql() throws SQLException {
+    private PreparedStatement prepareSql() {
         createConn();
         return EqlUtils.prepareSQL(sqlClassPath,
                 eqlConfig, currRun, getSqlId(), tagSqlId);

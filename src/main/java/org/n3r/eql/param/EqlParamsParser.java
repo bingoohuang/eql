@@ -32,9 +32,9 @@ public class EqlParamsParser {
         cache = CacheBuilder.newBuilder().build(
                 new CacheLoader<EqlUniqueSqlTemplate, EqlParamsParserResult>() {
                     @Override
-                    public EqlParamsParserResult load(EqlUniqueSqlTemplate eqlUniquEQLTemplate) throws Exception {
+                    public EqlParamsParserResult load(EqlUniqueSqlTemplate eqlUniqueSQLTemplate) throws Exception {
                         val result = new EqlParamsParserResult();
-                        new EqlParamsParser(result, eqlUniquEQLTemplate).parseParams();
+                        new EqlParamsParser(result, eqlUniqueSQLTemplate).parseParams();
                         return result;
                     }
                 }
@@ -64,8 +64,8 @@ public class EqlParamsParser {
     public EqlParamsParser(EqlParamsParserResult result,
                            EqlUniqueSqlTemplate eqlUniquEQLTemplate) {
         this.result = result;
-        this.eqlUniqueSQLId = eqlUniquEQLTemplate.getEqlUniquEQLId();
-        this.templateSQL = eqlUniquEQLTemplate.getTemplatEQL();
+        this.eqlUniqueSQLId = eqlUniquEQLTemplate.getEqlUniqueSQLId();
+        this.templateSQL = eqlUniquEQLTemplate.getTemplateSQL();
     }
 
     @Data @AllArgsConstructor
@@ -243,7 +243,7 @@ public class EqlParamsParser {
             List<PlaceHolderTemp> placeHolders, String evalSqlTemplate) {
         List<EqlParamPlaceholder> placeholders = new ArrayList<EqlParamPlaceholder>();
 
-        for (PlaceHolderTemp holderTemp : placeHolders) {
+        for (val holderTemp : placeHolders) {
             val placeHolderStr = holderTemp.getPlaceHolder();
 
             val placeholder = new EqlParamPlaceholder();

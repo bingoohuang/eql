@@ -25,6 +25,14 @@ public interface MemberCardDao {
             "/* end */")
     void insertMultipleRows2(List<MemberCard> memberCards);
 
+    // 这时item的名字mbrCardId，跟其中一个属性的名字一样
+    @Sql("insert into member_card_week_times (MBR_CARD_ID, START_TIME, END_TIME, TIMES, UPDATE_TIME, AVAIL_TIMES, CREATE_TIME) " +
+            "values\n" +
+            "-- for item=mbrCardId index=index collection=_1 separator=,\n" +
+            "('#mbrCardId.mbrCardId#', '#mbrCardId.startTime#', '#mbrCardId.endTime#', -1, NOW(), -1, NOW())\n" +
+            "-- end")
+    void insertMultipleRowsFengyuReportedBug(List<MemberCard> memberCards);
+
     @SqlOptions(iterate = true)
     @Sql("insert into member_card_week_times (MBR_CARD_ID, START_TIME, END_TIME, TIMES, UPDATE_TIME, AVAIL_TIMES, CREATE_TIME) " +
             "values ('#mbrCardId#', '#startTime#', '#endTime#', -1, NOW(), -1, NOW())")

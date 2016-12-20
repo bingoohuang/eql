@@ -1,6 +1,7 @@
 package org.n3r.eql.matrix.mapper;
 
 import com.google.common.collect.Lists;
+import lombok.Value;
 import org.n3r.eql.matrix.RealPartition;
 import org.n3r.eql.matrix.impl.GotoRealPartition;
 import org.n3r.eql.matrix.impl.MatrixMapper;
@@ -10,13 +11,14 @@ import java.util.List;
 
 public class DefaultMatrixMapper implements MatrixMapper {
     private String defaultValue;
-    private List<MapCase> mapCases = Lists.newArrayList();
+    private List<MapCase> mapCases = Lists.<MapCase>newArrayList();
     private int gotoAnotherRule = -1;
 
     @Override
     public RealPartition map(String value) {
         for (MapCase mapCase : mapCases) {
-            if (mapCase.left.equals(value)) return RealPartition.parse(mapCase.right);
+            if (mapCase.left.equals(value))
+                return RealPartition.parse(mapCase.right);
         }
 
         if (gotoAnotherRule >= 0) {
@@ -60,13 +62,9 @@ public class DefaultMatrixMapper implements MatrixMapper {
         }
     }
 
+    @Value
     private static class MapCase {
         public final String left;
         public final String right;
-
-        public MapCase(String left, String right) {
-            this.left = left;
-            this.right = right;
-        }
     }
 }

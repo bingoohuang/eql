@@ -1,6 +1,7 @@
 package org.n3r.eql.eqler.spring;
 
 
+import lombok.val;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanNameGenerator;
@@ -25,8 +26,8 @@ public class EqlerScannerRegistrar implements ImportBeanDefinitionRegistrar, Res
      */
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 
-        AnnotationAttributes annoAttrs = AnnotationAttributes.fromMap(importingClassMetadata.getAnnotationAttributes(EqlerScan.class.getName()));
-        ClassPathEqlerScanner scanner = new ClassPathEqlerScanner(registry);
+        val annoAttrs = AnnotationAttributes.fromMap(importingClassMetadata.getAnnotationAttributes(EqlerScan.class.getName()));
+        val scanner = new ClassPathEqlerScanner(registry);
 
         if (resourceLoader != null) { // this check is needed in Spring 3.1
             scanner.setResourceLoader(resourceLoader);
