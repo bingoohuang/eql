@@ -2,12 +2,12 @@ package org.n3r.eql.parser;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.val;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.util.S;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,22 +21,22 @@ public class ForPart implements EqlPart {
     private String separator;
     private String close;
 
-    private static Pattern PARAM_PATTERN = Pattern.compile("#\\s*(.+?)\\s*#");
-    private static Pattern DYNAMIC_PATTERN = Pattern.compile("\\$\\s*(.+?)\\s*\\$");
+    static Pattern PARAM_PATTERN = Pattern.compile("#\\s*(.+?)\\s*#");
+    static Pattern DYNAMIC_PATTERN = Pattern.compile("\\$\\s*(.+?)\\s*\\$");
 
     @Override
     public String evalSql(EqlRun eqlRun) {
-        StringBuilder str = new StringBuilder(open).append(' ');
-
-        Iterable<?> items = EqlUtils.evalCollection(collection, eqlRun);
+        val items = EqlUtils.evalCollection(collection, eqlRun);
         if (items == null) return "";
 
-        Map<String, Object> preContext = eqlRun.getExecutionContext();
-        Map<String, Object> context = new HashMap<String, Object>(preContext);
+        val preContext = eqlRun.getExecutionContext();
+        val context = new HashMap<String, Object>(preContext);
         eqlRun.setExecutionContext(context);
 
-        Pattern itemPattern = Pattern.compile("\\b(?<!.)" + item + "\\b");
-        Pattern indexPattern = Pattern.compile("\\b(?<!.)" + index + "\\b");
+        val str = new StringBuilder(open).append(' ');
+
+        val itemPattern = Pattern.compile("\\b(?<!.)" + item + "\\b");
+        val indexPattern = Pattern.compile("\\b(?<!.)" + index + "\\b");
 
         int i = -1;
         for (Object itemObj : items) {
@@ -61,27 +61,33 @@ public class ForPart implements EqlPart {
     private String processParams(Pattern pattern, char ch,
                                  Pattern itemPattern, Pattern indexPattern,
                                  int idx, String sql) {
-        Matcher matcher = pattern.matcher(sql);
         int startIndex = 0;
         StringBuilder str = new StringBuilder();
+        String colItem = collection + "[" + idx + "]";
 
+        Matcher matcher = pattern.matcher(sql);
         while (matcher.find()) {
             str.append(sql.substring(startIndex, matcher.start()));
             startIndex = matcher.end();
             String expr = matcher.group(1);
 
-            if (item.equals(expr))
-                str.append(S.wrap(collection + "[" + idx + "]", ch));
-            else if (this.index.equals(expr)) str.append(idx);
-            else {
-                String s = itemPattern.matcher(expr).replaceAll(collection + "[" + idx + "]");
-                s = indexPattern.matcher(s).replaceAll("" + idx);
+            if (item.equals(expr)) {
+                str.append(S.wrap(colItem, ch));
+            } else if (index.equals(expr)) {
+                str.append(idx);
+            } else {
+                val itemMatcher = itemPattern.matcher(expr);
+                String s = itemMatcher.replaceAll(colItem);
+                val indexMatcher = indexPattern.matcher(s);
+                s = indexMatcher.replaceAll("" + idx);
 
                 str.append(S.wrap(S.escapeCrossAndDollar(s), ch));
             }
         }
 
-        if (startIndex < sql.length()) str.append(sql.substring(startIndex));
+        if (startIndex < sql.length()) {
+            str.append(sql.substring(startIndex));
+        }
 
         return str.toString();
     }

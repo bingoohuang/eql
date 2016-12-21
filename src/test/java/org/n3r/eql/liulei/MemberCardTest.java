@@ -1,12 +1,12 @@
 package org.n3r.eql.liulei;
 
-
 import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -64,6 +64,17 @@ public class MemberCardTest {
         val dao = EqlerFactory.getEqler(MemberCardDao.class);
         dao.insertMultipleRows(memberCards);
         checkSize();
+    }
+
+    @Test public void insertMultipleRowsFengyuReportedNull() {
+        val dao = EqlerFactory.getEqler(MemberCardDao.class);
+        try {
+            dao.insertMultipleRowsFengyuReportedBug(null);
+            Assert.fail();
+        } catch (Exception ex) {
+            assertThat(ex.getMessage()).contains("You have an error in your SQL syntax;");
+        }
+        checkSize(0);
     }
 
     @Test public void insertMultipleRowsFengyuReportedBug() {
@@ -130,8 +141,13 @@ public class MemberCardTest {
     }
 
     private void checkSize() {
-        int countRecords = new Eql("dba").params(cardId).selectFirst("countRecords").execute();
-        assertThat(countRecords).isEqualTo(SIZE);
+        checkSize(SIZE);
+    }
+
+    private void checkSize(int size) {
+        int countRecords = new Eql("dba").params(cardId)
+                .selectFirst("countRecords").execute();
+        assertThat(countRecords).isEqualTo(size);
     }
 
     String sql = "insert into member_card_week_times " +

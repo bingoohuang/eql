@@ -1,6 +1,5 @@
 package org.n3r.eql.util;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
@@ -10,8 +9,13 @@ import org.n3r.eql.map.EqlRun;
 import org.slf4j.Logger;
 
 import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.Map;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 @SuppressWarnings("unchecked")
 public class EqlUtils {
@@ -39,7 +43,7 @@ public class EqlUtils {
         executionContext.put("_date", new java.util.Date());
         executionContext.put("_host", HostAddress.getHost());
         executionContext.put("_ip", HostAddress.getIp());
-        executionContext.put("_results", Lists.newArrayList());
+        executionContext.put("_results", newArrayList());
         executionContext.put("_lastResult", "");
         executionContext.put("_params", params);
         if (params != null) {
@@ -107,9 +111,10 @@ public class EqlUtils {
     public static Iterable<?> evalCollection(String collectionExpr, EqlRun eqlRun) {
         val evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
         Object value = evaluator.eval(collectionExpr, eqlRun);
+        if (value == null) return null;
+
         if (value instanceof Iterable) return (Iterable<?>) value;
-        if (value != null && value.getClass().isArray())
-            return Lists.newArrayList((Object[]) value);
+        if (value.getClass().isArray()) return newArrayList((Object[]) value);
 
         throw new RuntimeException(collectionExpr + " in "
                 + eqlRun.getParamBean() + " is not an expression of a collection");
