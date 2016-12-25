@@ -131,12 +131,14 @@ public class EqlBlock {
         val langDriver = eqlConfig.getSqlResourceLoader().getDynamicLanguageDriver();
         val blockParser = new EqlBlockParser(langDriver, false);
         List<String> sqlLines = Lists.<String>newArrayList();
-        Splitter splitter = Splitter.on('\n').omitEmptyStrings();
+        String separatorPattern = "[\r\n" + split.charAt(0) + "]";
+        Splitter splitter = Splitter.onPattern(separatorPattern).omitEmptyStrings();
         for (String sqlStr : sqls) {
             Iterable<String> lines = splitter.split(sqlStr);
-            for (val line : lines) sqlLines.add(line);
-
-            sqlLines.add(";");
+            for (val line : lines) {
+                sqlLines.add(line);
+                sqlLines.add(";");
+            }
         }
 
         blockParser.parse(this, sqlLines);

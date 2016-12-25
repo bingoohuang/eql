@@ -16,6 +16,7 @@ import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -168,6 +169,10 @@ public class EqlRsRetriever {
         if (returnType != null && !returnType.isPrimitive()) {
             if (returnType.isEnum() && value instanceof String) {
                 return Enums.valueOff((Class<Enum>) returnType, (String) value);
+            }
+
+            if (returnType == Timestamp.class) {
+                return rs.getTimestamp(1);
             }
 
             return new EqlBeanRowMapper(returnType).mapRow(rs, 1, false);
