@@ -137,8 +137,8 @@ public class EqlBlock {
             Iterable<String> lines = splitter.split(sqlStr);
             for (val line : lines) {
                 sqlLines.add(line);
-                sqlLines.add(";");
             }
+            sqlLines.add(";");
         }
 
         blockParser.parse(this, sqlLines);
