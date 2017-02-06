@@ -16,13 +16,14 @@ public class StripConverter implements EqlConverter {
 
         String stripped = value;
         if (StringUtils.isNotEmpty(stripAnn.value())) {
-            stripped = StringUtils.strip(stripped, stripAnn.value());
+            stripped = StringUtils.removeStart(stripped, stripAnn.value());
+            stripped = StringUtils.removeEnd(stripped, stripAnn.value());
         }
         if (StringUtils.isNotEmpty(stripAnn.left())) {
-            stripped = StringUtils.stripStart(stripped, stripAnn.left());
+            stripped = StringUtils.removeStart(stripped, stripAnn.left());
         }
         if (StringUtils.isNotEmpty(stripAnn.right())) {
-            stripped = StringUtils.stripEnd(stripped, stripAnn.right());
+            stripped = StringUtils.removeEnd(stripped, stripAnn.right());
         }
 
         return stripped;

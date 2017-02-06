@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 @Data @AllArgsConstructor @NoArgsConstructor
 public class ConvertBean {
     private String id;
-    @Strip(right = ".00")
+    @Strip(".00")
     private String times;
     private String times2;
+    @Strip(".00")
+    private String times3;
 }
