@@ -11,13 +11,13 @@ public class BlackcatUtils {
     }
 
 
-    public static boolean HasBlackcat = classExists(
-            "com.github.bingoohuang.blackcat.javaagent.callback.Blackcat");
+    public static final boolean HasBlackcat = classExists(
+            "com.github.bingoohuang.blackcat.instrument.callback.Blackcat");
 
     public static void log(String msgType, String pattern, Object... args) {
         if (!HasBlackcat) return;
 
-        com.github.bingoohuang.blackcat.javaagent.callback
-                .Blackcat.log(msgType, pattern, args);
+        com.github.bingoohuang.blackcat.instrument.callback.
+                Blackcat.trace(msgType, pattern, args);
     }
 }
