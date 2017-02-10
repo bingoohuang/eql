@@ -5,15 +5,16 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
+import lombok.val;
 import org.n3r.eql.base.EqlToProperties;
+import org.n3r.eql.convert.todb.EqlToDbConverts;
 
 import java.beans.BeanInfo;
-import java.beans.PropertyDescriptor;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.lang.reflect.Field;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Properties;
@@ -34,36 +35,49 @@ public class P {
         if (bean instanceof EqlToProperties) {
             map.putAll(((EqlToProperties) bean).toProperties());
         } else {
-            mergeDeclaredProperties(bean, map);
             mergeReadProperties(bean, map);
+            mergeDeclaredFields(bean, map);
         }
 
         return map;
     }
 
-    private static void mergeDeclaredProperties(
+    private static void mergeDeclaredFields(
             Object bean, Map<String, Object> map) {
-        for (Field field : bean.getClass().getDeclaredFields()) {
+        for (val field : bean.getClass().getDeclaredFields()) {
             try {
                 field.setAccessible(true);
-                map.put(field.getName(), field.get(bean));
+                Object value = field.get(bean);
+                value = toDbConvert(field, value);
+                map.put(field.getName(), value);
             } catch (Exception e) {
                 // ignore
             }
         }
     }
 
+    private static Object toDbConvert(AccessibleObject accessibleObject, Object value) {
+        val converter = EqlToDbConverts.getConverter(accessibleObject);
+        if (!converter.isPresent()) return value;
+
+        return converter.get().convert(null, value);
+    }
+
     private static void mergeReadProperties(
             Object bean, Map<String, Object> map) {
         BeanInfo info = O.getBeanInfo(bean.getClass());
 
-        for (PropertyDescriptor pDesc : info.getPropertyDescriptors()) {
+        for (val pDesc : info.getPropertyDescriptors()) {
             Method method = pDesc.getReadMethod();
             if (method == null) continue;
 
             String name = pDesc.getName();
             Optional<Object> value = O.invokeMethod(bean, method);
-            if (value.isPresent()) map.put(name, value.get());
+            if (value.isPresent()) {
+                Object val = value.get();
+                val = toDbConvert(method, val);
+                map.put(name, val);
+            }
         }
     }
 

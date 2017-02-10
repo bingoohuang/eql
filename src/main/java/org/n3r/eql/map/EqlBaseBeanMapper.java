@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.val;
+import org.n3r.eql.convert.EqlConvert;
 import org.n3r.eql.convert.EqlConvertAnn;
 import org.n3r.eql.convert.EqlConverts;
 import org.n3r.eql.joor.Reflect;
@@ -22,12 +23,11 @@ public class EqlBaseBeanMapper {
     protected Class<?> mappedClass;
     protected Map<String, PropertyDescriptor> mappedProperties;
     protected Map<String, Field> mappedFields;
-    protected Multimap<String, EqlConvertAnn> converters = HashMultimap.create();
+    protected Multimap<String, EqlConvertAnn<EqlConvert>> converters = HashMultimap.create();
 
     public EqlBaseBeanMapper(Class<?> mappedClass) {
         initialize(mappedClass);
     }
-
 
     protected void initialize(Class<?> mappedClass) {
         this.mappedClass = mappedClass;
@@ -45,8 +45,8 @@ public class EqlBaseBeanMapper {
         mappedFields = Maps.newHashMap();
         for (Field field : mappedClass.getDeclaredFields()) {
             mappedFields.put(field.getName().toLowerCase(), field);
-            List<EqlConvertAnn> ecas = Lists.<EqlConvertAnn>newArrayList();
-            EqlConverts.searchEqlConvertAnns(field, ecas);
+            List<EqlConvertAnn<EqlConvert>> ecas = Lists.newArrayList();
+            EqlConverts.searchEqlConvertAnns(field, ecas, EqlConvert.class);
             if (ecas.size() > 0) converters.putAll(field.getName(), ecas);
         }
     }
