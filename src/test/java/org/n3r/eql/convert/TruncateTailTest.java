@@ -42,5 +42,20 @@ public class TruncateTailTest {
                         "select id, times, times2, times3, update_time, sex " +
                         "from test_times where id = ##");
         assertThat(bean2).isEqualTo(expected);
+
+        id = RandomStringUtils.randomAlphanumeric(10);
+        expected.setId(id);
+        new Eql("mysql").params(expected).execute(
+                "insert into test_times(id, times, times2, times3,  update_time, sex) " +
+                        "values(#_1.id#, #_1.times#, #_1.times2#,#_1.times3#, #_1.updateTime#, #_1.sex#)");
+
+        ConvertBean bean3 = new Eql("mysql")
+                .returnType(ConvertBean.class)
+                .params(id)
+                .limit(1)
+                .execute(
+                        "select id, times, times2, times3, update_time, sex " +
+                                "from test_times where id = ##");
+        assertThat(bean3).isEqualTo(expected);
     }
 }

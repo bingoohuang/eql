@@ -35,14 +35,18 @@ public class P {
         if (bean instanceof EqlToProperties) {
             map.putAll(((EqlToProperties) bean).toProperties());
         } else {
-            mergeReadProperties(bean, map);
-            mergeDeclaredFields(bean, map);
+            mergeBeanProperties(bean, map);
         }
 
         return map;
     }
 
-    private static void mergeDeclaredFields(
+    public static void mergeBeanProperties(Object bean, Map<String, Object> map) {
+        mergeReadProperties(bean, map);
+        mergeDeclaredFields(bean, map);
+    }
+
+    public static void mergeDeclaredFields(
             Object bean, Map<String, Object> map) {
         for (val field : bean.getClass().getDeclaredFields()) {
             try {
@@ -63,7 +67,7 @@ public class P {
         return converter.get().convert(null, value);
     }
 
-    private static void mergeReadProperties(
+    public static void mergeReadProperties(
             Object bean, Map<String, Object> map) {
         BeanInfo info = O.getBeanInfo(bean.getClass());
 
