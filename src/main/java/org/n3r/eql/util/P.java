@@ -46,8 +46,7 @@ public class P {
         mergeDeclaredFields(bean, map);
     }
 
-    public static void mergeDeclaredFields(
-            Object bean, Map<String, Object> map) {
+    public static void mergeDeclaredFields(Object bean, Map<String, Object> map) {
         for (val field : bean.getClass().getDeclaredFields()) {
             try {
                 field.setAccessible(true);

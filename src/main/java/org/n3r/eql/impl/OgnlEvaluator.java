@@ -1,17 +1,19 @@
 package org.n3r.eql.impl;
 
+import com.google.common.collect.Maps;
 import lombok.val;
 import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.Og;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class OgnlEvaluator implements ExpressionEvaluator {
     @Override
     public Object eval(String expr, EqlRun eqlRun) {
         if (!eqlRun.isIterateOption()) {
-            return Og.eval(expr, eqlRun.getMergedParamProperties());
+            return Og.eval(expr, eqlRun.getMergedParamProperties(), eqlRun.getCachedProperties());
         }
 
         ArrayList<Object> result = new ArrayList<Object>();
@@ -21,7 +23,8 @@ public class OgnlEvaluator implements ExpressionEvaluator {
         if (iteratableOrArray instanceof Iterable) {
             for (Object element : (Iterable<Object>) iteratableOrArray) {
                 val params = eqlRun.getMergedParamPropertiesWith(element);
-                Object eval = Og.eval(expr, params);
+                val cached = Maps.<Object, Map<String, Object>>newHashMap();
+                Object eval = Og.eval(expr, params, cached);
                 result.add(eval);
             }
             return result;
@@ -30,7 +33,8 @@ public class OgnlEvaluator implements ExpressionEvaluator {
         if (iteratableOrArray.getClass().isArray()) {
             for (Object element : (Object[]) iteratableOrArray) {
                 val params = eqlRun.getMergedParamPropertiesWith(element);
-                Object eval = Og.eval(expr, params);
+                val cached = Maps.<Object, Map<String, Object>>newHashMap();
+                Object eval = Og.eval(expr, params, cached);
                 result.add(eval);
             }
             return result;
@@ -39,11 +43,10 @@ public class OgnlEvaluator implements ExpressionEvaluator {
         return result;
     }
 
-
     @Override
     public Object evalDynamic(String expr, EqlRun eqlRun) {
         val params = eqlRun.getMergedDynamicsProperties();
-        return Og.eval(expr, params);
+        return Og.eval(expr, params, eqlRun.getCachedProperties());
     }
 
     @Override
@@ -51,5 +54,4 @@ public class OgnlEvaluator implements ExpressionEvaluator {
         Object value = eval(expr, eqlRun);
         return value instanceof Boolean && ((Boolean) value).booleanValue();
     }
-
 }

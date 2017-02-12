@@ -11,17 +11,17 @@ import java.util.Map;
 
 @Slf4j
 public class Og {
-    public static Object eval(String expr, Map<String, Object> mergeProperties) {
-        return eval(expr, mergeProperties, Maps.<Object, Map<String, Object>>newHashMap());
-    }
+//    public static Object eval(String expr, Map<String, Object> mergeProperties) {
+//        return eval(expr, mergeProperties, Maps.<Object, Map<String, Object>>newHashMap());
+//    }
 
     public static Object eval(String expr, Map<String, Object> mergeProperties,
                               Map<Object, Map<String, Object>> cachedProperties) {
         Exception ex = null;
         try {
-            NestedExpr nestedExpr = new NestedExpr(expr);
+            val nestedExpr = new NestedExpr(expr);
             if (nestedExpr.isNested()) {
-                Object map = evalNested(mergeProperties, cachedProperties, nestedExpr);
+                Object map = evalNested(nestedExpr, mergeProperties, cachedProperties);
                 if (map != null) return map;
             }
 
@@ -38,10 +38,10 @@ public class Og {
         return null;
     }
 
-    private static Object evalNested(Map<String, Object> mergeProperties,
-                                     Map<Object, Map<String, Object>> cachedProperties,
-                                     NestedExpr nestedExpr) {
-        Object parent = eval(nestedExpr.getParentExpr(), mergeProperties);
+    private static Object evalNested(NestedExpr nestedExpr,
+                                     Map<String, Object> mergeProperties,
+                                     Map<Object, Map<String, Object>> cachedProperties) {
+        Object parent = eval(nestedExpr.getParentExpr(), mergeProperties, cachedProperties);
         if (!isNormalBean(parent)) return null;
 
         val map = parseBeanProperties(cachedProperties, parent);

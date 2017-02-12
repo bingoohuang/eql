@@ -1,6 +1,7 @@
 package org.n3r.eql.map;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -33,6 +34,7 @@ public class EqlRun implements Cloneable {
     @Setter @Getter boolean iterateOption;
     @Setter @Getter String tagSqlId;
     @Setter @Getter boolean forEvaluate;
+    @Getter Map<Object, Map<String, Object>> cachedProperties = Maps.newHashMap();
 
     public void addRealParam(int index, Object value) {
         realParams.add(Pair.of(index, value));
