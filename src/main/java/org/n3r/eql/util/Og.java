@@ -1,6 +1,5 @@
 package org.n3r.eql.util;
 
-import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import ognl.NoSuchPropertyException;
@@ -11,10 +10,6 @@ import java.util.Map;
 
 @Slf4j
 public class Og {
-//    public static Object eval(String expr, Map<String, Object> mergeProperties) {
-//        return eval(expr, mergeProperties, Maps.<Object, Map<String, Object>>newHashMap());
-//    }
-
     public static Object eval(String expr, Map<String, Object> mergeProperties,
                               Map<Object, Map<String, Object>> cachedProperties) {
         Exception ex = null;
@@ -45,8 +40,6 @@ public class Og {
         if (!isNormalBean(parent)) return null;
 
         val map = parseBeanProperties(cachedProperties, parent);
-        if (map.isEmpty()) return null;
-
         return eval(nestedExpr.getSubExpr(), map, cachedProperties);
     }
 
@@ -56,13 +49,11 @@ public class Og {
 
     private static Map<String, Object> parseBeanProperties(
             Map<Object, Map<String, Object>> cachedProperties, Object parent) {
-        Map<String, Object> map = cachedProperties.get(parent);
+        val map = cachedProperties.get(parent);
         if (map != null) return map;
 
-        map = Maps.newHashMap();
-        P.mergeBeanProperties(parent, map);
-        cachedProperties.put(parent, map);
-
-        return map;
+        val proxy = MapInvocationHandler.proxy(null, parent);
+        cachedProperties.put(parent, proxy);
+        return proxy;
     }
 }

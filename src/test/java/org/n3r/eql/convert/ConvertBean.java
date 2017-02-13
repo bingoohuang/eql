@@ -25,4 +25,12 @@ public class ConvertBean {
     @EqlDecode(value = {"M", "true", "false"}, toType = "boolean")
     @ToDbDecode({"true", "M", "F"})
     private boolean sex;
+
+    public String getXxx() {
+        throw new RuntimeException("Should not called");
+    }
+
+    public String isYyy() {
+        throw new RuntimeException("Should not called");
+    }
 }
