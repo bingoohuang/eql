@@ -80,7 +80,6 @@ public class EqlUtils {
         Logger log = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "prepare");
 
         log.debug(eqlRun.getPrintSql());
-        BlackcatUtils.log("SQL.PREPARE", eqlRun.getPrintSql());
 
         Connection conn = eqlRun.getConnection();
         String sql = eqlRun.getRunSql();

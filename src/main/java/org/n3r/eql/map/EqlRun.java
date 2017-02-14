@@ -35,6 +35,7 @@ public class EqlRun implements Cloneable {
     @Setter @Getter String tagSqlId;
     @Setter @Getter boolean forEvaluate;
     @Getter Map<Object, Map<String, Object>> cachedProperties = Maps.newHashMap();
+    private String traceParams;
 
     public void addRealParam(int index, Object value) {
         realParams.add(Pair.of(index, value));
@@ -75,10 +76,11 @@ public class EqlRun implements Cloneable {
                                String tagSqlId, String msg) {
         boolean hasBoundParams = boundParams != null && boundParams.size() > 0;
 
+
+
         if (hasBoundParams) {
             Logger log = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "params");
             log.debug(msg);
-            BlackcatUtils.log("SQL.PARAMS", msg);
         }
 
         if (hasBoundParams) {
@@ -86,10 +88,11 @@ public class EqlRun implements Cloneable {
             /* if (isForEvaluate() || evalLog.isDebugEnabled()) */
             this.evalSql = parseEvalSql(index);
             evalLog.debug(this.evalSql);
-            BlackcatUtils.log("SQL.EVAL", this.evalSql);
         } else {
             this.evalSql = evalSqlTemplate;
         }
+
+        this.traceParams = msg;
     }
 
     private String batchParamsString(List<Object> boundParams, int index) {
@@ -223,5 +226,9 @@ public class EqlRun implements Cloneable {
 
     public Map<String, Object> getMergedDynamicsProperties() {
         return P.mergeProperties(executionContext, getDynamicsBean());
+    }
+
+    public void traceResult(Object execRet) {
+        BlackcatUtils.trace(printSql, traceParams, evalSql, execRet);
     }
 }

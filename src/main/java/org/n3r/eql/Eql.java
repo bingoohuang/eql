@@ -404,6 +404,7 @@ public class Eql {
 
     private Object execDml() throws SQLException {
         Object execRet = batch != null ? execDmlInBatch() : execDmlNoBatch();
+        currRun.traceResult(execRet);
 
         Logs.logResult(eqlConfig, sqlClassPath, execRet, getSqlId(), tagSqlId);
 
