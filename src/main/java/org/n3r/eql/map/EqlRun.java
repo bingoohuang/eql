@@ -229,6 +229,6 @@ public class EqlRun implements Cloneable {
     }
 
     public void traceResult(Object execRet) {
-        BlackcatUtils.trace(printSql, traceParams, evalSql, execRet);
+        BlackcatUtils.trace(getSqlId(), printSql, traceParams, evalSql, execRet);
     }
 }

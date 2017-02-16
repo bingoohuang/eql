@@ -3,7 +3,7 @@
 
     <groupId>com.github.bingoohuang</groupId>
     <artifactId>eql</artifactId>
-    <version>0.0.80-SNAPSHOT</version>
+    <version>0.0.82-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>easy sql</name>
@@ -52,7 +52,7 @@
         <dependency>
             <groupId>com.github.bingoohuang</groupId>
             <artifactId>blackcat-instrument</artifactId>
-            <version>0.0.6</version>
+            <version>0.0.8</version>
             <optional>true</optional>
         </dependency>
         <dependency>
