@@ -2,6 +2,7 @@ package org.n3r.eql.util;
 
 import com.github.bingoohuang.blackcat.instrument.callback.Blackcat;
 import com.github.bingoohuang.blackcat.instrument.utils.Collections;
+import com.github.bingoohuang.westjson.WestJson;
 
 import java.util.Collection;
 
@@ -33,7 +34,9 @@ public class BlackcatUtils {
     }
 
     private static Object compressResult(Object execRet) {
-        if (!(execRet instanceof Collection)) return execRet;
+        if (!(execRet instanceof Collection)) {
+            return new WestJson().json(execRet, WestJson.UNQUOTED);
+        }
 
         return Collections.compressResult((Collection) execRet);
     }
