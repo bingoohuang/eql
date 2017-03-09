@@ -15,13 +15,13 @@ public class MysqlInsertVisitor extends MysqlMatrixVisitor {
 
         val sqlFieldIndexes = Lists.<SqlFieldIndex>newArrayList();
         for (int i = 0, ii = x.getColumns().size(); i < ii; ++i) {
+            val valueExpr = x.getValues().getValues().get(i);
+            valueExpr.accept(this);
+
             val columnExpr = x.getColumns().get(i);
             if (!(columnExpr instanceof SQLIdentifierExpr)) continue;
 
             String columnName = ((SQLIdentifierExpr) columnExpr).getName();
-            val valueExpr = x.getValues().getValues().get(i);
-            valueExpr.accept(this);
-
             if (!ruleSet.relativeTo(tableName, columnName)) continue;
             if (!(valueExpr instanceof SQLVariantRefExpr)) continue;
 
