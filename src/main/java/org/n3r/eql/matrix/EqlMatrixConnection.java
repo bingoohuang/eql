@@ -78,7 +78,7 @@ public class EqlMatrixConnection implements EqlConnection {
         else localDbName = dbNameTL.get() != null ? dbNameTL.get() : DEFAULT;
 
         try {
-            DruidDataSource dataSource = dataSourceCache.getUnchecked(localDbName);
+            val dataSource = dataSourceCache.getUnchecked(localDbName);
             log.debug("use database [{}]", localDbName);
             return dataSource.getConnection();
 
@@ -130,7 +130,7 @@ public class EqlMatrixConnection implements EqlConnection {
         val map = dataSourceCache.asMap();
 
         for (String databaseName : map.keySet()) {
-            DruidDataSource druidDataSource = map.get(databaseName);
+            val druidDataSource = map.get(databaseName);
             try {
                 druidDataSource.close();
             } catch (Exception e) {
