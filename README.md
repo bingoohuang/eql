@@ -989,5 +989,5 @@ Try use url like  `jdbc:mysql://192.168.99.100:13306/dba?useUnicode=true&&charac
 ## mysql
 run mysql:<br/>
 `docker run -p 13306:3306 --name mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql`
-run client:<br/>
+<br/>run client:<br/>
 `docker run -it --rm mysql mysql -h192.168.99.100 -uroot -P13306 -pmy-secret-pw`
