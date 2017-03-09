@@ -1,5 +1,5 @@
 -- [setup onerr=resume]
-drop table person;
+drop table if exists person;
 
 create table person
 (
@@ -10,7 +10,7 @@ create table person
 
 
 -- [addPerson]
-insert into person(id, sex, name)
+insert into person(sex, id, name)
 values(##, ##, ##)
 
 -- [getPerson]
