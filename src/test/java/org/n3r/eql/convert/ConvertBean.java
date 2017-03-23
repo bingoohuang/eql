@@ -1,5 +1,6 @@
 package org.n3r.eql.convert;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,10 +27,12 @@ public class ConvertBean {
     @ToDbDecode({"true", "M", "F"})
     private boolean sex;
 
+    @JSONField(serialize = false)
     public String getXxx() {
         throw new RuntimeException("Should not called");
     }
 
+    @JSONField(serialize = false)
     public String isYyy() {
         throw new RuntimeException("Should not called");
     }
