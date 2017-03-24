@@ -203,6 +203,18 @@ where 'a' = '#_1#'
 and 'b' = '#_2#'
 ```
 
+In above example, the _1 and _2 are used, they are called built-in parameters.
+More built-in parameters list here:
+1. `_time` current timestamp, type: `java.sql.Timestamp`
+2. `_date` current date, type:`java.util.Date`
+3. `_host` current hostname
+4. `_ip` current ip
+5. `_params` currrent params array
+6. `_paramsCount` length of current params array
+7. `_1`,`_2`,`_3`,... the param in sequence
+8. `_dynamics` current dynamics array
+9. `_dynamicsCount` lenght of current dynamics array
+
 # Dynamic sql
 
 Eql's dynamic sql is now base on [OGNL](http://commons.apache.org/proper/commons-ognl/) expression.
