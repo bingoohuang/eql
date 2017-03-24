@@ -985,6 +985,25 @@ com.mysql.jdbc.exceptions.jdbc4.MySQLNonTransientConnectionException: Communicat
 
 Try use url like  `jdbc:mysql://192.168.99.100:13306/dba?useUnicode=true&&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=3000&autoReconnect=true` instead of `jdbc:mysql://192.168.99.100:13306/dba`
 
+# FAQ
+## java.lang.NullPointerException
+A single primitive return type like int/long/short will cause NPE when SQL results no rows. 
+In this situation, the related wrapper type like Integer/Long/Short should be used instead.
+```java
+@Test
+public void returnInteger() {
+    Integer intValue = new Eql("h2").limit(1)
+            .returnType(Integer.class).execute("select 1 where 2 > 3");
+    assertThat(intValue).isNull();
+}
+
+@Test(expected = NullPointerException.class)
+public void returnInt() {
+    int intValue = new Eql("h2").limit(1)
+            .returnType(int.class).execute("select 1 where 2 > 3");
+}
+```
+
 # docker
 ## mysql
 run mysql:<br/>

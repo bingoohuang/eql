@@ -37,6 +37,19 @@ public class ZhangPengTest {
         assertThat(zhangPeng).isEqualTo(new ZhangPeng2("zhang", "peng"));
     }
 
+    @Test
+    public void returnInteger() {
+        Integer intValue = new Eql("h2").limit(1)
+                .returnType(Integer.class).execute("select 1 where 2 > 3");
+        assertThat(intValue).isNull();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void returnInt() {
+        int intValue = new Eql("h2").limit(1)
+                .returnType(int.class).execute("select 1 where 2 > 3");
+    }
+
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
