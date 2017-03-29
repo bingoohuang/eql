@@ -22,12 +22,19 @@ import java.util.List;
 import java.util.Map;
 
 public class EqlRsRetriever {
-    @Setter private EqlBlock eqlBlock;
+    @Setter
+    private EqlBlock eqlBlock;
     private static int DEFAULT_MAXROWS = 100000;
-    @Setter private int maxRows = DEFAULT_MAXROWS;
-    @Setter private EqlRowMapper eqlRowMapper;
-    @Getter @Setter private String returnTypeName;
-    @Getter @Setter private Class<?> returnType;
+    @Setter
+    private int maxRows = DEFAULT_MAXROWS;
+    @Setter
+    private EqlRowMapper eqlRowMapper;
+    @Getter
+    @Setter
+    private String returnTypeName;
+    @Getter
+    @Setter
+    private Class<?> returnType;
 
     public Object convert(ResultSet rs, EqlRun subSql) throws SQLException {
         return maxRows <= 1 || subSql.isWillReturnOnlyOneRow() ? firstRow(rs) : selectList(rs);
@@ -142,30 +149,25 @@ public class EqlRsRetriever {
 
         if (returnType == null && returnTypeName == null) return value;
 
-        if ("string".equalsIgnoreCase(returnTypeName) || returnType == String.class) {
-            if (value instanceof byte[]) return S.bytesToStr((byte[]) value);
-            return value == null ? null : String.valueOf(value);
-        }
+        Object x = processString(value, returnTypeName);
+        if (x != null) return x;
 
-        if ("int".equalsIgnoreCase(returnTypeName) || returnType == Integer.class || returnType == int.class) {
-            if (value instanceof Number) return ((Number) value).intValue();
-            return value == null ? null : Integer.parseInt(value.toString());
-        }
+        x = processInt(value, returnTypeName);
+        if (x != null) return x;
 
-        if ("long".equalsIgnoreCase(returnTypeName) || returnType == Long.class || returnType == long.class) {
-            if (value instanceof Number) return ((Number) value).longValue();
-            return value == null ? null : Long.parseLong(value.toString());
-        }
+        x = processLong(value, returnTypeName);
+        if (x != null) return x;
 
-        if ("boolean".equalsIgnoreCase(returnTypeName) || returnType == Boolean.class || returnType == boolean.class) {
-            if (value instanceof Number)
-                return ((Number) value).shortValue() == 1;
-            return value == null ? null : Boolean.parseBoolean(value.toString());
-        }
+        x = processDouble(value, returnTypeName);
+        if (x != null) return x;
+
+        x = processBoolean(value, returnTypeName);
+        if (x != null) return x;
 
         if (returnType == null && returnTypeName != null) {
             returnType = Reflect.on(returnTypeName).type();
         }
+
         if (returnType != null && !returnType.isPrimitive()) {
             if (returnType.isEnum() && value instanceof String) {
                 return Enums.valueOff((Class<Enum>) returnType, (String) value);
@@ -179,6 +181,47 @@ public class EqlRsRetriever {
         }
 
         return value;
+    }
+
+    private Object processString(Object value, String returnTypeName) {
+        if ("string".equalsIgnoreCase(returnTypeName) || returnType == String.class) {
+            if (value instanceof byte[]) return S.bytesToStr((byte[]) value);
+            return value == null ? null : String.valueOf(value);
+        }
+        return null;
+    }
+
+    private Object processInt(Object value, String returnTypeName) {
+        if ("int".equalsIgnoreCase(returnTypeName) || returnType == Integer.class || returnType == int.class) {
+            if (value instanceof Number) return ((Number) value).intValue();
+            return value == null ? null : Integer.parseInt(value.toString());
+        }
+        return null;
+    }
+
+    private Object processLong(Object value, String returnTypeName) {
+        if ("long".equalsIgnoreCase(returnTypeName) || returnType == Long.class || returnType == long.class) {
+            if (value instanceof Number) return ((Number) value).longValue();
+            return value == null ? null : Long.parseLong(value.toString());
+        }
+        return null;
+    }
+
+    private Object processBoolean(Object value, String returnTypeName) {
+        if ("boolean".equalsIgnoreCase(returnTypeName) || returnType == Boolean.class || returnType == boolean.class) {
+            if (value instanceof Number)
+                return ((Number) value).shortValue() == 1;
+            return value == null ? null : Boolean.parseBoolean(value.toString());
+        }
+        return null;
+    }
+
+    private Object processDouble(Object value, String returnTypeName) {
+        if ("double".equalsIgnoreCase(returnTypeName) || returnType == Double.class || returnType == double.class) {
+            if (value instanceof Number) return ((Number) value).doubleValue();
+            return value == null ? null : Double.parseDouble(value.toString());
+        }
+        return null;
     }
 
     public void resetMaxRows() {
