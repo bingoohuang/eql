@@ -1,6 +1,6 @@
 package org.n3r.eql.parser;
 
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,11 +13,12 @@ public class PartParserFactory {
         if (!matcher.matches()) return null;
 
         String keyword = matcher.group(1).toLowerCase();
-        String option = EqlUtils.trimToEmpty(matcher.group(2));
+        String option = S.trimToEmpty(matcher.group(2));
 
         PartParser partParser = null;
         if (keyword.equals("if")) partParser = new IfParser(option);
         else if (keyword.equals("iff")) partParser = new IffParser(option);
+        else if (keyword.equals("unless")) partParser = new UnlessParser(option);
         else if (keyword.equals("isempty")) partParser = new IsEmptyParser(option);
         else if (keyword.equals("isnotempty")) partParser = new IsNotEmptyParser(option);
         else if (keyword.equals("isnull")) partParser = new IsNullParser(option);
@@ -27,8 +28,9 @@ public class PartParserFactory {
         else if (keyword.equals("switch")) partParser = new SwitchParser(option);
         else if (keyword.equals("for")) partParser = new ForParser(option);
         else if (keyword.equals("trim")) partParser = new TrimParser(option);
+        else if (keyword.equals("in")) partParser = new InParser(option);
 
-        if (partParser != null && EqlUtils.isBlank(option))
+        if (partParser != null && S.isBlank(option))
             throw new RuntimeException(clearLine + " is invalid");
 
         return partParser;

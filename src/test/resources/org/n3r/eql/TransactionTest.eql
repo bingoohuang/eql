@@ -1,15 +1,15 @@
 -- import org/n3r/eql/SimpleTest.eql *TestTable
 
 -- [addBean]
-INSERT INTO ESQL_TEST VALUES(##, 'J', ##, ##, 104);
+INSERT INTO EQL_TEST VALUES(##, 'J', ##, ##, 104);
 
 -- [updateBean]
-UPDATE ESQL_TEST
+UPDATE EQL_TEST
 SET C = #2#
 WHERE A = #1#
 
 -- [getBean]
 SELECT C
-FROM ESQL_TEST
+FROM EQL_TEST
 WHERE A = ##
 

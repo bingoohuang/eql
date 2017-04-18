@@ -2,7 +2,7 @@ package org.n3r.eql;
 
 import org.n3r.eql.ex.EqlException;
 import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.regex.Pattern;
 
 public class DbDialect {
+    private final String jdbcUrl;
     private String driverName;
     private String databaseId;
 
@@ -17,15 +18,21 @@ public class DbDialect {
         try {
             DatabaseMetaData metaData = connection.getMetaData();
             String driverName = metaData.getDriverName();
+            String jdbcUrl = metaData.getURL();
 
-            return new DbDialect(driverName);
+            return new DbDialect(driverName, jdbcUrl);
         } catch (SQLException ex) {
             throw new EqlException(ex);
         }
     }
 
-    public DbDialect(String driverName) {
+    public static DbDialect parseDbType(String driverName, String jdbcUrl) {
+        return new DbDialect(driverName, jdbcUrl);
+    }
+
+    public DbDialect(String driverName, String jdbcUrl) {
         this.driverName = driverName;
+        this.jdbcUrl = jdbcUrl;
         databaseId = tryParseDatabaseId();
     }
 
@@ -43,10 +50,12 @@ public class DbDialect {
 
 
     private String tryParseDatabaseId() {
-        if (EqlUtils.containsIgnoreCase(driverName, "oracle")) return "oracle";
-        if (EqlUtils.containsIgnoreCase(driverName, "mysql")) return "mysql";
-        if (EqlUtils.containsIgnoreCase(driverName, "h2")) return "h2";
-        if (EqlUtils.containsIgnoreCase(driverName, "db2")) return "db2";
+        String dirverOrUrl = driverName;
+        if (dirverOrUrl == null) dirverOrUrl = jdbcUrl;
+        if (S.containsIgnoreCase(dirverOrUrl, "oracle")) return "oracle";
+        if (S.containsIgnoreCase(dirverOrUrl, "mysql")) return "mysql";
+        if (S.containsIgnoreCase(dirverOrUrl, "h2")) return "h2";
+        if (S.containsIgnoreCase(dirverOrUrl, "db2")) return "db2";
 
         return driverName;
     }
@@ -54,7 +63,6 @@ public class DbDialect {
     private EqlRun createMySqlPageSql(EqlRun eqlRun, EqlPage page) {
         EqlRun eqlRun1 = eqlRun.clone();
         eqlRun1.setRunSql(eqlRun.getRunSql() + " LIMIT ?,?");
-        eqlRun1.setPrintSql(eqlRun.getPrintSql() + " LIMIT ?,?");
         eqlRun1.setExtraBindParams(page.getStartIndex(), page.getPageRows());
 
         return eqlRun1;
@@ -63,7 +71,6 @@ public class DbDialect {
     private EqlRun createOraclePageSql(EqlRun eqlRun0, EqlPage eqlPage) {
         EqlRun eqlRun = eqlRun0.clone();
         eqlRun.setRunSql(createOraclePageSql(eqlRun.getRunSql()));
-        eqlRun.setPrintSql(createOraclePageSql(eqlRun.getPrintSql()));
 
         int endIndex = eqlPage.getStartIndex() + eqlPage.getPageRows();
         eqlRun.setExtraBindParams(endIndex, eqlPage.getStartIndex());
@@ -79,7 +86,6 @@ public class DbDialect {
     private EqlRun createH2PageSql(EqlRun eqlRun0, EqlPage eqlPage) {
         EqlRun eqlRun = eqlRun0.clone();
         eqlRun.setRunSql(createH2PageSql(eqlRun.getRunSql()));
-        eqlRun.setPrintSql(createH2PageSql(eqlRun.getPrintSql()));
 
         int endIndex = eqlPage.getStartIndex() + eqlPage.getPageRows();
         eqlRun.setExtraBindParams(endIndex, eqlPage.getStartIndex());
@@ -94,18 +100,18 @@ public class DbDialect {
     }
 
     public EqlRun createTotalSql(EqlRun currRun) {
-        EqlRun totalEqlSql = currRun.clone();
+        EqlRun totalEqlRun = currRun.clone();
 
-        totalEqlSql.setRunSql(createTotalSql(totalEqlSql.getRunSql()));
-        totalEqlSql.setPrintSql(createTotalSql(totalEqlSql.getPrintSql()));
+        totalEqlRun.setRunSql(createTotalSql(totalEqlRun.getRunSql()));
 
-        totalEqlSql.setWillReturnOnlyOneRow(true);
+        totalEqlRun.setWillReturnOnlyOneRow(true);
 
-        return totalEqlSql;
+        return totalEqlRun;
     }
 
     static Pattern orderByPattern = Pattern.compile("\\border\\s+by\\b");
-    private  String createTotalSql(String runSql) {
+
+    private String createTotalSql(String runSql) {
         String sql = runSql.toUpperCase();
 
         boolean oneFromWoDistinctOrGroupby = false;
@@ -122,6 +128,14 @@ public class DbDialect {
         }
 
         if (fromPos < 0) fromPos = 0;
+
+        // if bound parameter if found before 'from', we can not remove the select part.
+        if (oneFromWoDistinctOrGroupby) {
+            int paramBoundPos = sql.indexOf('?');
+            if (paramBoundPos >= 0 && paramBoundPos < fromPos) {
+                oneFromWoDistinctOrGroupby = false;
+            }
+        }
 
         return oneFromWoDistinctOrGroupby
                 ? "SELECT COUNT(*) AS CNT " + runSql.substring(fromPos)

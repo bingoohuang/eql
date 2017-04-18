@@ -1,40 +1,43 @@
 package org.n3r.eql;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import lombok.Cleanup;
+import lombok.Getter;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+import org.n3r.eql.codedesc.CodeDescs;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigCache;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.config.EqlConfigManager;
 import org.n3r.eql.ex.EqlExecuteException;
-import org.n3r.eql.impl.DefaultEqlConfigDecorator;
-import org.n3r.eql.impl.EqlBatch;
-import org.n3r.eql.impl.EqlProc;
-import org.n3r.eql.impl.EqlRsRetriever;
+import org.n3r.eql.impl.*;
 import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.map.EqlType;
 import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.util.EqlUtils;
-import org.n3r.eql.util.HostAddress;
+import org.n3r.eql.trans.spring.EqlTransactionManager;
+import org.n3r.eql.util.*;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-public class Eql implements Closeable {
+@SuppressWarnings("unchecked") @Slf4j
+public class Eql {
     public static final String DEFAULT_CONN_NAME = "DEFAULT";
-    protected static Logger logger = LoggerFactory.getLogger(Eql.class);
+    public static final int STACKTRACE_DEEP_FOUR = 4;
+    public static final int STACKTRACE_DEEP_FIVE = 5;
 
-    protected EqlConfigDecorator eqlConfig;
+    @Getter protected EqlConfigDecorator eqlConfig;
     protected EqlBlock eqlBlock;
-    protected Object[] params;
+    @Getter protected Object[] params;
     private String sqlClassPath;
     private EqlPage page;
     protected EqlBatch batch;
@@ -42,28 +45,49 @@ public class Eql implements Closeable {
     private EqlTran externalTran;
     private EqlTran internalTran;
     private DbDialect dbDialect;
-    private EqlRsRetriever rsRetriever = new EqlRsRetriever();
+    protected EqlRsRetriever rsRetriever = new EqlRsRetriever();
     private int fetchSize;
     protected List<EqlRun> eqlRuns;
     protected EqlRun currRun;
-    protected Map<String, Object> executionContext;
+    protected Map<String, Object> execContext;
     private String defaultSqlId;
     private boolean cached = true;
+    private String tagSqlId; // for eqler log convenience
+    private String sqlId;
+    private String options; // for eqler to fully support dynamic sql
 
     public Eql() {
-        init(EqlConfigCache.getEqlConfig(DEFAULT_CONN_NAME), 4);
+        this(Eql.STACKTRACE_DEEP_FIVE);
+    }
+
+    public Eql(int stackDeep) {
+        init(EqlConfigCache.getEqlConfig(DEFAULT_CONN_NAME), stackDeep);
     }
 
     public Eql(String connectionName) {
-        init(EqlConfigCache.getEqlConfig(connectionName), 4);
+        init(EqlConfigCache.getEqlConfig(connectionName), STACKTRACE_DEEP_FOUR);
     }
 
     public Eql(EqlConfig eqlConfig) {
-        init(eqlConfig, 4);
+        init(eqlConfig, STACKTRACE_DEEP_FOUR);
     }
 
     public Eql(EqlConfig eqlConfig, int stackDeep) {
         init(eqlConfig, stackDeep);
+    }
+
+    public Eql me() { // just help for asm when working with Dql
+        return this;
+    }
+
+    public Eql tagSqlId(String tagSqlId) {
+        this.tagSqlId = tagSqlId;
+        return this;
+    }
+
+    public Eql options(String options) {
+        this.options = options;
+        return this;
     }
 
     private void init(EqlConfig eqlConfig, int stackDeep) {
@@ -75,27 +99,27 @@ public class Eql implements Closeable {
     }
 
     private void prepareDefaultSqlId(int stackDeep) {
-        StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
-        StackTraceElement e = stacktrace[stackDeep];
+        val stackTrace = Thread.currentThread().getStackTrace();
+        StackTraceElement e = stackTrace[stackDeep];
         defaultSqlId = e.getMethodName();
     }
 
     public Connection getConnection() {
-        return newTran(eqlConfig, this).getConn();
+        return newTran(eqlConfig).getConn(eqlConfig, currRun);
     }
 
-    protected Connection getConn() {
-        // if (connection != null) return;
+    private void createDbDialect() {
+        val eqlTran = internalTran != null ? internalTran : externalTran;
+        dbDialect = DbDialect.parseDbType(eqlTran.getDriverName(), eqlTran.getJdbcUrl());
+        execContext.put("_databaseId", dbDialect.getDatabaseId());
+    }
 
-        Connection connection = internalTran != null ? internalTran.getConn() : externalTran.getConn();
-        dbDialect = DbDialect.parseDbType(connection);
-        executionContext.put("_databaseId", dbDialect.getDatabaseId());
-
-        return connection;
+    protected void createConn() {
+        (internalTran != null ? internalTran : externalTran).getConn(eqlConfig, currRun);
     }
 
     public Eql addContext(String key, Object value) {
-        executionContext.put(key, value);
+        execContext.put(key, value);
 
         return this;
     }
@@ -103,68 +127,111 @@ public class Eql implements Closeable {
     public List<EqlRun> evaluate(String... directSqls) {
         checkPreconditions(directSqls);
 
-        newExecutionContext();
+        execContext = EqlUtils.newExecContext(params, dynamics);
 
-        if (directSqls.length > 0) eqlBlock = new EqlBlock();
+        if (directSqls.length > 0) eqlBlock = new EqlBlock(options);
 
-        List<EqlRun> runs = eqlBlock.createEqlRuns(eqlConfig,
-                executionContext, params, dynamics, directSqls);
+        eqlRuns = eqlBlock.createEqlRuns(tagSqlId, eqlConfig,
+                execContext, params, dynamics, directSqls);
 
-        if (logger.isDebugEnabled()) {
-            for (EqlRun run : runs) {
-                logger.debug(run.getPrintSql());
-            }
+        IterateOptions.checkIterateOption(eqlBlock, eqlRuns, params);
+
+        for (EqlRun eqlRun : eqlRuns) {
+            currRun = eqlRun;
+            currRun.setForEvaluate(true);
+
+            if (S.isBlank(currRun.getRunSql())) continue;
+
+            new EqlParamsBinder().prepareBindParams(eqlBlock.isIterateOption(), currRun);
+
+            currRun.bindParamsForEvaluation(sqlClassPath);
         }
 
-        return runs;
+        return eqlRuns;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") @SneakyThrows
     public <T> T execute(String... directSqls) {
         checkPreconditions(directSqls);
 
-        boolean cacheUsable = directSqls.length == 0 && cached;
-        Optional<Object> cachedResult = cacheUsable
-                ? eqlBlock.getCachedResult(params, dynamics) : null;
+        Object o = tryGetCache(directSqls);
+        if (o != null) return (T) o;
 
-        if (cachedResult != null) return (T) cachedResult.orNull();
-
-        newExecutionContext();
+        execContext = EqlUtils.newExecContext(params, dynamics);
         Object ret = null;
-        Connection conn = null;
+        boolean isAllSelect = false;
         try {
-            if (batch == null) tranStart();
-            conn = getConn();
+            tranStart();
+            createDbDialect();
 
-            if (directSqls.length > 0) eqlBlock = new EqlBlock();
+            if (directSqls.length > 0) eqlBlock = new EqlBlock(options);
 
-            eqlRuns = eqlBlock.createEqlRuns(eqlConfig, executionContext, params, dynamics, directSqls);
+            eqlRuns = eqlBlock.createEqlRuns(tagSqlId, eqlConfig,
+                    execContext, params, dynamics, directSqls);
+            IterateOptions.checkIterateOption(eqlBlock, eqlRuns, params);
+
+            isAllSelect = checkAllSelect(eqlRuns);
+
+            prepareBatch();
             for (EqlRun eqlRun : eqlRuns) {
                 currRun = eqlRun;
-                new EqlParamsBinder().preparBindParams(currRun);
-                checkBatchCmdsSupporting(currRun);
+                if (S.isBlank(currRun.getRunSql())) continue;
 
-                currRun.setConnection(conn);
+                checkBatchCmdsSupporting(eqlRun);
+                new EqlParamsBinder().prepareBindParams(eqlBlock.isIterateOption(), currRun);
+                createConn();
+
                 ret = runEql();
                 currRun.setConnection(null);
                 updateLastResultToExecutionContext(ret);
                 currRun.setResult(ret);
 
-                if (cacheUsable) eqlBlock.cacheResult(currRun);
+                trySetCache(directSqls);
             }
 
-            if (batch == null) tranCommit();
-        } catch (SQLException e) {
-            logger.error("sql exception", e);
-            if (batch != null) batch.cleanupBatch();
-            throw new EqlExecuteException("exec sql failed["
-                    + currRun.getPrintSql() + "]" + e.getMessage());
+            if (!isAllSelect) tranCommit();
+        } catch (Throwable e) {
+            if (!isAllSelect) tranRollback();
+            log.error("exec sql {} exception", currRun == null
+                    ? "none" : currRun.getPrintSql(), e);
+            throw e;
         } finally {
             resetState();
             close();
         }
 
         return (T) ret;
+    }
+
+    private boolean checkAllSelect(List<EqlRun> eqlRuns) {
+        for (EqlRun eqlRun : eqlRuns) {
+            if (!eqlRun.getSqlType().isSelect()) return false;
+        }
+        return true;
+    }
+
+    private void prepareBatch() {
+        if (batch == null) return;
+        batch.prepare(sqlClassPath, eqlConfig, getSqlId(), tagSqlId);
+    }
+
+    private void trySetCache(String[] directSqls) {
+        if (!isCacheUsable(directSqls)) return;
+
+        eqlBlock.cacheResult(currRun, page);
+    }
+
+    private Object tryGetCache(String[] directSqls) {
+        if (!isCacheUsable(directSqls)) return null;
+
+        val cachedResult = eqlBlock.getCachedResult(params, dynamics, page);
+        if (cachedResult == null) return null;
+
+        return cachedResult.orNull();
+    }
+
+    private boolean isCacheUsable(String[] directSqls) {
+        return directSqls.length == 0 && cached;
     }
 
     private void checkBatchCmdsSupporting(EqlRun currRun) {
@@ -175,10 +242,12 @@ public class Eql implements Closeable {
             case UPDATE:
             case MERGE:
             case DELETE:
+            case REPLACE:
                 // OK!
                 break;
             default:
-                throw new EqlExecuteException(currRun.getPrintSql() + " is not supported in batch mode");
+                throw new EqlExecuteException(currRun.getPrintSql()
+                        + " is not supported in batch mode");
         }
     }
 
@@ -190,27 +259,7 @@ public class Eql implements Closeable {
             else if (list.size() == 1) lastResult = list.get(0);
         }
 
-        executionContext.put("_lastResult", lastResult);
-    }
-
-    protected void newExecutionContext() {
-        executionContext = Maps.newHashMap();
-        executionContext.put("_time", new Timestamp(System.currentTimeMillis()));
-        executionContext.put("_date", new java.util.Date());
-        executionContext.put("_host", HostAddress.getHost());
-        executionContext.put("_ip", HostAddress.getIp());
-        executionContext.put("_results", Lists.newArrayList());
-        executionContext.put("_lastResult", "");
-        executionContext.put("_params", params);
-        if (params != null) {
-            executionContext.put("_paramsCount", params.length);
-            for (int i = 0; i < params.length; ++i)
-                executionContext.put("_" + (i + 1), params[i]);
-        }
-
-
-        executionContext.put("_dynamics", dynamics);
-        if (dynamics != null) executionContext.put("_dynamicsCount", dynamics.length);
+        execContext.put("_lastResult", lastResult);
     }
 
     public List<EqlRun> getEqlRuns() {
@@ -221,27 +270,26 @@ public class Eql implements Closeable {
         rsRetriever.resetMaxRows();
     }
 
-    @Override
     public void close() {
-        if (batch == null) tranClose();
+        tranClose();
     }
 
-
     public ESelectStmt selectStmt() {
-        newExecutionContext();
-        tranStart();
-        Connection conn = getConn();
+        checkPreconditions();
 
-        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(eqlConfig, executionContext, params, dynamics);
+        execContext = EqlUtils.newExecContext(params, dynamics);
+        tranStart();
+
+        val sqlSubs = eqlBlock.createEqlRunsByEqls(tagSqlId,
+                eqlConfig, execContext, params, dynamics);
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one select sql supported");
 
         currRun = sqlSubs.get(0);
-        if (currRun.getSqlType() != EqlRun.EqlType.SELECT)
+        if (!currRun.getSqlType().isSelect())
             throw new EqlExecuteException("only one select sql supported");
 
-        currRun.setConnection(conn);
-        ESelectStmt selectStmt = new ESelectStmt();
+        val selectStmt = new ESelectStmt();
         prepareStmt(selectStmt);
 
         selectStmt.setRsRetriever(rsRetriever);
@@ -251,60 +299,67 @@ public class Eql implements Closeable {
     }
 
     public EUpdateStmt updateStmt() {
-        newExecutionContext();
-        tranStart();
-        Connection conn = getConn();
+        checkPreconditions();
 
-        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(eqlConfig, executionContext, params, dynamics);
+        execContext = EqlUtils.newExecContext(params, dynamics);
+        tranStart();
+        createConn();
+
+        val sqlSubs = eqlBlock.createEqlRunsByEqls(tagSqlId,
+                eqlConfig, execContext, params, dynamics);
         if (sqlSubs.size() != 1)
-            throw new EqlExecuteException("only one update sql supported in this method");
+            throw new EqlExecuteException(
+                    "only one update sql supported in this method");
 
         currRun = sqlSubs.get(0);
-        if (!EqlUtils.isUpdateStmt(currRun))
-            throw new EqlExecuteException("only one update/merge/delete/insert sql supported in this method");
+        if (!currRun.getSqlType().isUpdateStmt())
+            throw new EqlExecuteException(
+                    "only one update/merge/delete/insert sql supported in this method");
 
-        currRun.setConnection(conn);
-        EUpdateStmt updateStmt = new EUpdateStmt();
+        val updateStmt = new EUpdateStmt();
         prepareStmt(updateStmt);
 
         return updateStmt;
     }
 
     protected void checkPreconditions(String... directSqls) {
-        if (eqlBlock != null || directSqls.length > 0) return;
+        initSqlId(sqlId, STACKTRACE_DEEP_FIVE);
 
-        if (EqlUtils.isBlank(defaultSqlId)) throw new EqlExecuteException("No sqlid defined!");
+        if (eqlBlock != null || directSqls.length > 0) {
+            initSqlClassPath(STACKTRACE_DEEP_FIVE);
+            return;
+        }
 
-        initSqlId(defaultSqlId, 5);
+        if (S.isBlank(defaultSqlId))
+            throw new EqlExecuteException("No sqlid defined!");
+
+        initSqlId(defaultSqlId, STACKTRACE_DEEP_FIVE);
     }
 
-    protected Object runEql() throws SQLException {
+    @SneakyThrows
+    protected Object runEql() {
         try {
-            return EqlUtils.isDdl(currRun) ? execDdl() : pageExecute();
+            return currRun.getSqlType().isDdl() ? execDdl() : pageExecute();
         } catch (Exception ex) {
-            if (!currRun.getEqlBlock().isOnerrResume()) throw Throwables.propagate(ex);
-            else logger.warn("execute sql {} error", currRun.getPrintSql(), ex);
+            if (!currRun.getEqlBlock().isOnErrResume()) throw ex;
+            else
+                log.warn("execute sql {} error {}",
+                        currRun.getPrintSql(), ex.getMessage());
         }
 
         return 0;
     }
 
+    @SneakyThrows
     private boolean execDdl() {
-        Statement stmt = null;
-        logger.debug("ddl sql {}: {}", getSqlId(), currRun.getPrintSql());
-        try {
-            stmt = currRun.getConnection().createStatement();
-            return stmt.execute(currRun.getRunSql());
-        } catch (SQLException ex) {
-            throw new EqlExecuteException(ex);
-        } finally {
-            EqlUtils.closeQuietly(stmt);
-        }
+        log.debug("ddl sql for {}: {}", getSqlId(), currRun.getPrintSql());
+        @Cleanup val stmt = currRun.getConnection().createStatement();
+        EqlUtils.setQueryTimeout(eqlConfig, stmt);
+        return stmt.execute(currRun.getRunSql());
     }
 
     private Object pageExecute() throws SQLException {
         if (page == null || !currRun.isLastSelectSql()) return execDml();
-
         if (page.getTotalRows() == 0) page.setTotalRows(executeTotalRowsSql());
 
         return executePageSql();
@@ -314,7 +369,7 @@ public class Eql implements Closeable {
         EqlRun temp = currRun;
         currRun = dbDialect.createPageSql(currRun, page);
 
-        new EqlParamsBinder().preparBindParams(currRun);
+        new EqlParamsBinder().prepareBindParams(eqlBlock.isIterateOption(), currRun);
 
         Object o = execDml();
         currRun = temp;
@@ -323,77 +378,113 @@ public class Eql implements Closeable {
     }
 
     private int executeTotalRowsSql() throws SQLException {
+        String blockReturnTypeName = currRun.getEqlBlock().getReturnTypeName();
+        String returnTypeName = rsRetriever.getReturnTypeName();
+        Class<?> returnType = rsRetriever.getReturnType();
+
         EqlRun temp = currRun;
         currRun = dbDialect.createTotalSql(currRun);
+
+        currRun.getEqlBlock().setReturnTypeName("int");
+        rsRetriever.setReturnType(null);
+        rsRetriever.setReturnTypeName("int");
+
         Object totalRows = execDml();
+
         currRun = temp;
+        currRun.getEqlBlock().setReturnTypeName(blockReturnTypeName);
+        rsRetriever.setReturnTypeName(returnTypeName);
+        rsRetriever.setReturnType(returnType);
 
         if (totalRows instanceof Number) return ((Number) totalRows).intValue();
 
-        throw new EqlExecuteException("returned total rows object " + totalRows + " is not a number");
+        throw new EqlExecuteException("returned total rows object "
+                + totalRows + " is not a number");
     }
 
     private Object execDml() throws SQLException {
         Object execRet = batch != null ? execDmlInBatch() : execDmlNoBatch();
-        logger.debug("result {}: {}", getSqlId(), execRet);
+        currRun.traceResult(execRet);
+
+        Logs.logResult(eqlConfig, sqlClassPath, execRet, getSqlId(), tagSqlId);
 
         return execRet;
     }
-
 
     private Object execDmlInBatch() throws SQLException {
         return batch.addBatch(currRun);
     }
 
+    @SneakyThrows
     private void prepareStmt(EStmt stmt) {
         PreparedStatement ps = null;
+
         try {
             ps = prepareSql();
-
             stmt.setPreparedStatment(ps);
             stmt.setEqlRun(currRun);
-            stmt.setLogger(logger);
+            stmt.setSqlClassPath(sqlClassPath);
+            stmt.setLogger(log);
             stmt.params(params);
             stmt.setEqlTran(externalTran != null ? externalTran : internalTran);
         } catch (Exception ex) {
-            EqlUtils.closeQuietly(ps);
-            throw new EqlExecuteException(ex);
+            Closes.closeQuietly(ps);
+            throw ex;
         }
     }
 
-    private Object execDmlNoBatch() throws SQLException {
+    @SneakyThrows
+    private Object execDmlNoBatch() {
         ResultSet rs = null;
         PreparedStatement ps = null;
         try {
             ps = prepareSql();
-            currRun.bindParams(ps);
 
-            if (currRun.getSqlType() == EqlRun.EqlType.SELECT) {
-                rs = ps.executeQuery();
-                if (fetchSize > 0) rs.setFetchSize(fetchSize);
+            if (eqlBlock.isIterateOption()) {
+                int rowCount = 0;
 
-                return rsRetriever.convert(rs, currRun);
+                if (params[0] instanceof Iterable) {
+                    val iterator = ((Iterable<Object>) params[0]).iterator();
+                    for (int i = 0; iterator.hasNext(); ++i, iterator.next()) {
+                        currRun.bindBatchParams(ps, i, sqlClassPath);
+                        rowCount += ps.executeUpdate();
+                    }
+                } else if (params[0] != null && params[0].getClass().isArray()) {
+                    Object[] arr = (Object[]) params[0];
+                    for (int i = 0, ii = arr.length; i < ii; ++i) {
+                        currRun.bindBatchParams(ps, i, sqlClassPath);
+                        rowCount += ps.executeUpdate();
+                    }
+                }
+                return rowCount;
+            } else {
+                currRun.bindParams(ps, sqlClassPath);
+
+                if (currRun.getSqlType() == EqlType.SELECT) {
+                    rs = ps.executeQuery();
+                    if (fetchSize > 0) rs.setFetchSize(fetchSize);
+
+                    val wrapRs = CodeDescs.codeDescWrap(currRun, eqlBlock,
+                            eqlConfig, sqlClassPath, rs, tagSqlId);
+                    Object convertedValue = rsRetriever.convert(wrapRs, currRun);
+                    return convertedValue;
+                }
+
+                if (currRun.getSqlType().isProcedure())
+                    return new EqlProc(currRun, rsRetriever).dealProcedure(ps);
+
+                return ps.executeUpdate();
             }
 
-            if (EqlUtils.isProcedure(currRun.getSqlType()))
-                return new EqlProc(currRun, rsRetriever).dealProcedure(ps);
-
-            return ps.executeUpdate();
-
         } finally {
-            EqlUtils.closeQuietly(rs, ps);
+            Closes.closeQuietly(rs, ps);
         }
     }
 
-    private PreparedStatement prepareSql() throws SQLException {
-        return prepareSql(currRun);
-    }
-
-    public PreparedStatement prepareSql(EqlRun eqlRun) throws SQLException {
-        logger.debug("prepare sql {}: {} ", getSqlId(), eqlRun.getPrintSql());
-        return EqlUtils.isProcedure(eqlRun.getSqlType())
-                ? eqlRun.getConnection().prepareCall(eqlRun.getRunSql())
-                : eqlRun.getConnection().prepareStatement(eqlRun.getRunSql());
+    private PreparedStatement prepareSql() {
+        createConn();
+        return EqlUtils.prepareSQL(sqlClassPath,
+                eqlConfig, currRun, getSqlId(), tagSqlId);
     }
 
     public Eql returnType(Class<?> returnType) {
@@ -406,23 +497,28 @@ public class Eql implements Closeable {
         return this;
     }
 
-
-    protected void initSqlId(String sqlId) {
-        initSqlId(sqlId, 5);
+    private void initSqlClassPath(int level) {
+        sqlClassPath = Strings.isNullOrEmpty(sqlClassPath)
+                ? C.getSqlClassPath(level, getEqlExtension()) : sqlClassPath;
     }
 
     protected void initSqlId(String sqlId, int level) {
-        this.sqlClassPath = Strings.isNullOrEmpty(sqlClassPath)
-                ? EqlUtils.getSqlClassPath(level) : sqlClassPath;
+        if (S.isBlank(sqlId)) return;
 
-        eqlBlock = eqlConfig.getSqlResourceLoader()
-                .loadEqlBlock(this.sqlClassPath, sqlId);
+        initSqlClassPath(level + 1);
+
+        eqlBlock = eqlConfig.getSqlResourceLoader().loadEqlBlock(sqlClassPath, sqlId);
 
         rsRetriever.setEqlBlock(eqlBlock);
     }
 
+    private String getEqlExtension() {
+        String eqlExtension = eqlConfig.getStr("eql.extension");
+        return eqlExtension == null ? "eql" : eqlExtension;
+    }
+
     public Eql useSqlFile(Class<?> sqlBoundClass) {
-        sqlClassPath = sqlBoundClass.getName().replace('.', '/') + ".eql";
+        sqlClassPath = sqlBoundClass.getName().replace('.', '/') + "." + getEqlExtension();
         return this;
     }
 
@@ -432,43 +528,48 @@ public class Eql implements Closeable {
     }
 
     public Eql id(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         return this;
     }
 
     public Eql merge(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
+        return this;
+    }
+
+    public Eql replace(String sqlId) {
+        this.sqlId = sqlId;
         return this;
     }
 
     public Eql update(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         return this;
     }
 
     public Eql insert(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         return this;
     }
 
     public Eql delete(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         return this;
     }
 
     public Eql select(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         return this;
     }
 
     public Eql selectFirst(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         limit(1);
         return this;
     }
 
     public Eql procedure(String sqlId) {
-        initSqlId(sqlId);
+        this.sqlId = sqlId;
         return this;
     }
 
@@ -477,28 +578,44 @@ public class Eql implements Closeable {
     }
 
     protected void tranStart() {
+        if (batch != null) return;
         if (externalTran != null) return;
         if (internalTran != null) return;
+        if (EqlTransactionManager.isEqlTransactionEnabled()) {
+            externalTran = EqlTransactionManager.getTran(eqlConfig);
+            if (externalTran != null) return;
 
-        internalTran = newTran(eqlConfig, this);
+            externalTran = newTran(eqlConfig);
+            EqlTransactionManager.setTran(eqlConfig, externalTran);
+            return;
+        }
+
+        internalTran = newTran(eqlConfig);
         internalTran.start();
     }
 
     protected void tranCommit() {
+        if (batch != null) return;
         if (externalTran != null) return;
 
         internalTran.commit();
     }
 
+    protected void tranRollback() {
+        if (batch != null) return;
+        if (externalTran != null) return;
+
+        if (internalTran != null) internalTran.rollback();
+    }
+
     private void tranClose() {
-        if (internalTran != null) EqlUtils.closeQuietly(internalTran);
+        if (internalTran != null) Closes.closeQuietly(internalTran);
 
         internalTran = null;
     }
 
     public EqlTran newTran() {
-        EqlTran tran = newTran(eqlConfig, this);
-        // connection = tran.getConn();
+        EqlTran tran = newTran(eqlConfig);
         useTran(tran);
 
         return tran;
@@ -509,12 +626,13 @@ public class Eql implements Closeable {
         return this;
     }
 
-    public static EqlTran newTran(EqlConfig eqlConfig, Eql eql) {
-        return EqlConfigManager.getConfig(eqlConfig).createTran(eql);
+    public Eql useBatch(EqlBatch eqlBatch) {
+        this.batch = eqlBatch;
+        return this;
     }
 
-    public EqlConfig getEqlConfig() {
-        return eqlConfig;
+    public static EqlTran newTran(EqlConfigDecorator eqlConfig) {
+        return EqlConfigManager.getConfig(eqlConfig).createTran();
     }
 
     public String getSqlPath() {
@@ -528,35 +646,7 @@ public class Eql implements Closeable {
 
     public Eql limit(EqlPage page) {
         this.page = page;
-
         return this;
-    }
-
-    public Eql startBatch() {
-        return startBatch(0);
-    }
-
-    public Eql startBatch(int maxBatches) {
-        batch = new EqlBatch(this);
-        batch.startBatch(maxBatches);
-
-        tranStart();
-        return this;
-    }
-
-    public int executeBatch() {
-        int totalRows = 0;
-        try {
-            totalRows = batch.executeBatch();
-            tranCommit();
-        } catch (SQLException e) {
-            throw new EqlExecuteException("executeBatch failed:" + e.getMessage());
-        } finally {
-            tranClose();
-            batch = null;
-        }
-
-        return totalRows;
     }
 
     public Eql dynamics(Object... dynamics) {
@@ -569,12 +659,8 @@ public class Eql implements Closeable {
         return this;
     }
 
-    public Object[] getParams() {
-        return params;
-    }
-
     public Logger getLogger() {
-        return logger;
+        return log;
     }
 
     public Eql returnType(String returnTypeName) {
@@ -582,7 +668,7 @@ public class Eql implements Closeable {
         return this;
     }
 
-    public Eql setFetchSize(int fetchSize) {
+    public Eql fetchSize(int fetchSize) {
         this.fetchSize = fetchSize;
         return this;
     }
@@ -595,5 +681,9 @@ public class Eql implements Closeable {
     public void resetTran() {
         externalTran = null;
         internalTran = null;
+    }
+
+    public EqlRun getEqlRun() {
+        return eqlRuns.size() > 0 ? eqlRuns.get(eqlRuns.size() - 1) : null;
     }
 }

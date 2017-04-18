@@ -1,272 +1,234 @@
 package org.n3r.eql.map;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.SneakyThrows;
+import lombok.val;
 import org.n3r.eql.config.EqlConfigDecorator;
-import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.param.EqlParamPlaceholder;
+import org.n3r.eql.param.EqlParamsParser;
 import org.n3r.eql.param.PlaceholderType;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.util.Pair;
+import org.n3r.eql.util.*;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 public class EqlRun implements Cloneable {
-    public List<Pair<Integer, Object>> realParams = Lists.newArrayList();
-    private String boundParams;
-    private Connection connection;
+    public List<Pair<Integer, Object>> realParams = Lists.<Pair<Integer, Object>>newArrayList();
+
+    @Setter List<Object> boundParams;
+    @Getter @Setter Connection connection;
+    @Getter String evalSql;
+    @Setter String evalSqlTemplate;
+    @Setter @Getter EqlDynamic evalEqlDynamic;
+    @Setter @Getter boolean iterateOption;
+    @Setter @Getter String tagSqlId;
+    @Setter @Getter boolean forEvaluate;
+    @Getter Map<Object, Map<String, Object>> cachedProperties = Maps.newHashMap();
+    private String traceParams;
 
     public void addRealParam(int index, Object value) {
         realParams.add(Pair.of(index, value));
     }
 
-    List<Pair<Integer, Integer>> outParameters = Lists.newArrayList();
+    List<Pair<Integer, Integer>> outParameters = Lists.<Pair<Integer, Integer>>newArrayList();
 
     public void registerOutParameter(int index, int type) {
         outParameters.add(Pair.of(index, type));
     }
 
-    public void setBoundParams(String boundParams) {
-        this.boundParams = boundParams;
+    public void bindParamsForEvaluation(String sqlClassPath) {
+        createEvalSql(-1, sqlClassPath, eqlConfig, tagSqlId, boundParams.toString());
     }
 
-    Logger logger = LoggerFactory.getLogger(EqlRun.class);
-
-    public void bindParams(PreparedStatement ps) {
-        try {
-            for (Pair<Integer, Object> param : realParams) {
-                ps.setObject(param._1, param._2);
-            }
-            for (Pair<Integer, Integer> out : outParameters) {
-                ((CallableStatement) ps).registerOutParameter(out._1, out._2);
-            }
-        } catch (SQLException e) {
-            throw new EqlExecuteException(e);
+    @SneakyThrows
+    public void bindParams(PreparedStatement ps, String sqlClassPath) {
+        for (Pair<Integer, Object> param : realParams) {
+            ps.setObject(param._1, param._2);
+        }
+        for (Pair<Integer, Integer> out : outParameters) {
+            ((CallableStatement) ps).registerOutParameter(out._1, out._2);
         }
 
-        if (boundParams != null && boundParams.length() > 0) logger.debug("param: {}", boundParams);
+        createEvalSql(-1, sqlClassPath, eqlConfig, tagSqlId, boundParams.toString());
     }
 
-    public void setConnection(Connection connection) {
-        this.connection = connection;
+    @SneakyThrows
+    public void bindBatchParams(PreparedStatement ps, int index, String sqlClassPath) {
+        for (Pair<Integer, Object> param : realParams) {
+            ps.setObject(param._1, ((Object[]) param._2)[index]);
+        }
+
+        createEvalSql(index, sqlClassPath, eqlConfig, tagSqlId, batchParamsString(boundParams, index));
     }
 
-    public Connection getConnection() {
-        return connection;
+    private void createEvalSql(int index, String sqlClassPath, EqlConfigDecorator eqlConfig,
+                               String tagSqlId, String msg) {
+        boolean hasBoundParams = boundParams != null && boundParams.size() > 0;
+
+
+
+        if (hasBoundParams) {
+            Logger log = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "params");
+            log.debug(msg);
+        }
+
+        if (hasBoundParams) {
+            Logger evalLog = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "eval");
+            /* if (isForEvaluate() || evalLog.isDebugEnabled()) */
+            this.evalSql = parseEvalSql(index);
+            evalLog.debug(this.evalSql);
+        } else {
+            this.evalSql = evalSqlTemplate;
+        }
+
+        this.traceParams = msg;
     }
 
-
-    public static enum EqlType {
-        SELECT, UPDATE, INSERT, MERGE, DELETE,
-        DROP, CREATE, TRUNCATE, CALL, COMMENT, ALTER, BEGIN, DECLARE;
+    private String batchParamsString(List<Object> boundParams, int index) {
+        ArrayList<Object> bounds = new ArrayList<Object>();
+        for (Object object : boundParams) {
+            bounds.add(((Object[]) object)[index]);
+        }
+        return bounds.toString();
     }
 
-    private String runSql;
-    private String printSql;
-    private Object result;
-    private EqlConfigDecorator eqlConfig;
+    public String getEvalSqlTemplate() {
+        return evalSqlTemplate;
+    }
 
-    private EqlBlock eqlBlock;
-    private int placeholderNum;
-    private EqlParamPlaceholder[] placeHolders;
-    private PlaceholderType placeHolderType;
-    private PlaceholderType placeHolderOutType;
-    private EqlType sqlType;
-    private boolean lastSelectSql;
-    private boolean willReturnOnlyOneRow;
-    private Object[] extraBindParams;
-    private EqlDynamic eqlDynamic;
-    private int outCount;
+    private String parseEvalSql(int batchIndex) {
+        val eval = new StringBuilder();
+        int startPos = 0;
+        int index = -1;
+        int size = boundParams.size();
+        int evalSqlLength = evalSqlTemplate.length();
 
-    private Map<String, Object> executionContext;
-    private Object[] params;
-    private Object[] dynamics;
-    private Object paramBean;
+        val simpleDateFormat = new SimpleDateFormat("yyyy-MM-DD HH:mm:ss");
+        while (startPos < evalSqlLength) {
+            String placeholder = S.wrap(++index, EqlParamsParser.SUB);
+            int pos = evalSqlTemplate.indexOf(placeholder, startPos);
+            if (pos < 0) break;
 
-    @Override
+            eval.append(evalSqlTemplate.substring(startPos, pos));
+
+            if (index < size) {
+                Object boundParam = boundParams.get(index);
+                if (batchIndex >= 0) {
+                    boundParam = ((Object[]) boundParam)[batchIndex];
+                }
+
+                val evalBoundParam = createEvalBoundParam(simpleDateFormat, boundParam);
+                eval.append(evalBoundParam);
+            } else {
+                eval.append('?');
+            }
+
+            startPos = pos + placeholder.length();
+        }
+
+        eval.append(evalSqlTemplate.substring(startPos));
+
+        return eval.toString();
+    }
+
+    private String createEvalBoundParam(SimpleDateFormat simpleDateFormat, Object boundParam) {
+        if (boundParam == null) return "NULL";
+        if (boundParam instanceof Boolean)
+            return (Boolean) boundParam ? "1" : "0";
+        if (boundParam instanceof Number) return boundParam.toString();
+        if (boundParam instanceof Date)
+            return '\'' + simpleDateFormat.format((Date) boundParam) + '\'';
+        if (boundParam instanceof byte[])
+            return '\'' + Hex.encode((byte[]) boundParam) + '\'';
+
+        return '\'' + S.escapeSingleQuotes(boundParam.toString()) + '\'';
+    }
+
+    @Getter String runSql;
+    @Getter String printSql;
+    @Setter @Getter Object result;
+    @Setter @Getter EqlConfigDecorator eqlConfig;
+
+    @Setter @Getter EqlBlock eqlBlock;
+    @Setter @Getter int placeholderNum;
+    @Getter EqlParamPlaceholder[] placeHolders;
+    @Setter @Getter PlaceholderType placeHolderType;
+    @Setter @Getter PlaceholderType placeHolderOutType;
+    @Setter @Getter EqlType sqlType;
+    @Setter @Getter boolean lastSelectSql;
+    @Setter @Getter boolean willReturnOnlyOneRow;
+    @Getter Object[] extraBindParams;
+    @Setter @Getter EqlDynamic eqlDynamic;
+    @Getter int outCount;
+
+    @Setter @Getter Map<String, Object> executionContext;
+    @Setter @Getter Object[] params;
+    @Setter @Getter Object[] dynamics;
+    @Setter @Getter Object paramBean;
+
+    @Override @SneakyThrows
     public EqlRun clone() {
-        try {
-            return (EqlRun) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw Throwables.propagate(e);
-        }
+        return (EqlRun) super.clone();
     }
 
-
-    public EqlConfigDecorator getEqlConfig() {
-        return eqlConfig;
-    }
-
-    public void setEqlConfig(EqlConfigDecorator eqlConfig) {
-        this.eqlConfig = eqlConfig;
-    }
-
-    public void setParamBean(Object paramBean) {
-        this.paramBean = paramBean;
-    }
-
-    public Object getParamBean() {
-        return paramBean;
-    }
-
-    public void setDynamics(Object[] dynamics) {
-        this.dynamics = dynamics;
-    }
-
-    public Object[] getDynamics() {
-        return dynamics;
-    }
-
-    public Object getDynamicsBean() {
+    private Object getDynamicsBean() {
         return dynamics == null || dynamics.length == 0 ? null : dynamics[0];
     }
 
-
-    public void setExecutionContext(Map<String, Object> executionContext) {
-        this.executionContext = executionContext;
-    }
-
-    public Map<String, Object> getExecutionContext() {
-        return executionContext;
-    }
-
-    public void setParams(Object[] params) {
-        this.params = params;
-    }
-
-    public Object[] getParams() {
-        return params;
-    }
-
-    public void setResult(Object result) {
-        this.result = result;
-    }
-
-    public Object getResult() {
-        return result;
-    }
-
-    public String getPrintSql() {
-        return printSql;
-    }
-
-    public void setPrintSql(String printSql) {
-        this.printSql = printSql;
-    }
-
-    public void createPrintSql() {
-        printSql = runSql.replaceAll("\\r?\\n", "\\\\n");
-    }
-
-
     public void setRunSql(String runSql) {
         this.runSql = runSql;
-    }
-
-    public String getRunSql() {
-        return runSql;
+        printSql = runSql.replaceAll("\\r?\\n", " ");
     }
 
     public String getSqlId() {
-        return eqlBlock != null ? eqlBlock.getSqlId() : "<AUTO>";
+        if (S.isNotBlank(tagSqlId)) return tagSqlId;
+        return eqlBlock != null ? eqlBlock.getSqlId() : "auto";
     }
 
     public void setPlaceHolders(EqlParamPlaceholder[] placeHolders) {
         this.placeHolders = placeHolders;
         outCount = 0;
         for (EqlParamPlaceholder placeHolder : placeHolders)
-            if (placeHolder.getInOut() != EqlParamPlaceholder.InOut.IN) ++outCount;
-    }
-
-    public EqlParamPlaceholder[] getPlaceHolders() {
-        return placeHolders;
+            if (placeHolder.getInOut() != EqlParamPlaceholder.InOut.IN)
+                ++outCount;
     }
 
     public EqlParamPlaceholder getPlaceHolder(int index) {
         return index < placeHolders.length ? placeHolders[index] : null;
     }
 
-    public void setPlaceHolderType(PlaceholderType placeHolderType) {
-        this.placeHolderType = placeHolderType;
-    }
-
-    public PlaceholderType getPlaceHolderType() {
-        return placeHolderType;
-    }
-
-    public int getPlaceholderNum() {
-        return placeholderNum;
-    }
-
-    public void setPlaceholderNum(int placeholderNum) {
-        this.placeholderNum = placeholderNum;
-    }
-
-    public EqlBlock getEqlBlock() {
-        return eqlBlock;
-    }
-
-    public void setEqlBlock(EqlBlock eqlBlock) {
-        this.eqlBlock = eqlBlock;
-    }
-
-    public EqlType getSqlType() {
-        return sqlType;
-    }
-
-    public void setSqlType(EqlType sqlType) {
-        this.sqlType = sqlType;
-    }
-
-    public void setLastSelectSql(boolean lastSelectSql) {
-        this.lastSelectSql = lastSelectSql;
-    }
-
-    public boolean isLastSelectSql() {
-        return lastSelectSql;
-    }
-
-    public boolean isWillReturnOnlyOneRow() {
-        return willReturnOnlyOneRow;
-    }
-
-    public void setWillReturnOnlyOneRow(boolean willReturnOnlyOneRow) {
-        this.willReturnOnlyOneRow = willReturnOnlyOneRow;
-    }
-
-    public Object[] getExtraBindParams() {
-        return extraBindParams;
-    }
-
     public void setExtraBindParams(Object... extraBindParams) {
         this.extraBindParams = extraBindParams;
     }
 
-    public void setEqlDynamic(EqlDynamic eqlDynamic) {
-        this.eqlDynamic = eqlDynamic;
+    public Map<String, Object> getMergedParamProperties() {
+        return P.mergeProperties(executionContext, getParamBean());
     }
 
-    public EqlDynamic getEqlDynamic() {
-        return eqlDynamic;
+    public Map<String, Object> getMergedParamPropertiesWith(Object element) {
+        return P.mergeProperties(executionContext, element);
     }
 
-    public int getOutCount() {
-        return outCount;
+    public Object getIterateParams() {
+        return ((Object[]) ((Map) getParamBean()).get("_params"))[0];
     }
 
-    public PlaceholderType getPlaceHolderOutType() {
-        return placeHolderOutType;
+    public Map<String, Object> getMergedDynamicsProperties() {
+        return P.mergeProperties(executionContext, getDynamicsBean());
     }
 
-    public void setPlaceHolderOutType(PlaceholderType placeHolderOutType) {
-        this.placeHolderOutType = placeHolderOutType;
+    public void traceResult(Object execRet) {
+        BlackcatUtils.trace(getSqlId(), printSql, traceParams, evalSql, execRet);
     }
-
 }

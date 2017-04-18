@@ -1,7 +1,6 @@
 package org.n3r.eql.matrix;
 
 import org.n3r.eql.matrix.impl.MatrixTableField;
-import org.n3r.eql.matrix.sqlparser.SqlFieldIndex;
 
 public class MatrixTableFieldValue extends MatrixTableField {
     public String fieldValue;

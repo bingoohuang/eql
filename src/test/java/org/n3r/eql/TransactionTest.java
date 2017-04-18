@@ -1,9 +1,10 @@
 package org.n3r.eql;
 
 import com.google.common.base.Throwables;
+import lombok.SneakyThrows;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Closes;
 
 import java.sql.Timestamp;
 
@@ -44,40 +45,39 @@ public class TransactionTest {
     }
 
     private void rollback(int a, String b) {
-        Eql esql = new Eql();
-        EqlTran tran = esql.newTran();
+        EqlTran tran = new Eql().newTran();
         try {
             tran.start();
-            esql.update("updateBean")
+            new Eql().useTran(tran)
+                    .update("updateBean")
                     .params(a, b)
                     .execute();
 
             tran.rollback();
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             tran.rollback();
             Throwables.propagate(ex);
         } finally {
-            EqlUtils.closeQuietly(tran);
+            Closes.closeQuietly(tran);
         }
     }
 
+    @SneakyThrows
     private void commit(int a, String b) {
-        Eql esql = new Eql();
-        EqlTran tran = esql.newTran();
+        EqlTran tran = new Eql().newTran();
         try {
             tran.start();
-            esql.update("updateBean")
+            new Eql().useTran(tran)
+                    .update("updateBean")
                     .params(a, b)
                     .execute();
 
             tran.commit();
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             tran.rollback();
-            Throwables.propagate(ex);
+            throw ex;
         } finally {
-            EqlUtils.closeQuietly(tran);
+            Closes.closeQuietly(tran);
         }
     }
 }

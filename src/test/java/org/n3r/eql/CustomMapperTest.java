@@ -14,7 +14,7 @@ public class CustomMapperTest {
         private String name;
 
         @Override
-        public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+        public Object mapRow(ResultSet rs, int rowNum, boolean isSingleColumn) throws SQLException {
             name = rs.getString(1);
             return null;
         }

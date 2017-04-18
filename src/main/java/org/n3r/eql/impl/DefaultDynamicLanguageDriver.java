@@ -10,6 +10,10 @@ import java.util.regex.Matcher;
 public class DefaultDynamicLanguageDriver implements DynamicLanguageDriver {
     @Override
     public Sql parse(EqlBlock block, List<String> oneSqlLines) {
+        return parse(oneSqlLines);
+    }
+
+    public Sql parse(List<String> oneSqlLines) {
         List<String> stdLines = standardLines(oneSqlLines);
 
         MultiPart multiPart = new MultiPart();
@@ -56,13 +60,12 @@ public class DefaultDynamicLanguageDriver implements DynamicLanguageDriver {
         return new DynamicSql(multiPart);
     }
 
-
     private List<String> standardLines(List<String> oneSqlLines) {
         return rearrangeLinesForInlineComments(rearrangeLinesForLineCommentsAndOthers(oneSqlLines));
     }
 
     private List<String> rearrangeLinesForInlineComments(List<String> lines) {
-        List<String> convertedLines = Lists.newArrayList();
+        List<String> convertedLines = Lists.<String>newArrayList();
 
         StringBuilder mergedLine = new StringBuilder();
         for (String line : lines) {
@@ -84,7 +87,8 @@ public class DefaultDynamicLanguageDriver implements DynamicLanguageDriver {
                 mergedAdd(convertedLines, mergedLine, matcher.group());
             }
 
-            if (lastStart < line.length()) mergeLine(mergedLine, line.substring(lastStart), true);
+            if (lastStart < line.length())
+                mergeLine(mergedLine, line.substring(lastStart), true);
             else if (lastStart > 0) mergedLine.append('\n');
         }
 
@@ -94,7 +98,7 @@ public class DefaultDynamicLanguageDriver implements DynamicLanguageDriver {
     }
 
     private List<String> rearrangeLinesForLineCommentsAndOthers(List<String> oneSqlLines) {
-        List<String> convertedLines = Lists.newArrayList();
+        List<String> convertedLines = Lists.<String>newArrayList();
 
         StringBuilder mergedLine = new StringBuilder();
         for (String line : oneSqlLines) {

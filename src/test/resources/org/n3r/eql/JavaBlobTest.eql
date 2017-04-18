@@ -1,17 +1,17 @@
 -- [insertBlob onerr=resume]
-DROP TABLE ESQL_BLOB;
-CREATE TABLE ESQL_BLOB (BOB BLOB);
-INSERT INTO ESQL_BLOB(BOB) VALUES(#:LOB#)
+DROP TABLE EQL_BLOB;
+CREATE TABLE EQL_BLOB (BOB BLOB);
+INSERT INTO EQL_BLOB(BOB) VALUES(#:LOB#)
 
 -- [selectBlob]
-SELECT BOB FROM ESQL_BLOB
+SELECT BOB FROM EQL_BLOB
 
 -- [selectBlobString returnType=string]
-SELECT BOB FROM ESQL_BLOB
+SELECT BOB FROM EQL_BLOB
 
 
 -- [selectBlobAsResult returnType=org.n3r.eql.JavaBlobTest$AsResult]
-SELECT 1 as seq, BOB as remark FROM ESQL_BLOB
+SELECT 1 as seq, BOB as remark FROM EQL_BLOB
 
 -- [updateBlob]
-UPDATE ESQL_BLOB SET BOB = #:LOB#
+UPDATE EQL_BLOB SET BOB = #:LOB#

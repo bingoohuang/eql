@@ -1,0 +1,20 @@
+-- [beforeClass]
+drop table if exists eql_coach;
+
+create table eql_coach (
+  coach_id bigint unsigned,
+  coach_name varchar(10),
+  detail varchar(10),
+  postcode varchar(10)
+);
+
+insert into eql_coach values(123, 'bingoo', 'nanjing', '210000');
+
+-- [test1]
+select coach_id,
+       coach_id as "coach.coachId",
+       coach_name as "coach.coachName",
+       detail as "coach.addr.detail",
+       postcode as "coach.addr.postcode"
+from eql_coach
+

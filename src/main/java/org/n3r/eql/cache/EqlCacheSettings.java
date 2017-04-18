@@ -3,117 +3,130 @@ package org.n3r.eql.cache;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.spec.ParamsAppliable;
 import org.n3r.eql.spec.Spec;
 import org.n3r.eql.spec.SpecParser;
 import org.n3r.eql.util.KeyValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+
+@Slf4j
 public class EqlCacheSettings {
-    static Logger logger = LoggerFactory.getLogger(EqlCacheSettings.class);
-    public static final String defaultCacheModel = "guava";
+    public static final String DEFAULT_GUAVA_CACHE_MODEL = "guava";
+    public static final String DEFAULT_DIAMOND_GUAVA_CACHE_MODEL = "diamond-guava";
     private static Cache<EqlCacheModelKey, EqlCacheProvider> eqlCacheModels;
 
     static {
         eqlCacheModels = CacheBuilder.newBuilder().build();
     }
 
-    public static EqlCacheProvider processCacheModel(String sqlClassPath, KeyValue keyValue) {
-        return processCacheModel(sqlClassPath, keyValue, true);
+    public static EqlCacheProvider processCacheModel(
+            String sqlClassPath,
+            KeyValue cacheModelSetting) {
+        return processCacheModel(sqlClassPath, cacheModelSetting, true);
     }
 
-    public static EqlCacheProvider processCacheModel(String sqlClassPath, KeyValue keyValue, boolean addToCache) {
-        if (keyValue.keyStartsWith("impl")) {
-            KeyValue implKeyValue = keyValue.removeKeyPrefix("impl");
-            String cacheModelName = implKeyValue.getKey();
-            String cacheModelImpl = implKeyValue.getValue();
+    public static EqlCacheProvider processCacheModel(
+            String sqlClassPath,
+            KeyValue cacheModelSetting,
+            boolean addToCache) {
+        if (!cacheModelSetting.keyStartsWith("impl")) return null;
 
-            Spec spec = SpecParser.parseSpecLeniently(cacheModelImpl);
-            try {
-                Class<?> clazz = Class.forName(spec.getName());
+        KeyValue implKeyValue = cacheModelSetting.removeKeyPrefix("impl");
+        String cacheModelName = implKeyValue.getKey();
+        String cacheModelImpl = implKeyValue.getValue();
 
-                if (!EqlCacheProvider.class.isAssignableFrom(clazz)) {
-                    logger.error("processCacheModel {} required to implement " +
-                            "org.n3r.eql.cache.EqlCacheProvider", spec.getName());
-                    return null;
-                }
+        Spec spec = SpecParser.parseSpecLeniently(cacheModelImpl);
+        try {
+            Class<?> clazz = Class.forName(spec.getName());
 
-                EqlCacheProvider impl = (EqlCacheProvider) clazz.newInstance();
-                if (impl instanceof ParamsAppliable)
-                    ((ParamsAppliable) impl).applyParams(spec.getParams());
-
-                if (addToCache)
-                    eqlCacheModels.put(new EqlCacheModelKey(sqlClassPath, cacheModelName), impl);
-
-                return impl;
-            } catch (Exception e) {
-                logger.error("processCacheModel error", e);
+            if (!EqlCacheProvider.class.isAssignableFrom(clazz)) {
+                log.error("processCacheModel {} required to implement " +
+                        "org.n3r.eql.cache.EqlCacheProvider", spec.getName());
+                return null;
             }
+
+            val impl = (EqlCacheProvider) clazz.newInstance();
+            if (impl instanceof ParamsAppliable)
+                ((ParamsAppliable) impl).applyParams(spec.getParams());
+
+            if (addToCache)
+                eqlCacheModels.put(new EqlCacheModelKey(sqlClassPath, cacheModelName), impl);
+
+            return impl;
+        } catch (Exception e) {
+            log.error("processCacheModel error", e);
         }
 
         return null;
     }
 
-    public static EqlCacheProvider getCacheProvider(EqlUniqueSqlId uniqueSqlId, String model) {
-        EqlCacheModelKey cacheModelKey = new EqlCacheModelKey(uniqueSqlId.getSqlClassPath(), model);
-        EqlCacheProvider provider = eqlCacheModels.getIfPresent(cacheModelKey);
+    public static EqlCacheProvider getCacheProvider(
+            EqlUniqueSqlId uniqueSQLId, String cacheModel) {
+        val model = firstNonNull(cacheModel, EqlCacheSettings.DEFAULT_GUAVA_CACHE_MODEL);
+
+        val cacheModelKey = new EqlCacheModelKey(uniqueSQLId.getSqlClassPath(), model);
+        val provider = eqlCacheModels.getIfPresent(cacheModelKey);
         if (provider != null) return provider;
 
-        if (!defaultCacheModel.equals(model)) return null;
+        if (DEFAULT_GUAVA_CACHE_MODEL.equals(model))
+            return createDefaultGuavaCacheModel(uniqueSQLId.getSqlClassPath(), cacheModelKey);
+        if (DEFAULT_DIAMOND_GUAVA_CACHE_MODEL.equals(model))
+            return createDefaultDiamondGuavaCacheModel(uniqueSQLId.getSqlClassPath(), cacheModelKey);
 
-        return createDefaultCacheModel(uniqueSqlId.getSqlClassPath(), cacheModelKey);
+        log.warn("unable to find cache provider by cache model {}", model);
+
+        return null;
     }
 
-    private static EqlCacheProvider createDefaultCacheModel(final String sqlClassPath, EqlCacheModelKey cacheModelKey) {
+    private static EqlCacheProvider createDefaultGuavaCacheModel(
+            String sqlClassPath,
+            EqlCacheModelKey cacheModelKey) {
+        String settingKey = "impl." + DEFAULT_GUAVA_CACHE_MODEL;
+        String settingVal = "@org.n3r.eql.cache.GuavaCacheProvider(\"expireAfterWrite=1d\")";
+        KeyValue setting = new KeyValue(settingKey, settingVal);
+
+        return createCacheModel(sqlClassPath, cacheModelKey, setting);
+    }
+
+    private static EqlCacheProvider createDefaultDiamondGuavaCacheModel(
+            String sqlClassPath,
+            EqlCacheModelKey cacheModelKey) {
+        String settingKey = "impl." + DEFAULT_DIAMOND_GUAVA_CACHE_MODEL;
+        String settingVal = "@org.n3r.eql.cache.DiamondGuavaCacheProvider";
+        KeyValue setting = new KeyValue(settingKey, settingVal);
+
+        return createCacheModel(sqlClassPath, cacheModelKey, setting);
+    }
+
+    private static EqlCacheProvider createCacheModel(
+            final String sqlClassPath,
+            EqlCacheModelKey cacheModelKey,
+            final KeyValue setting) {
         try {
             return eqlCacheModels.get(cacheModelKey, new Callable<EqlCacheProvider>() {
                 @Override
                 public EqlCacheProvider call() throws Exception {
-                    String settingKey = "impl." + defaultCacheModel;
-                    String settingVal = "@" + GuavaCacheProvider.class.getName() + "(\"expireAfterWrite=1d\")";
-                    KeyValue settign = new KeyValue(settingKey, settingVal);
-                    return processCacheModel(sqlClassPath, settign, false);
+                    return processCacheModel(sqlClassPath, setting, false);
                 }
             });
         } catch (ExecutionException e) {
-            logger.warn("create default cache model error", e.getCause());
+            log.warn("create default cache model error", e.getCause());
         }
 
         return null;
     }
 
-    public static class EqlCacheModelKey {
+    @Value
+    static class EqlCacheModelKey {
         private String sqlClassPath;
         private String modelName;
-
-        public EqlCacheModelKey(String sqlClassPath, String modelName) {
-            this.sqlClassPath = sqlClassPath;
-            this.modelName = modelName;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            EqlCacheModelKey that = (EqlCacheModelKey) o;
-
-            if (!modelName.equals(that.modelName)) return false;
-            if (!sqlClassPath.equals(that.sqlClassPath)) return false;
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = sqlClassPath.hashCode();
-            result = 31 * result + modelName.hashCode();
-            return result;
-        }
     }
 }

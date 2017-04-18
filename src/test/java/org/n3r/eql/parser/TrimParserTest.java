@@ -4,12 +4,10 @@ import com.google.common.collect.Maps;
 import org.junit.Test;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.base.ExpressionEvaluator;
-import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigDecorator;
-import org.n3r.eql.impl.DefaultEqlConfigDecorator;
 import org.n3r.eql.impl.OgnlEvaluator;
 import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.C;
 
 import java.util.List;
 import java.util.Map;
@@ -21,7 +19,7 @@ import static org.junit.Assert.assertThat;
 public class TrimParserTest {
     @Test
     public void test() {
-        String str = EqlUtils.classResourceToString("org/n3r/eql/TrimTest.eql");
+        String str = C.classResourceToString("org/n3r/eql/TrimTest.eql");
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(str);
 
@@ -68,20 +66,35 @@ where id=#id#
             public String getStr(String key) {
                 return null;
             }
+
+            @Override
+            public Map<String, String> params() {
+                return null;
+            }
+
+            @Override
+            public void onLoad() {
+
+            }
+
+            @Override
+            public void onRemoval() {
+
+            }
         };
-        List<EqlRun> eqlRuns = updateAuthor.createEqlRunsByEqls(eqlConfig, context, params, dynamics);
+        List<EqlRun> eqlRuns = updateAuthor.createEqlRunsByEqls(null, eqlConfig, context, params, dynamics);
         String runSql = eqlRuns.get(0).getRunSql();
         assertThat(runSql, is("update author\nwhere id=?"));
 
         Map<String, String> bean = Maps.newHashMap();
         bean.put("username", "bingoo");
         params = new Object[]{bean};
-        eqlRuns = updateAuthor.createEqlRunsByEqls(eqlConfig, context, params, dynamics);
+        eqlRuns = updateAuthor.createEqlRunsByEqls(null, eqlConfig, context, params, dynamics);
         runSql = eqlRuns.get(0).getRunSql();
         assertThat(runSql, is("update author\nSET username=?\nwhere id=?"));
 
         bean.put("password", "huang");
-        eqlRuns = updateAuthor.createEqlRunsByEqls(eqlConfig, context, params, dynamics);
+        eqlRuns = updateAuthor.createEqlRunsByEqls(null, eqlConfig, context, params, dynamics);
         runSql = eqlRuns.get(0).getRunSql();
         assertThat(runSql, is("update author\nSET username=?,\nPASSWORD=?\nwhere id=?"));
 
@@ -102,12 +115,12 @@ GROUP BY STATE
  */
         bean = Maps.newHashMap();
         params = new Object[]{bean};
-        eqlRuns = selectBlog.createEqlRunsByEqls(eqlConfig, context, params, dynamics);
+        eqlRuns = selectBlog.createEqlRunsByEqls(null, eqlConfig, context, params, dynamics);
         runSql = eqlRuns.get(0).getRunSql();
         assertThat(runSql, is("SELECT STATE FROM BLOG\nGROUP BY STATE"));
 
         bean.put("state", "nanjing");
-        eqlRuns = selectBlog.createEqlRunsByEqls(eqlConfig, context, params, dynamics);
+        eqlRuns = selectBlog.createEqlRunsByEqls(null, eqlConfig, context, params, dynamics);
         runSql = eqlRuns.get(0).getRunSql();
         assertThat(runSql, is("SELECT STATE FROM BLOG\nWHERE state = ?\nGROUP BY STATE"));
 
@@ -127,17 +140,17 @@ SELECT * FROM BLOG
  */
         bean = Maps.newHashMap();
         params = new Object[]{bean};
-        eqlRuns = nestedCondition.createEqlRunsByEqls(eqlConfig, context, params, dynamics);
+        eqlRuns = nestedCondition.createEqlRunsByEqls(null, eqlConfig, context, params, dynamics);
         runSql = eqlRuns.get(0).getRunSql();
         assertThat(runSql, is("SELECT * FROM BLOG\nWHERE dosya_ref is NULL"));
 
         bean.put("forInt", "123");
-        eqlRuns = nestedCondition.createEqlRunsByEqls(eqlConfig, context, params, dynamics);
+        eqlRuns = nestedCondition.createEqlRunsByEqls(null, eqlConfig, context, params, dynamics);
         runSql = eqlRuns.get(0).getRunSql();
         assertThat(runSql, is("SELECT * FROM BLOG\nWHERE ( file_id = ? ) AND dosya_ref is NULL"));
 
         bean.put("forLike", "joke");
-        eqlRuns = nestedCondition.createEqlRunsByEqls(eqlConfig, context, params, dynamics);
+        eqlRuns = nestedCondition.createEqlRunsByEqls(null, eqlConfig, context, params, dynamics);
         runSql = eqlRuns.get(0).getRunSql();
         assertThat(runSql, is("SELECT * FROM BLOG\nWHERE ( subject LIKE ?\nOR file_id = ? ) AND dosya_ref is NULL"));
     }

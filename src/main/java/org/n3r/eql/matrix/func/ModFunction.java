@@ -1,7 +1,6 @@
 package org.n3r.eql.matrix.func;
 
 import org.n3r.eql.matrix.MatrixTableFieldValue;
-import org.n3r.eql.matrix.func.SingleFieldBaseFunction;
 
 public class ModFunction extends SingleFieldBaseFunction {
     private int modValue;

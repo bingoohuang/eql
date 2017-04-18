@@ -3,6 +3,8 @@ package org.n3r.eql.parser;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.n3r.eql.base.DynamicLanguageDriver;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.impl.DefaultDynamicLanguageDriver;
@@ -16,6 +18,7 @@ import java.util.regex.Pattern;
 /**
  * Parse a whole eql file.
  */
+@Slf4j
 public class EqlParser {
     static Pattern blockPattern = Pattern.compile("\\[\\s*([\\w\\.\\-\\d]+)\\b(.*)\\]");
 
@@ -32,7 +35,7 @@ public class EqlParser {
         this.eqlResourceLoader = eqlResourceLoader;
         this.sqlClassPath = sqlClassPath;
         if (eqlResourceLoader != null)
-            this.dynamicLanguageDriver = eqlResourceLoader.getDynamicLanguageDriver();
+            dynamicLanguageDriver = eqlResourceLoader.getDynamicLanguageDriver();
 
         if (dynamicLanguageDriver == null)
             dynamicLanguageDriver = new DefaultDynamicLanguageDriver();
@@ -93,7 +96,7 @@ public class EqlParser {
         return true;
     }
 
-    static Pattern includePattern = Pattern.compile("include\\s+([\\w\\.\\-\\d]+)");
+    static Pattern includePattern = Pattern.compile("(include|ref)\\s+([\\w\\.\\-\\d]+)");
 
     private boolean includeOtherSqlId(String cleanLine) {
         Matcher matcher = includePattern.matcher(cleanLine);
@@ -101,11 +104,16 @@ public class EqlParser {
 
         if (block == null) return true;
 
-        String includeSqlId = matcher.group(1);
-        EqlBlock eqlBlock = blocks.get(includeSqlId);
-        if (eqlBlock == null) throw new RuntimeException(cleanLine + " not found");
+        String includeEqlId = matcher.group(2);
+        EqlBlock eqlBlock = blocks.get(includeEqlId);
+        if (eqlBlock == null) {
+            log.error("include eql id {} not found in {}", includeEqlId, sqlClassPath);
+            throw new RuntimeException(cleanLine + " not found");
+        }
         sqlLines.addAll(eqlBlock.getSqlLines());
-        if (!eqlBlock.isRef()) sqlLines.add(";");
+
+        String ref = matcher.group(1);
+        if (!"ref".equals(ref)) sqlLines.add(";");
 
         return true;
     }
@@ -123,7 +131,7 @@ public class EqlParser {
 
         if (classPath.equals(sqlClassPath)) return true;
 
-        Map<String, EqlBlock> importRes = eqlResourceLoader.load(classPath);
+        val importRes = eqlResourceLoader.load(classPath);
         if (ParserUtils.isBlank(patterns)) {
             importSqlBlocks(cleanLine, importRes);
             return true;
@@ -147,7 +155,8 @@ public class EqlParser {
     private void importSqlBlocks(String cleanLine, Map<String, EqlBlock> temp) {
         for (EqlBlock eqlBlock : temp.values()) {
             if (blocks.containsKey(eqlBlock.getSqlId())) {
-                throw new RuntimeException(eqlBlock.getSqlId() + " deplicated when "
+                log.error("{} duplicated when {} in {}", eqlBlock.getSqlId(), cleanLine, sqlClassPath);
+                throw new RuntimeException(eqlBlock.getSqlId() + " duplicated when "
                         + cleanLine + " in " + sqlClassPath);
             }
 
@@ -156,12 +165,13 @@ public class EqlParser {
     }
 
     private void addBlock(EqlBlock eqlBlock) {
-        if (blocks.containsKey(eqlBlock.getSqlId())) {
-            throw new RuntimeException(eqlBlock.getSqlId() + " deplicated in " + sqlClassPath);
+        if (blocks.containsKey(eqlBlock.getSqlId()) && !eqlBlock.isOverride()) {
+            log.error("{} duplicated in {}", eqlBlock.getSqlId(), sqlClassPath);
+            throw new RuntimeException(eqlBlock.getSqlId() + " duplicated in " + sqlClassPath);
         }
 
         blocks.put(eqlBlock.getSqlId(), eqlBlock);
-        sqlLines = Lists.newArrayList();
+        sqlLines = Lists.<String>newArrayList();
     }
 
     private void parsePreviousBlock() {
@@ -187,5 +197,4 @@ public class EqlParser {
 
         return true;
     }
-
 }

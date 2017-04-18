@@ -25,3 +25,35 @@ WHERE 1 = 1
   -- end
 /* end */
 
+-- [dkt_setup onerr=resume]
+DROP TABLE TEST_ATTR_VALUE;
+
+CREATE TABLE TEST_ATTR_VALUE
+(ATTR_VALUE_ID BIGINT UNSIGNED,
+ATTR_ID BIGINT UNSIGNED,
+ATTR_VALUE_NAME VARCHAR(20));
+
+INSERT INTO TEST_ATTR_VALUE VALUES(1001, 2000, '1001');
+INSERT INTO TEST_ATTR_VALUE VALUES(1002, 2001, '1002');
+
+-- [dkr]
+SELECT *
+  FROM
+-- for item=goodsAttr index=index collection=goodsAttrs separator=JOIN
+(
+  SELECT V.ATTR_VALUE_ID AS ID$index$
+        ,V.ATTR_VALUE_NAME AS NAME$index$
+    FROM TEST_ATTR_VALUE V
+   WHERE V.ATTR_ID = $goodsAttr.ATTR_ID$
+) V$index$
+-- end
+
+-- [haoye]
+SELECT
+-- for item=goodsAttr index=index collection=goodsAttrs.{?#this.attrType=="1"} separator=,
+          MAX(case V.ATTR_ID WHEN #goodsAttr.ATTR_ID$# THEN V.ATTR_ID ELSE NULL END) ATTR_ID$index$
+          ,MAX(case V.ATTR_ID WHEN #goodsAttr.ATTR_ID$# THEN V.ATTR_VALUE_ID ELSE NULL END) ATTR_VALUE_ID$index$
+-- end
+      FROM TEST_ATTR_VALUE V
+     GROUP BY V.ATTR_ID
+

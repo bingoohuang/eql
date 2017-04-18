@@ -1,49 +1,48 @@
 package org.n3r.eql.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.io.Closeable;
+import java.io.InputStream;
 import java.net.*;
 import java.util.Enumeration;
+import java.util.Scanner;
 
 public class HostAddress {
-    private static Logger logger = LoggerFactory.getLogger(HostAddress.class);
     private static String ip;
     private static String host;
 
     static {
-        NetworkInterface ni = null;
-
+        StringBuilder ips = new StringBuilder();
         try {
-            ni = NetworkInterface.getByName("bond0");
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface ni = interfaces.nextElement();
+                if (ni.isLoopback()) continue;
+
+                Enumeration<InetAddress> inetAddresses = ni.getInetAddresses();
+                while (inetAddresses.hasMoreElements()) {
+                    InetAddress inetAddress = inetAddresses.nextElement();
+                    if (inetAddress instanceof Inet4Address) {
+                        ips.append(inetAddress.getHostAddress()).append(",");
+                    }
+                }
+
+            }
         } catch (SocketException e) {
-            logger.warn("Get NetworkInterface bond0 fail", e);
+            // ignore
         }
 
-        InetAddress inetAddress = null;
-        if (null != ni) {
-            Enumeration<InetAddress> addresses = ni.getInetAddresses();
-            while (addresses.hasMoreElements()) {
-                InetAddress ia = addresses.nextElement();
-                if (ia instanceof Inet6Address) continue;
-
-                inetAddress = ia;
-                ip = left(ia.getHostAddress(), 20);
-
-                break;
+        if (ips.length() == 0) {
+            try {
+                InetAddress localHost = InetAddress.getLocalHost();
+                ip = localHost.getHostAddress();
+            } catch (UnknownHostException e) {
+                // ignore
             }
         } else {
-            try {
-                inetAddress = InetAddress.getLocalHost();
-                ip = inetAddress.getHostAddress();
-            } catch (UnknownHostException e) {
-                logger.warn("getHostAddress fail", e);
-            }
+            ip = ips.deleteCharAt(ips.length() - 1).toString();
         }
 
-        if (inetAddress != null)
-
-            host = left(inetAddress.getHostName(), 50);
+        host = hostname();
     }
 
     public static String getHost() {
@@ -56,5 +55,37 @@ public class HostAddress {
 
     private static String left(String string, int len) {
         return string.length() <= len ? string : string.substring(0, len);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(HostAddress.getIp());
+        System.out.println(HostAddress.getHost());
+    }
+
+    public static String hostname() {
+        Process proc = null;
+        InputStream stream = null;
+        Scanner s = null;
+        try {
+            proc = Runtime.getRuntime().exec("hostname");
+            stream = proc.getInputStream();
+            s = new Scanner(stream).useDelimiter("\\A");
+            return s.hasNext() ? s.next().trim() : "";
+        } catch (Exception e) {
+            return "unknown";
+        } finally {
+            closeQuietly(stream);
+            closeQuietly(s);
+            if (proc != null) proc.destroy();
+            if (s != null) s.close();
+        }
+    }
+
+    public static void closeQuietly(Closeable stream) {
+        if (stream != null) try {
+            stream.close();
+        } catch (Exception e) {
+            // ignore
+        }
     }
 }

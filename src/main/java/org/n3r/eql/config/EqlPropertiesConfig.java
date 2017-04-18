@@ -1,33 +1,50 @@
 package org.n3r.eql.config;
 
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.P;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class EqlPropertiesConfig implements EqlConfig {
     private final Properties properties;
 
     public EqlPropertiesConfig(String properties) {
-        this(EqlUtils.toProperties(properties));
+        this(P.toProperties(properties));
     }
 
     public EqlPropertiesConfig(File file) {
-        this(EqlUtils.toProperties(file));
+        this(P.toProperties(file));
     }
 
     public EqlPropertiesConfig(InputStream is) {
-        this(EqlUtils.toProperties(is));
+        this(P.toProperties(is));
     }
 
     public EqlPropertiesConfig(Properties properties) {
-        this.properties = properties;
+        this.properties = checkNotEmptyProperties(properties);
+    }
+
+    private Properties checkNotEmptyProperties(Properties properties) {
+        if (properties == null || properties.isEmpty())
+            throw new IllegalArgumentException("eql properties is null or empty");
+
+        return properties;
     }
 
     @Override
     public String getStr(String key) {
         return properties.getProperty(key);
+    }
+
+    @Override
+    public Map<String, String> params() {
+        HashMap<String, String> map = new HashMap<String, String>(properties.size());
+        for (final String name : properties.stringPropertyNames())
+            map.put(name, properties.getProperty(name));
+        return map;
     }
 
     @Override

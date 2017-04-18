@@ -3,26 +3,25 @@ package org.n3r.eql.matrix.sqlparser;
 import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.expr.*;
 import com.alibaba.druid.sql.ast.statement.SQLExprTableSource;
-import com.alibaba.druid.sql.ast.statement.SQLSelectItem;
 import com.alibaba.druid.sql.ast.statement.SQLTableSource;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.val;
 
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+
 public class MysqlSelectVisitor extends MysqlMatrixVisitor {
     protected final Map<String, String> aliasTablesMap = Maps.newHashMap();
-
     protected SqlFieldIndex sqlFieldIndex;
-
     protected List<SqlFieldIndex> sqlFieldIndexeList;
 
     @Override
     public boolean visit(MySqlSelectQueryBlock x) {
-        for (SQLSelectItem item : x.getSelectList()) {
+        for (val item : x.getSelectList()) {
             item.accept(this);
         }
 
@@ -36,19 +35,21 @@ public class MysqlSelectVisitor extends MysqlMatrixVisitor {
     }
 
     protected void acceptWhere(SQLExpr where) {
-        if (where != null) {
-            sqlFieldIndexeList = Lists.newArrayList();
-            where.accept(this);
-            sqlFieldIndexes = sqlFieldIndexeList.toArray(new SqlFieldIndex[0]);
-        }
+        if (where == null) return;
+
+        sqlFieldIndexeList = Lists.newArrayList();
+        where.accept(this);
+        sqlFieldIndexes = sqlFieldIndexeList.toArray(new SqlFieldIndex[0]);
     }
 
     @Override
     public boolean visit(SQLBinaryOpExpr x) {
         if (x.getOperator() != SQLBinaryOperator.Equality) return true;
 
-        if (hasSecuretField(x.getLeft()) && x.getRight() instanceof SQLVariantRefExpr
-                || hasSecuretField(x.getRight()) && x.getLeft() instanceof SQLVariantRefExpr) {
+        SQLExpr left = x.getLeft();
+        SQLExpr right = x.getRight();
+        if (hasSecuretField(left) && right instanceof SQLVariantRefExpr
+                || hasSecuretField(right) && left instanceof SQLVariantRefExpr) {
             ++variantIndex;
             sqlFieldIndexeList.add(sqlFieldIndex);
         }
@@ -104,7 +105,7 @@ public class MysqlSelectVisitor extends MysqlMatrixVisitor {
     }
 
     private void addTableAlias(String alias, String tableName) {
-        aliasTablesMap.put(Objects.firstNonNull(alias, tableName), tableName);
+        aliasTablesMap.put(firstNonNull(alias, tableName), tableName);
     }
 
 }

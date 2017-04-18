@@ -54,10 +54,10 @@ public class SimpleTest {
         new Eql().id("createTestTable").params(new Timestamp(System.currentTimeMillis())).execute();
 
         List<Map<String, String>> ret = new Eql().select("getBeanList").execute();
-        System.out.println(ret);
+//        System.out.println(ret);
 
         List<String> strs = new Eql().select("getStringList").execute();
-        System.out.println(strs);
+//        System.out.println(strs);
 
 
         Integer effectedRows = new Eql().update("updateBean").params(1, "A1A1").execute();
@@ -71,6 +71,9 @@ public class SimpleTest {
 
         Bean bean3 = new Eql().selectFirst("selectByBean2").returnType(Bean.class).params(bean).execute();
         assertThat(bean3, equalTo(bean));
+
+        BeanXX beanXX = new Eql().selectFirst("selectBean").returnType(BeanXX.class).params(1).execute();
+        assertThat(beanXX, is(notNullValue()));
     }
 
     private Map<String, String> map(String x, String x0, String y, String y0) {
@@ -131,6 +134,46 @@ public class SimpleTest {
 
         public void setE(int e) {
             this.e = e;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Bean bean = (Bean) o;
+
+            if (a != bean.a) return false;
+            if (e != bean.e) return false;
+            if (b != null ? !b.equals(bean.b) : bean.b != null) return false;
+            if (c != null ? !c.equals(bean.c) : bean.c != null) return false;
+            if (d != null ? !d.equals(bean.d) : bean.d != null) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = a;
+            result = 31 * result + (b != null ? b.hashCode() : 0);
+            result = 31 * result + (c != null ? c.hashCode() : 0);
+            result = 31 * result + (d != null ? d.hashCode() : 0);
+            result = 31 * result + e;
+            return result;
+        }
+    }
+
+    // no default constructor and no setter and getters
+
+    static class BeanXX {
+        private int a;
+        private String b;
+        private String c;
+        private Date d;
+        private int e;
+
+        BeanXX(int a) {
+            this.a = a;
         }
 
         @Override

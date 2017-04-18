@@ -9,6 +9,4 @@ public class SqlFieldIndex extends MatrixTableFieldValue{
         super(tableName, fieldName, null);
         this.variantIndex = variantIndex;
     }
-
-
 }

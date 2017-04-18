@@ -2,12 +2,13 @@
 
 -- [setup onerr=resume]
 create table demo_attr (id varchar2(32), attr varchar2(64))
+
 -- [teardown]
 drop table demo_attr
 
 -- [selectIf returnType=org.n3r.eql.SimpleTest$Bean]
 SELECT A,B,C,D,E
-FROM ESQL_TEST
+FROM EQL_TEST
 WHERE A = #a#
 AND
 <#if e == 100>

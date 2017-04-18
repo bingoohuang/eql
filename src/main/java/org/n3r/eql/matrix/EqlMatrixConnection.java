@@ -5,104 +5,94 @@ import com.google.common.base.Splitter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
+import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.matrix.sqlparser.MatrixSqlParseNoResult;
+import org.n3r.eql.matrix.sqlparser.MatrixSqlParseResult;
+import org.n3r.eql.matrix.sqlparser.MatrixSqlParser;
 import org.n3r.eql.trans.EqlConnection;
-import org.n3r.eql.util.EqlUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.n3r.eql.util.O;
+import org.n3r.eql.util.Pair;
+import org.n3r.eql.util.PropertyValueFilter;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 
+@Slf4j
 public class EqlMatrixConnection implements EqlConnection {
     public static final String DEFAULT = "default";
     LoadingCache<String, DruidDataSource> dataSourceCache;
-    static ThreadLocal<String> databaseNameTl = new ThreadLocal<String>();
-    Logger logger = LoggerFactory.getLogger(EqlMatrixConnection.class);
+    private String url;
 
-    public static void chooseDatabase(String databaseName) {
-        databaseNameTl.set(databaseName);
-    }
-
-
-    public static void chooseDefaultDatabase() {
-        databaseNameTl.set(DEFAULT);
-    }
 
     @Override
     public void initialize(EqlConfig eqlConfig) {
-        final String url = eqlConfig.getStr("url");
-        final String username = eqlConfig.getStr("username");
-        final String password = eqlConfig.getStr("password");
-
-        final String initialSize = eqlConfig.getStr("initialSize");
-        final String minIdle = eqlConfig.getStr("minIdle");
-        final String maxActive = eqlConfig.getStr("maxActive");
-        final String maxWait = eqlConfig.getStr("maxWait");
-        final String timeBetweenEvictionRunsMillis = eqlConfig.getStr("timeBetweenEvictionRunsMillis");
-        final String minEvictableIdleTimeMillis = eqlConfig.getStr("minEvictableIdleTimeMillis");
-        final String validationQuery = eqlConfig.getStr("validationQuery");
+        this.url = eqlConfig.getStr("url");
+        val params = eqlConfig.params();
 
         dataSourceCache = CacheBuilder.newBuilder().build(new CacheLoader<String, DruidDataSource>() {
             @Override
-            public DruidDataSource load(String database) throws Exception {
-                return createDruidDataSource(database, url, username, password,
-                        initialSize, minIdle, maxActive, maxWait,
-                        timeBetweenEvictionRunsMillis, minEvictableIdleTimeMillis, validationQuery);
+            public DruidDataSource load(final String database) throws Exception {
+                return O.populate(new DruidDataSource(), params, new PropertyValueFilter() {
+                    @Override
+                    public String filter(String propertyValue) {
+                        return parseParameter(propertyValue, database);
+                    }
+                });
             }
         });
     }
 
-    private DruidDataSource createDruidDataSource(String database, String url, String username, String password,
-                                                  String initialSize, String minIdle, String maxActive, String maxWait,
-                                                  String timeBetweenEvictionRunsMillis,
-                                                  String minEvictableIdleTimeMillis,
-                                                  String validationQuery) {
-        DruidDataSource dataSource = new DruidDataSource();
-        dataSource.setUrl(parseParameter(url, database));
-        dataSource.setUsername(parseParameter(username, database));
-        dataSource.setPassword(parseParameter(password, database));
+    LoadingCache<Pair<EqlConfig, String>, MatrixSqlParseResult> cache = CacheBuilder.newBuilder().build(
+            new CacheLoader<Pair<EqlConfig, String>, MatrixSqlParseResult>() {
+                @Override
+                public MatrixSqlParseResult load(Pair<EqlConfig, String> key) throws Exception {
+                    return new MatrixSqlParser().parse(key._1, key._2);
+                }
+            });
 
-        int myInitialSize = parseIntParameter(initialSize, database);
-        if (myInitialSize > 0) dataSource.setInitialSize(myInitialSize);
+    static ThreadLocal<String> dbNameTL = new ThreadLocal<String>();
 
-        int myMinIdle = parseIntParameter(minIdle, database);
-        if (myMinIdle > 0) dataSource.setMinIdle(myMinIdle);
-
-        int myMaxActive = parseIntParameter(maxActive, database);
-        if (myMaxActive > 0) dataSource.setMaxActive(myMaxActive);
-
-        int myMaxWait = parseIntParameter(maxWait, database);
-        if (myMaxWait > 0) dataSource.setMaxWait(myMaxWait);
-
-        int myTimeBetweenEvictionRunsMillis = parseIntParameter(timeBetweenEvictionRunsMillis, database);
-        if (myTimeBetweenEvictionRunsMillis > 0)
-            dataSource.setTimeBetweenEvictionRunsMillis(myTimeBetweenEvictionRunsMillis);
-
-        int myMinEvictableIdleTimeMillis = parseIntParameter(minEvictableIdleTimeMillis, database);
-        if (myMinEvictableIdleTimeMillis > 0)
-            dataSource.setMinEvictableIdleTimeMillis(myMinEvictableIdleTimeMillis);
-
-        String myValidationQuery = parseParameter(validationQuery, database);
-        if (myValidationQuery.length() > 0) dataSource.setValidationQuery(myValidationQuery);
-
-        return dataSource;
+    public static void chooseDbName(String dbName) {
+        dbNameTL.set(dbName);
     }
 
-    private int parseIntParameter(String param, String database) {
-        String my = parseParameter(param, database);
+    @Override
+    public String getDbName(EqlConfig eqlConfig, EqlRun eqlRun) {
+        val result = cache.getUnchecked(Pair.of(eqlConfig, eqlRun.getRunSql()));
 
-        return my.matches("\\d+") ? Integer.parseInt(my) : 0;
+        if (result instanceof MatrixSqlParseNoResult) return DEFAULT;
+
+        return result.getDatabaseName(eqlRun);
     }
 
-    private String parseParameter(String param, String database) {
+    @Override
+    public Connection getConnection(String dbName) {
+        String localDbName;
+
+        if (!DEFAULT.equals(dbName)) localDbName = dbName;
+        else localDbName = dbNameTL.get() != null ? dbNameTL.get() : DEFAULT;
+
+        try {
+            val dataSource = dataSourceCache.getUnchecked(localDbName);
+            log.debug("use database [{}]", localDbName);
+            return dataSource.getConnection();
+
+        } catch (SQLException e) {
+            throw new EqlExecuteException("unable to find database " + localDbName, e);
+        }
+    }
+
+    private static String parseParameter(String param, String database) {
         if (param == null || param.length() == 0) return "";
 
         StringBuilder parsed = new StringBuilder();
 
-        Splitter.MapSplitter splitter = Splitter.on(',').trimResults()
+        val splitter = Splitter.on(',').trimResults()
                 .omitEmptyStrings().withKeyValueSeparator("->");
         int startPos = 0;
         while (startPos < param.length()) {
@@ -116,7 +106,7 @@ public class EqlMatrixConnection implements EqlConnection {
 
             int rightBracePos = param.indexOf('}', leftBracePos);
             if (rightBracePos < 0) {
-                logger.warn("invalid parameter format: " + param);
+                log.warn("invalid parameter format: " + param);
                 return param;
             }
 
@@ -125,7 +115,7 @@ public class EqlMatrixConnection implements EqlConnection {
             String specified = data.get(database);
             if (specified == null) specified = data.get(DEFAULT);
             if (specified == null) {
-                logger.warn("invalid parameter mapping format: " + param);
+                log.warn("invalid parameter mapping format: " + param);
                 return param;
             }
             parsed.append(specified);
@@ -136,15 +126,29 @@ public class EqlMatrixConnection implements EqlConnection {
     }
 
     @Override
-    public Connection getConnection() {
-        try {
-            String databaseName = databaseNameTl.get();
-            if (EqlUtils.isBlank(databaseName)) databaseName = DEFAULT;
-            logger.debug("use database [{}]", databaseName);
-            return dataSourceCache.getUnchecked(databaseName).getConnection();
-        } catch (SQLException e) {
-            throw new EqlExecuteException(e);
+    public void destroy() {
+        val map = dataSourceCache.asMap();
+
+        for (String databaseName : map.keySet()) {
+            val druidDataSource = map.get(databaseName);
+            try {
+                druidDataSource.close();
+            } catch (Exception e) {
+                // ignore
+            }
         }
+
+        dataSourceCache.invalidateAll();
+        dataSourceCache = null;
     }
 
+    @Override
+    public String getDriverName() {
+        return url;
+    }
+
+    @Override
+    public String getJdbcUrl() {
+        return url;
+    }
 }

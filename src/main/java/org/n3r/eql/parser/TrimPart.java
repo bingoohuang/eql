@@ -2,7 +2,7 @@ package org.n3r.eql.parser;
 
 import com.google.common.base.Splitter;
 import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import java.util.Collections;
 import java.util.List;
@@ -21,7 +21,7 @@ public class TrimPart implements EqlPart {
     }
 
     private List<String> split(String overrides) {
-        if (EqlUtils.isBlank(overrides)) return Collections.emptyList();
+        if (S.isBlank(overrides)) return Collections.emptyList();
 
         return Splitter.on('|').trimResults().omitEmptyStrings().splitToList(overrides.toLowerCase());
     }
@@ -31,16 +31,16 @@ public class TrimPart implements EqlPart {
         StringBuilder sql = new StringBuilder();
 
         partSql = multiPart.evalSql(eqlRun);
-        if (!EqlUtils.isBlank(partSql)) {
+        if (!S.isBlank(partSql)) {
             override();
 
-            if (EqlUtils.isNotEmpty(prefix)) {
+            if (S.isNotEmpty(prefix)) {
                 sql.append(prefix).append(' ');
-                partSql = EqlUtils.trimLeft(partSql);
+                partSql = S.trimLeft(partSql);
             }
 
-            if (EqlUtils.isNotEmpty(suffix)) {
-                sql.append(EqlUtils.trimRight(partSql));
+            if (S.isNotEmpty(suffix)) {
+                sql.append(S.trimRight(partSql));
                 sql.append(' ').append(suffix);
             } else {
                 sql.append(partSql);
@@ -80,15 +80,15 @@ public class TrimPart implements EqlPart {
     }
 
     private void overrideSuffix(String suffix) {
-        String right = EqlUtils.trimRight(lowerSql);
+        String right = S.trimRight(lowerSql);
         int diff = lowerSql.length() - right.length();
         String diffStr = diff <= 0 ? "" : lowerSql.substring(right.length());
 
         int suffixLen = suffix.length();
         int strLen = right.length();
         if (strLen > suffixLen) {
-            lowerSql = EqlUtils.trimLeft(lowerSql.substring(0, strLen - suffixLen)) + diffStr;
-            partSql = EqlUtils.trimLeft(partSql.substring(0, strLen - suffixLen)) + diffStr;
+            lowerSql = S.trimLeft(lowerSql.substring(0, strLen - suffixLen)) + diffStr;
+            partSql = S.trimLeft(partSql.substring(0, strLen - suffixLen)) + diffStr;
         } else {
             lowerSql = "";
             partSql = "";

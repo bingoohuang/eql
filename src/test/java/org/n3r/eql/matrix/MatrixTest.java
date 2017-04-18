@@ -2,65 +2,70 @@ package org.n3r.eql.matrix;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.n3r.eql.Eql;
 import org.n3r.eql.EqlTran;
 import org.n3r.eql.Eqll;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Closes;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class MatrixTest {
+//    @Rule
+//    public TestRule globalTimeout = new Timeout(10000);
+
+
     @BeforeClass
     public static void setup() {
         Eqll.choose("matrix");
 
-        EqlMatrixConnection.chooseDatabase("dba");
+        EqlMatrixConnection.chooseDbName("dba");
         new Eqll().id("setup").execute();
 
-        EqlMatrixConnection.chooseDatabase("dbb");
+        EqlMatrixConnection.chooseDbName("dbb");
         new Eqll().id("setup").execute();
 
-        EqlMatrixConnection.chooseDatabase("dbc");
+        EqlMatrixConnection.chooseDbName("dbc");
         new Eqll().id("setup").execute();
     }
 
     @Test
     public void test1() {
-        new Mql().id("addPerson").params("a001", "0", "order").execute();
-        new Mql().id("addPerson").params("b001", "1", "bingoo").execute();
-        new Mql().id("addPerson").params("c001", "0", "huang").execute();
+        new Eql("matrix").id("addPerson").params("0", "a001", "order").execute();
+        new Eql("matrix").id("addPerson").params("1", "b001", "bingoo").execute();
+        new Eql("matrix").id("addPerson").params("0", "c001", "huang").execute();
 
-        String name = new Mql().id("getPerson").params("a001").limit(1).execute();
+        String name = new Eql("matrix").id("getPerson").params("a001").limit(1).execute();
         assertThat(name, is("order"));
-        name = new Mql().id("getPerson").params("b001").limit(1).execute();
+        name = new Eql("matrix").id("getPerson").params("b001").limit(1).execute();
         assertThat(name, is("bingoo"));
-        name = new Mql().id("getPerson").params("c001").limit(1).execute();
+        name = new Eql("matrix").id("getPerson").params("c001").limit(1).execute();
         assertThat(name, is("huang"));
 
 
-        new Mql().id("updatePerson").params("a001", "0", "red").execute();
-        new Mql().id("updatePerson").params("b001", "0", "blue").execute();
-        new Mql().id("updatePerson").params("c001", "1", "black").execute();
+        new Eql("matrix").id("updatePerson").params("a001", "0", "red").execute();
+        new Eql("matrix").id("updatePerson").params("b001", "0", "blue").execute();
+        new Eql("matrix").id("updatePerson").params("c001", "1", "black").execute();
     }
 
     @Test
     public void test2() throws Exception {
-        Mql mql = new Mql();
+        Eql mql = new Eql("matrix");
         EqlTran eqlTran = mql.newTran();
 
         try {
             eqlTran.start();
-            mql.id("addPerson").params("a002", "0", "order123").execute();
+            mql.id("addPerson").params("0", "a002", "order123").execute();
             eqlTran.commit();
 
-            String name = new Mql().id("getPerson").params("a002").limit(1).execute();
+            String name = new Eql("matrix").id("getPerson").params("a002").limit(1).execute();
             assertThat(name, is("order123"));
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             eqlTran.rollback();
             throw e;
         } finally {
-            EqlUtils.closeQuietly(eqlTran);
+            Closes.closeQuietly(eqlTran);
         }
     }
 }

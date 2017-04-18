@@ -1,0 +1,18 @@
+-- [before onerr=resume]
+create table demo (name text);
+insert into demo values('abc');
+
+-- [after onerr=resume]
+drop table demo
+
+-- [likeDemo]
+select 'x' from demo where name like #:Like#
+
+-- [leftLikeDemo]
+select 'x' from demo where name like #:LeftLike#
+
+-- [rightLikeDemo]
+select 'x' from demo where name like #:RightLike#
+
+-- [likeWithEscape]
+select 'x' from demo where name like #:Like# escape '|'

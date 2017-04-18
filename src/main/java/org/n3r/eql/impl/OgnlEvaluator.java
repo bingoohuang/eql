@@ -1,24 +1,52 @@
 package org.n3r.eql.impl;
 
-import ognl.Ognl;
+import com.google.common.collect.Maps;
+import lombok.val;
 import org.n3r.eql.base.ExpressionEvaluator;
 import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Og;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 public class OgnlEvaluator implements ExpressionEvaluator {
-    // private Logger log = LoggerFactory.getLogger(OgnlEvaluator.class);
-
     @Override
     public Object eval(String expr, EqlRun eqlRun) {
-        return eval(expr, eqlRun.getExecutionContext(), eqlRun.getParamBean());
-    }
+        if (!eqlRun.isIterateOption()) {
+            return Og.eval(expr, eqlRun.getMergedParamProperties(), eqlRun.getCachedProperties());
+        }
 
+        ArrayList<Object> result = new ArrayList<Object>();
+        Object iteratableOrArray = eqlRun.getIterateParams();
+        if (iteratableOrArray == null) return result;
+
+        if (iteratableOrArray instanceof Iterable) {
+            for (Object element : (Iterable<Object>) iteratableOrArray) {
+                val params = eqlRun.getMergedParamPropertiesWith(element);
+                val cached = Maps.<Object, Map<String, Object>>newHashMap();
+                Object eval = Og.eval(expr, params, cached);
+                result.add(eval);
+            }
+            return result;
+        }
+
+        if (iteratableOrArray.getClass().isArray()) {
+            for (Object element : (Object[]) iteratableOrArray) {
+                val params = eqlRun.getMergedParamPropertiesWith(element);
+                val cached = Maps.<Object, Map<String, Object>>newHashMap();
+                Object eval = Og.eval(expr, params, cached);
+                result.add(eval);
+            }
+            return result;
+        }
+
+        return result;
+    }
 
     @Override
     public Object evalDynamic(String expr, EqlRun eqlRun) {
-        return eval(expr, eqlRun.getExecutionContext(), eqlRun.getDynamicsBean());
+        val params = eqlRun.getMergedDynamicsProperties();
+        return Og.eval(expr, params, eqlRun.getCachedProperties());
     }
 
     @Override
@@ -26,36 +54,4 @@ public class OgnlEvaluator implements ExpressionEvaluator {
         Object value = eval(expr, eqlRun);
         return value instanceof Boolean && ((Boolean) value).booleanValue();
     }
-
-    private Object eval(String expr, Map<String, Object> context, Object bean) {
-        try {
-            Map<String, Object> map = EqlUtils.mergeProperties(context, bean);
-            return Ognl.getValue(expr, map);
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /*
-    private Object eval2(String expr, Map<String, Object> context, Object bean) {
-        Exception ex = null;
-        try {
-            return Ognl.getValue(expr, bean);
-        } catch (NoSuchPropertyException e) {
-            // will try again from context
-        } catch (Exception e) {
-            // ex = e;
-        }
-
-        try {
-            return Ognl.getValue(expr, context);
-        } catch (OgnlException e) {
-            ex = e;
-        }
-
-        log.error("eval {} with {} and context {} error", expr, bean, context, ex);
-        return null;
-    }
-    */
 }

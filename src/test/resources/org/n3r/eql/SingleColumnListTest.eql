@@ -1,0 +1,12 @@
+-- [beforeClass onerr=resume]
+DROP TABLE SingleColumnListTest;
+
+CREATE TABLE SingleColumnListTest (
+  A BIGINT(20) UNSIGNED
+);
+
+INSERT INTO SingleColumnListTest VALUES(10000);
+INSERT INTO SingleColumnListTest VALUES(20000);
+
+-- [test1 returnType=String]
+SELECT A FROM SingleColumnListTest

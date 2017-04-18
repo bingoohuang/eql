@@ -1,24 +1,39 @@
 package org.n3r.eql.impl;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.SneakyThrows;
 import org.n3r.eql.base.AfterPropertiesSet;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.map.*;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.Enums;
+import org.n3r.eql.util.O;
+import org.n3r.eql.util.Rs;
+import org.n3r.eql.util.S;
 
+import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class EqlRsRetriever {
+    @Setter
     private EqlBlock eqlBlock;
     private static int DEFAULT_MAXROWS = 100000;
+    @Setter
     private int maxRows = DEFAULT_MAXROWS;
+    @Setter
     private EqlRowMapper eqlRowMapper;
+    @Getter
+    @Setter
     private String returnTypeName;
+    @Getter
+    @Setter
     private Class<?> returnType;
 
     public Object convert(ResultSet rs, EqlRun subSql) throws SQLException {
@@ -28,29 +43,68 @@ public class EqlRsRetriever {
     private Object firstRow(ResultSet rs) throws SQLException {
         if (!rs.next()) return null;
 
-        if (rs.getMetaData().getColumnCount() == 1)
-            return convertSingleValue(EqlUtils.getResultSetValue(rs, 1));
+        boolean singleColumn = rs.getMetaData().getColumnCount() == 1;
+        if (singleColumn) {
+            Object resultSetValue = Rs.getResultSetValue(rs, 1);
+            Object singleValue = convertSingleValue(resultSetValue, rs);
+            return singleValue;
+        }
 
-        return rowBeanCreate(rs, 1);
+        EqlRowMapper rowMapper = getRowMapper(rs.getMetaData());
+        Object o = rowBeanCreate(rowMapper, singleColumn, rs, 1);
+        return mapResult(o, rowMapper);
     }
 
-    public Object selectRow(ResultSet rs, int rownum) throws SQLException {
-        return rownum <= maxRows && rs.next() ? rowBeanCreate(rs, rownum) : null;
+    public Object selectRow(ResultSet rs, int rowIndex) throws SQLException {
+        if (rowIndex > maxRows || !rs.next()) return null;
+
+        EqlRowMapper rowMapper = getRowMapper(rs.getMetaData());
+        boolean singleColumn = rs.getMetaData().getColumnCount() == 1;
+
+        return rowBeanCreate(rowMapper, singleColumn, rs, rowIndex);
     }
 
     private Object selectList(ResultSet rs) throws SQLException {
         List<Object> result = new ArrayList<Object>();
 
-        for (int rownum = 1; rs.next() && rownum <= maxRows; ++rownum) {
-            Object rowObject = rowBeanCreate(rs, rownum);
+        boolean singleColumn = rs.getMetaData().getColumnCount() == 1;
+        EqlRowMapper rowMapper = getRowMapper(rs.getMetaData());
+
+        for (int rowIndex = 1; rs.next() && rowIndex <= maxRows; ++rowIndex) {
+            Object rowObject = rowBeanCreate(rowMapper, singleColumn, rs, rowIndex);
             if (rowObject != null) result.add(rowObject);
         }
+
+        return mapResult(result, rowMapper);
+    }
+
+    private static Object mapResult(Object result, final EqlRowMapper rowMapper) {
+        // TODO: to use asm other than reflection
+        Method mappingResult = findEqlMappingResultMethod(rowMapper.getClass());
+        if (mappingResult != null)
+            return O.invokeMethod(rowMapper, mappingResult).orNull();
 
         return result;
     }
 
-    private Object rowBeanCreate(ResultSet rs, int rowNum) throws SQLException {
-        Object rowBean = getRowMapper(rs.getMetaData()).mapRow(rs, rowNum);
+    private static Method findEqlMappingResultMethod(Class<? extends EqlRowMapper> rowMapperClass) {
+        for (Method method : rowMapperClass.getMethods()) {
+            if (method.isAnnotationPresent(EqlMappingResult.class)
+                    && method.getParameterTypes().length == 0
+                    && method.getReturnType() != void.class
+                    ) {
+                return method;
+            }
+        }
+
+        return null;
+    }
+
+    @SneakyThrows
+    private Object rowBeanCreate(EqlRowMapper rowMapper, boolean isSingleColumn, ResultSet rs, int rowNum) {
+        Object rowBean = rowMapper.mapRow(rs, rowNum, isSingleColumn);
+        if (isSingleColumn) rowBean = convertSingleValue(rowBean, rs);
+
         if (rowBean instanceof AfterPropertiesSet)
             ((AfterPropertiesSet) rowBean).afterPropertiesSet();
 
@@ -60,76 +114,114 @@ public class EqlRsRetriever {
     private EqlRowMapper getRowMapper(ResultSetMetaData metaData) throws SQLException {
         if (eqlRowMapper != null) return eqlRowMapper;
 
-        if (returnType == null && eqlBlock != null) returnType = eqlBlock.getReturnType();
+        if (returnType == null && eqlBlock != null)
+            returnType = eqlBlock.getReturnType();
 
         if (returnType != null && EqlRowMapper.class.isAssignableFrom(returnType))
             return Reflect.on(returnType).create().get();
 
-        if (returnType != null) return new EqlBeanRowMapper(returnType);
+        if (returnType != null && !Map.class.isAssignableFrom(returnType))
+            return new EqlBeanRowMapper(returnType);
 
         return metaData.getColumnCount() > 1 ? new EqlMapMapper() : new EqlSingleValueMapper();
     }
 
     public EqlCallableReturnMapper getCallableReturnMapper() {
-        if (returnType == null && eqlBlock != null) returnType = eqlBlock.getReturnType();
+        if (returnType == null && eqlBlock != null)
+            returnType = eqlBlock.getReturnType();
 
         if (returnType != null && EqlCallableReturnMapper.class.isAssignableFrom(returnType))
             return Reflect.on(returnType).create().get();
 
-        if (returnType != null) return new EqlCallableResultBeanMapper(returnType);
+        if (returnType != null && !Map.class.isAssignableFrom(returnType))
+            return new EqlCallableResultBeanMapper(returnType);
 
         return new EqlCallableReturnMapMapper();
     }
 
-    private Object convertSingleValue(Object value) {
-        if (value == null) return null;
-
-        if (returnType == null && eqlBlock != null) returnType = eqlBlock.getReturnType();
+    private Object convertSingleValue(Object value, ResultSet rs) throws SQLException {
+        if (returnType == null && eqlBlock != null)
+            returnType = eqlBlock.getReturnType();
 
         String returnTypeName = this.returnTypeName;
         if (returnTypeName == null)
-            returnTypeName = eqlBlock == null ? null : eqlBlock.getOptions().get("returnType");
+            returnTypeName = eqlBlock == null ? null : eqlBlock.getReturnTypeName();
 
         if (returnType == null && returnTypeName == null) return value;
 
-        if ("string".equalsIgnoreCase(returnTypeName)) {
-            if (value instanceof byte[]) return EqlUtils.bytesToStr((byte[]) value);
+        Object x = processString(value, returnTypeName);
+        if (x != null) return x;
 
-            return String.valueOf(value);
+        x = processInt(value, returnTypeName);
+        if (x != null) return x;
+
+        x = processLong(value, returnTypeName);
+        if (x != null) return x;
+
+        x = processDouble(value, returnTypeName);
+        if (x != null) return x;
+
+        x = processBoolean(value, returnTypeName);
+        if (x != null) return x;
+
+        if (returnType == null && returnTypeName != null) {
+            returnType = Reflect.on(returnTypeName).type();
         }
 
-        if ("int".equalsIgnoreCase(returnTypeName)) {
-            if (value instanceof Number) return ((Number) value).intValue();
-            return Integer.parseInt(value.toString());
-        }
+        if (returnType != null && !returnType.isPrimitive()) {
+            if (returnType.isEnum() && value instanceof String) {
+                return Enums.valueOff((Class<Enum>) returnType, (String) value);
+            }
 
-        if ("long".equalsIgnoreCase(returnTypeName)) {
-            if (value instanceof Number) return ((Number) value).longValue();
-            return Long.parseLong(value.toString());
+            if (returnType == Timestamp.class) {
+                return rs.getTimestamp(1);
+            }
+
+            return new EqlBeanRowMapper(returnType).mapRow(rs, 1, false);
         }
 
         return value;
     }
 
-    public void setEqlBlock(EqlBlock eqlBlock) {
-        this.eqlBlock = eqlBlock;
+    private Object processString(Object value, String returnTypeName) {
+        if ("string".equalsIgnoreCase(returnTypeName) || returnType == String.class) {
+            if (value instanceof byte[]) return S.bytesToStr((byte[]) value);
+            return value == null ? null : String.valueOf(value);
+        }
+        return null;
     }
 
-    public void setMaxRows(int maxRows) {
-        this.maxRows = maxRows;
+    private Object processInt(Object value, String returnTypeName) {
+        if ("int".equalsIgnoreCase(returnTypeName) || returnType == Integer.class || returnType == int.class) {
+            if (value instanceof Number) return ((Number) value).intValue();
+            return value == null ? null : Integer.parseInt(value.toString());
+        }
+        return null;
     }
 
-
-    public void setEqlRowMapper(EqlRowMapper eqlRowMapper) {
-        this.eqlRowMapper = eqlRowMapper;
+    private Object processLong(Object value, String returnTypeName) {
+        if ("long".equalsIgnoreCase(returnTypeName) || returnType == Long.class || returnType == long.class) {
+            if (value instanceof Number) return ((Number) value).longValue();
+            return value == null ? null : Long.parseLong(value.toString());
+        }
+        return null;
     }
 
-    public void setReturnTypeName(String returnTypeName) {
-        this.returnTypeName = returnTypeName;
+    private Object processBoolean(Object value, String returnTypeName) {
+        if ("boolean".equalsIgnoreCase(returnTypeName) || returnType == Boolean.class || returnType == boolean.class) {
+            if (value instanceof Number)
+                return ((Number) value).shortValue() == 1;
+            return value == null ? null : Boolean.parseBoolean(value.toString());
+        }
+        return null;
     }
 
-    public void setReturnType(Class<?> returnType) {
-        this.returnType = returnType;
+    private Object processDouble(Object value, String returnTypeName) {
+        if ("double".equalsIgnoreCase(returnTypeName) || returnType == Double.class || returnType == double.class) {
+            if (value instanceof Number) return ((Number) value).doubleValue();
+            return value == null ? null : Double.parseDouble(value.toString());
+        }
+        return null;
     }
 
     public void resetMaxRows() {

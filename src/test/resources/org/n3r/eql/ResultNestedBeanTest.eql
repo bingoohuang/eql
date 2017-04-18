@@ -1,0 +1,2 @@
+-- [test]
+select "bingoohuang" as name, "gongjianfang" as "bean.addr"

@@ -1,3 +1,4 @@
-
-eql.iml
+.idea
+*.iml
 target
+*.class

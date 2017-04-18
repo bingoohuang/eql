@@ -2,6 +2,10 @@ package org.n3r.eql.config;
 
 public interface EqlConfigKeys {
     String CONNECTION_IMPL = "connection.impl";
+    String PROXY_CONNECTION_IMPL = "proxy.connection.impl";
+    String SECRET_FIELDS_CONFIGABLE_IMPL = "secret.fields.configable.impl";
+    String SENSITIVE_CRYPTOR_IMPL = "sensitive.cryptor.impl";
+
     String JNDI_NAME = "jndiName";
     String DRIVER = "driver";
     String URL = "url";

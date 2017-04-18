@@ -2,7 +2,7 @@
 
 -- [selectIf returnType=org.n3r.eql.SimpleTest$Bean]
 SELECT A,B,C,D,E
-FROM ESQL_TEST
+FROM EQL_TEST
 /* this my comment */
 WHERE A = #a#
 -- AND may be alone
@@ -17,7 +17,7 @@ AND
 
 -- [selectIf2 returnType=org.n3r.eql.SimpleTest$Bean]
 SELECT A,B,C,D,E
-FROM ESQL_TEST
+FROM EQL_TEST
 WHERE A = #a#
 AND
 -- if e == 100
@@ -30,9 +30,24 @@ C = 'AC'
 C = 'FALSE'
 -- end
 
+-- [selectIf3 returnType=org.n3r.eql.SimpleTest$Bean]
+SELECT A,B,C,D,E
+FROM EQL_TEST
+WHERE A = #a#
+AND
+-- if alike(e, 100)
+C = #c#
+/* if alike(a, '1') */ AND B = 'A' /* end */
+AND 1 = 1
+-- elseif alike(e, "200")
+C = 'AC'
+-- else
+C = 'FALSE'
+-- end
+
 -- [switchSelect returnType=org.n3r.eql.SimpleTest$Bean]
 SELECT A,B,C,D,E
-FROM ESQL_TEST
+FROM EQL_TEST
 WHERE
 -- switch a
 --   case 1
@@ -43,7 +58,7 @@ WHERE
 
 -- [switchSelectWithDefault returnType=org.n3r.eql.SimpleTest$Bean]
 SELECT A,B,C,D,E
-FROM ESQL_TEST
+FROM EQL_TEST
 WHERE
 -- switch a
 --   case 1
@@ -56,4 +71,11 @@ WHERE
 
 -- [getBeanList]
 SELECT A,B,C,D,E
-FROM ESQL_TEST
+FROM EQL_TEST
+
+-- [testUnless]
+SELECT A,B,C,D,E
+FROM EQL_TEST
+-- unless a == 1
+WHERE A = ##
+-- end

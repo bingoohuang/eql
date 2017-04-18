@@ -15,6 +15,7 @@ BEGIN
   C := 'WORLD ' || A;
 END;
 
+
 -- [callSpEql2]
 {call SP_EQL2(##, #:OUT#, #:OUT#)}
 
@@ -23,6 +24,16 @@ END;
 
 -- [callSpEql4 returnType=org.n3r.eql.OracleSpTest$Ab]
 {call SP_EQL2(##, #a:OUT#, #b:OUT#)}
+
+-- [createSpEqlType split=/]
+CREATE OR REPLACE PROCEDURE SP_EQL_TYPE(C OUT NUMBER, D OUT INTEGER) IS
+BEGIN
+  C := 18602506990;
+  D := 12345;
+END;
+
+-- [callSpEqlType]
+{call SP_EQL_TYPE(#:OUT(long)#, #:OUT(int)#)}
 
 -- [createSpNoOut split=/]
 CREATE OR REPLACE PROCEDURE SP_EQL_NOOUT(A VARCHAR) IS

@@ -1,0 +1,4 @@
+-- [queryParams2]
+select 'name' as code, 'huang' as value
+union all
+select 'age' as code, '321' as value

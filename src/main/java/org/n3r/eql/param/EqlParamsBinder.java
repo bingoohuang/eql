@@ -1,27 +1,31 @@
 package org.n3r.eql.param;
 
 import com.google.common.base.Objects;
-import org.n3r.eql.base.ExpressionEvaluator;
+import lombok.SneakyThrows;
+import lombok.val;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.param.EqlParamPlaceholder.InOut;
+import org.n3r.eql.util.Names;
 
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EqlParamsBinder {
     private EqlRun eqlRun;
-    private StringBuilder boundParams;
+    private List<Object> boundParams;
+    private boolean hasIterateOption;
 
-    private static enum ParamExtra {
+    private enum ParamExtra {
         Extra, Normal
     }
 
-    public void preparBindParams(EqlRun eqlRun) {
+    public void prepareBindParams(boolean hasIterateOption, EqlRun eqlRun) {
+        this.hasIterateOption = hasIterateOption;
         this.eqlRun = eqlRun;
-        boundParams = new StringBuilder();
+
+        eqlRun.setIterateOption(hasIterateOption);
+        boundParams = new ArrayList<Object>();
 
         switch (eqlRun.getPlaceHolderType()) {
             case AUTO_SEQ:
@@ -42,94 +46,115 @@ public class EqlParamsBinder {
 
         bindExtraParams();
 
-        eqlRun.setBoundParams(boundParams.toString());
-        // if (boundParams.length() > 0) logger.debug("param: {}", boundParams);
+        eqlRun.setBoundParams(boundParams);
     }
 
     private void bindExtraParams() {
         Object[] extraBindParams = eqlRun.getExtraBindParams();
         if (extraBindParams == null) return;
 
-        for (int i = eqlRun.getPlaceholderNum(); i < eqlRun.getPlaceholderNum() + extraBindParams.length; ++i)
-            setParam(i, extraBindParams[i - eqlRun.getPlaceholderNum()], ParamExtra.Extra);
+        int i = eqlRun.getPlaceholderNum();
+        int ii = eqlRun.getPlaceholderNum() + extraBindParams.length;
+        for (; i < ii; ++i) {
+            val extraParam = extraBindParams[i - eqlRun.getPlaceholderNum()];
+            setParam(i, extraParam, ParamExtra.Extra);
+        }
     }
 
     private void setParam(int index, Object value, ParamExtra extra) {
-        EqlParamPlaceholder placeHolder = eqlRun.getPlaceHolder(index);
-        try {
-            switch (extra) {
-                case Extra:
-                    setParamExtra(placeHolder, index, value);
-                    break;
-                default:
-                    setParamEx(placeHolder, index, value);
-                    break;
+        val placeHolder = eqlRun.getPlaceHolder(index);
+        switch (extra) {
+            case Extra:
+                setParamValue(placeHolder, index, value);
+                break;
+            default:
+                setParamEx(placeHolder, index, value);
+                break;
+        }
+    }
+
+    @SneakyThrows
+    private void setParamValue(EqlParamPlaceholder placeHolder, int index, Object value) {
+        if (hasIterateOption) {
+            List<Object> values = (List<Object>) value;
+            Object[] boundParam = new Object[values.size()];
+            Object[] paramsValue = new Object[boundParam.length];
+
+            for (int i = 0, ii = boundParam.length; i < ii; ++i) {
+                val paramValueDealer = new ParamValueDealer(placeHolder);
+                paramValueDealer.dealSingleValue(values.get(i));
+                boundParam[i] = paramValueDealer.getBoundParam();
+                paramsValue[i] = paramValueDealer.getParamValue();
             }
-        } catch (SQLException e) {
-            throw new EqlExecuteException("set parameters fail", e);
-        }
-    }
 
-    private void setParamExtra(EqlParamPlaceholder placeHolder, int index, Object value) throws SQLException {
-        if (value instanceof Date) {
-            Timestamp date = new Timestamp(((Date) value).getTime());
-            boundParams.append('[').append(EqlUtils.toDateTimeStr(date)).append(']');
-            eqlRun.addRealParam(index + 1, date);
+            boundParams.add(boundParam);
+            eqlRun.addRealParam(index + 1, paramsValue);
         } else {
-            Object paramValue = value;
-            if (placeHolder != null && placeHolder.getOption().contains("LOB") && value instanceof String)
-                paramValue = EqlUtils.toBytes((String) value);
-
-            boundParams.append('[').append(value).append(']');
-            eqlRun.addRealParam(index + 1, paramValue);
+            val paramValDealer = new ParamValueDealer(placeHolder);
+            paramValDealer.dealSingleValue(value);
+            boundParams.add(paramValDealer.getBoundParam());
+            eqlRun.addRealParam(index + 1, paramValDealer.getParamValue());
         }
     }
 
-    private void setParamEx(EqlParamPlaceholder placeHolder, int index, Object value) throws SQLException {
-        if (regiesterOut(index)) return;
+    private void setParamEx(EqlParamPlaceholder placeHolder, int index, Object value) {
+        if (registerOut(index)) return;
 
-        setParamExtra(placeHolder, index, value);
+        setParamValue(placeHolder, index, value);
     }
 
-    private boolean regiesterOut(int index) throws SQLException {
-        EqlParamPlaceholder.InOut inOut = eqlRun.getPlaceHolders()[index].getInOut();
-        if (EqlUtils.isProcedure(eqlRun.getSqlType()) && inOut != EqlParamPlaceholder.InOut.IN) {
-            // ((CallableStatement) ps).registerOutParameter(index + 1, Types.VARCHAR);
-            eqlRun.registerOutParameter(index + 1, Types.VARCHAR);
+    private boolean registerOut(int index) {
+        EqlParamPlaceholder placeholder = eqlRun.getPlaceHolders()[index];
+        val inOut = placeholder.getInOut();
+        if (eqlRun.getSqlType().isProcedure() && inOut != InOut.IN) {
+            eqlRun.registerOutParameter(index + 1, placeholder.getOutType());
         }
 
-        return inOut == EqlParamPlaceholder.InOut.OUT;
+        return inOut == InOut.OUT;
     }
 
     private Object findParamByName(int index) {
         String varName = eqlRun.getPlaceHolders()[index].getPlaceholder();
 
-        ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
+        val evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
 
         Object property = evaluator.eval(varName, eqlRun);
 
-        if (property != null) return property;
+        if (!hasIterateOption && property != null
+                || hasIterateOption && !isAllNullInBatchOption(property))
+            return property;
 
-        String propertyName = EqlUtils.convertUnderscoreNameToPropertyName(varName);
+        String propertyName = Names.underscoreNameToPropertyName(varName);
         return Objects.equal(propertyName, varName) ? property : evaluator.eval(propertyName, eqlRun);
+    }
+
+    private boolean isAllNullInBatchOption(Object property) {
+        val listProperties = (List<Object>) property;
+        for (Object object : listProperties) {
+            if (object != null) return false;
+        }
+
+        return true;
     }
 
 
     private Object getParamByIndex(int index) {
-        EqlParamPlaceholder[] placeHolders = eqlRun.getPlaceHolders();
-        if (index < placeHolders.length && EqlUtils.isProcedure(eqlRun.getSqlType())
-                && placeHolders[index].getInOut() == EqlParamPlaceholder.InOut.OUT) return null;
+        val placeHolders = eqlRun.getPlaceHolders();
+        if (index < placeHolders.length && eqlRun.getSqlType().isProcedure()
+                && placeHolders[index].getInOut() == InOut.OUT)
+            return null;
+
+        if (hasIterateOption)
+            throw new EqlExecuteException("bad parameters when batch option is set");
 
         Object[] params = eqlRun.getParams();
         if (params != null && index < params.length)
             return params[index];
 
-        throw new EqlExecuteException("[" + eqlRun.getSqlId() + "]执行过程中缺少参数");
+        throw new EqlExecuteException("[" + eqlRun.getSqlId() + "] lack parameters at runtime");
     }
 
     private Object findParamBySeq(int index) {
         return getParamByIndex(eqlRun.getPlaceHolders()[index - 1].getSeq() - 1);
     }
-
-
 }

@@ -1,47 +1,8 @@
-/**
- * Copyright (c) 2011-2013, Lukas Eder, lukas.eder@gmail.com
- * All rights reserved.
- *
- * This software is licensed to you under the Apache License, Version 2.0
- * (the "License"); You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * . Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- *
- * . Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
- * . Neither the name "jOOR" nor the names of its contributors may be
- *   used to endorse or promote products derived from this software without
- *   specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
 package org.n3r.eql.joor;
 
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
+import org.n3r.eql.util.Ob;
+
+import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -49,11 +10,8 @@ import java.util.Map;
 /**
  * A wrapper for an {@link Object} or {@link Class} upon which reflective calls
  * can be made.
- * <p>
- * An example of using <code>Reflect</code> is <code><pre>
+ * An example of using <code>Reflect</code> is <code>
  * // Static import all reflection methods to decrease verbosity
- * import static org.joor.Reflect.*;
- *
  * // Wrap an Object / Class / class name with the on() method:
  * on("java.lang.String")
  * // Invoke constructors using the create() method:
@@ -61,9 +19,11 @@ import java.util.Map;
  * // Invoke methods using the call() method:
  * .call("toString")
  * // Retrieve the wrapped object
- *
+ *</code>
  * @author Lukas Eder
  */
+
+@SuppressWarnings("unchecked")
 public class Reflect {
 
     // ---------------------------------------------------------------------
@@ -72,7 +32,6 @@ public class Reflect {
 
     /**
      * Wrap a class name.
-     * <p>
      * This is the same as calling <code>on(Class.forName(name))</code>
      *
      * @param name A fully qualified class name
@@ -86,7 +45,6 @@ public class Reflect {
 
     /**
      * Wrap a class.
-     * <p>
      * Use this when you want to access static fields and methods on a
      * {@link Class} object, or as a basis for constructing objects of that
      * class using {@link #create(Object...)}
@@ -100,7 +58,6 @@ public class Reflect {
 
     /**
      * Wrap an object.
-     * <p>
      * Use this when you want to access instance fields and methods on any
      * {@link Object}
      *
@@ -111,7 +68,7 @@ public class Reflect {
         return new Reflect(object);
     }
 
-    /**
+    /*
      * Conveniently render an {@link java.lang.reflect.AccessibleObject} accessible
      *
      * @param accessible The object to render accessible
@@ -136,7 +93,7 @@ public class Reflect {
     /**
      * The wrapped object
      */
-    private final Object  object;
+    private final Object object;
 
     /**
      * A flag indicating whether the wrapped object is a {@link Class} (for
@@ -163,7 +120,7 @@ public class Reflect {
     // Fluent Reflection API
     // ---------------------------------------------------------------------
 
-    /**
+    /*
      * Get the wrapped object
      *
      * @param <T> A convenience generic parameter for automatic unsafe casting
@@ -175,46 +132,53 @@ public class Reflect {
 
     /**
      * Set a field value.
-     * <p>
      * This is roughly equivalent to {@link java.lang.reflect.Field#set(Object, Object)}. If the
      * wrapped object is a {@link Class}, then this will set a value to a static
      * member field. If the wrapped object is any other {@link Object}, then
      * this will set a value to an instance member field.
      *
-     * @param name The field name
+     * @param name  The field name
      * @param value The new field value
      * @return The same wrapped object, to be used for further reflection.
      * @throws ReflectException If any reflection exception occurred.
      */
     public Reflect set(String name, Object value) throws ReflectException {
+        Object unwrapValue = unwrap(value);
         try {
 
             // Try setting a public field
             Field field = type().getField(name);
-            field.set(object, unwrap(value));
+            field.set(object, convertValue(field, unwrapValue));
             return this;
-        }
-        catch (Exception e1) {
-
+        } catch (Exception e1) {
             // Try again, setting a non-public field
             try {
-                accessible(type().getDeclaredField(name)).set(object, unwrap(value));
+                Field field = type().getDeclaredField(name);
+                accessible(field).set(object, convertValue(field, unwrapValue));
                 return this;
-            }
-            catch (Exception e2) {
+            } catch (Exception e2) {
                 throw new ReflectException(e2);
             }
         }
     }
 
-    /**
+    private Object convertValue(Field field, Object unwrapValue) {
+        if (field.getType().isEnum()) {
+            Class<? > type = field.getType();
+            if (unwrapValue instanceof String) {
+                return Enum.valueOf((Class<Enum>) type, (String)unwrapValue );
+
+            }
+        }
+        return unwrapValue;
+    }
+
+    /*
      * Get a field value.
-     * <p>
      * This is roughly equivalent to {@link java.lang.reflect.Field#get(Object)}. If the wrapped
      * object is a {@link Class}, then this will get a value from a static
      * member field. If the wrapped object is any other {@link Object}, then
      * this will get a value from an instance member field.
-     * <p>
      * If you want to "navigate" to a wrapped version of the field, use
      * {@link #field(String)} instead.
      *
@@ -229,7 +193,6 @@ public class Reflect {
 
     /**
      * Get a wrapped field.
-     * <p>
      * This is roughly equivalent to {@link java.lang.reflect.Field#get(Object)}. If the wrapped
      * object is a {@link Class}, then this will wrap a static member field. If
      * the wrapped object is any other {@link Object}, then this wrap an
@@ -242,17 +205,15 @@ public class Reflect {
     public Reflect field(String name) throws ReflectException {
         try {
 
-             // Try getting a public field
+            // Try getting a public field
             Field field = type().getField(name);
             return on(field.get(object));
-        }
-        catch (Exception e1) {
+        } catch (Exception e1) {
 
             // Try again, getting a non-public field
             try {
                 return on(accessible(type().getDeclaredField(name)).get(object));
-            }
-            catch (Exception e2) {
+            } catch (Exception e2) {
                 throw new ReflectException(e2);
             }
         }
@@ -261,15 +222,13 @@ public class Reflect {
     /**
      * Get a Map containing field names and wrapped values for the fields'
      * values.
-     * <p>
      * If the wrapped object is a {@link Class}, then this will return static
      * fields. If the wrapped object is any other {@link Object}, then this will
      * return instance fields.
-     * <p>
-     * These two calls are equivalent <code><pre>
+     * These two calls are equivalent <code>
      * on(object).field("myField");
      * on(object).fields().get("myField");
-     * </pre></code>
+     * </code>
      *
      * @return A map containing field names and wrapped values.
      */
@@ -288,14 +247,13 @@ public class Reflect {
 
     /**
      * Call a method by its name.
-     * <p>
      * This is a convenience method for calling
      * <code>call(name, new Object[0])</code>
      *
      * @param name The method name
      * @return The wrapped method result or the same wrapped object if the
-     *         method returns <code>void</code>, to be used for further
-     *         reflection.
+     * method returns <code>void</code>, to be used for further
+     * reflection.
      * @throws ReflectException If any reflection exception occurred.
      * @see #call(String, Object...)
      */
@@ -305,26 +263,23 @@ public class Reflect {
 
     /**
      * Call a method by its name.
-     * <p>
      * This is roughly equivalent to {@link java.lang.reflect.Method#invoke(Object, Object...)}.
      * If the wrapped object is a {@link Class}, then this will invoke a static
      * method. If the wrapped object is any other {@link Object}, then this will
      * invoke an instance method.
-     * <p>
      * Just like {@link java.lang.reflect.Method#invoke(Object, Object...)}, this will try to wrap
      * primitive types or unwrap primitive type wrappers if applicable. If
      * several methods are applicable, by that rule, the first one encountered
-     * is called. i.e. when calling <code><pre>
+     * is called. i.e. when calling <code>
      * on(...).call("method", 1, 1);
-     * </pre></code> The first of the following methods will be called:
-     * <code><pre>
+     * </code> The first of the following methods will be called:
+     * <code>
      * public void method(int param1, Integer param2);
      * public void method(Integer param1, int param2);
      * public void method(Number param1, Number param2);
      * public void method(Number param1, Object param2);
      * public void method(int param1, Object param2);
-     * </pre></code>
-     * <p>
+     * </code>
      * The best matching method is searched for with the following strategy:
      * <ol>
      * <li>public method with exact signature match in class hierarchy</li>
@@ -336,8 +291,8 @@ public class Reflect {
      * @param name The method name
      * @param args The method arguments
      * @return The wrapped method result or the same wrapped object if the
-     *         method returns <code>void</code>, to be used for further
-     *         reflection.
+     * method returns <code>void</code>, to be used for further
+     * reflection.
      * @throws ReflectException If any reflection exception occurred.
      */
     public Reflect call(String name, Object... args) throws ReflectException {
@@ -364,7 +319,7 @@ public class Reflect {
 
     /**
      * Searches a method with the exact same signature as desired.
-     * <p>
+     * <p/>
      * If a public method is found in the class hierarchy, this method is returned.
      * Otherwise a private method with the exact same signature is returned.
      * If no exact match could be found, we let the {@code NoSuchMethodException} pass through.
@@ -386,7 +341,7 @@ public class Reflect {
     /**
      * Searches a method with a similar signature as desired using
      * {@link #isSimilarSignature(java.lang.reflect.Method, String, Class[])}.
-     * <p>
+     * <p/>
      * First public methods are searched in the class hierarchy, then private
      * methods on the declaring class. If a method could be found, it is
      * returned, otherwise a {@code NoSuchMethodException} is thrown.
@@ -422,7 +377,6 @@ public class Reflect {
 
     /**
      * Call a constructor.
-     * <p>
      * This is a convenience method for calling
      * <code>create(new Object[0])</code>
      *
@@ -436,25 +390,23 @@ public class Reflect {
 
     /**
      * Call a constructor.
-     * <p>
      * This is roughly equivalent to {@link java.lang.reflect.Constructor#newInstance(Object...)}.
      * If the wrapped object is a {@link Class}, then this will create a new
      * object of that class. If the wrapped object is any other {@link Object},
      * then this will create a new object of the same type.
-     * <p>
      * Just like {@link java.lang.reflect.Constructor#newInstance(Object...)}, this will try to
      * wrap primitive types or unwrap primitive type wrappers if applicable. If
      * several constructors are applicable, by that rule, the first one
-     * encountered is called. i.e. when calling <code><pre>
+     * encountered is called. i.e. when calling <code>
      * on(C.class).create(1, 1);
-     * </pre></code> The first of the following constructors will be applied:
-     * <code><pre>
+     * </code> The first of the following constructors will be applied:
+     * <code>
      * public C(int param1, Integer param2);
      * public C(Integer param1, int param2);
      * public C(Number param1, Number param2);
      * public C(Number param1, Object param2);
      * public C(int param1, Object param2);
-     * </pre></code>
+     * </code>
      *
      * @param args The constructor arguments
      * @return The wrapped new object, to be used for further reflection.
@@ -479,11 +431,20 @@ public class Reflect {
                 }
             }
 
-            throw new ReflectException(e);
+            Class<?> type = type();
+            try {
+                Object o = Ob.createInstance(type);
+                if (o != null) return on(o);
+            } catch (NoClassDefFoundError e1) {
+                // java.lang.NoClassDefFoundError: org/objenesis/Objenesis
+            }
+
+            throw new ReflectException("unable to create bean for " + type());
         }
     }
 
-    /**
+
+    /*
      * Create a proxy for the wrapped object allowing to typesafely invoke
      * methods on it using a custom interface
      *
@@ -512,11 +473,9 @@ public class Reflect {
 
                         if (length == 0 && name.startsWith("get")) {
                             return map.get(property(name.substring(3)));
-                        }
-                        else if (length == 0 && name.startsWith("is")) {
+                        } else if (length == 0 && name.startsWith("is")) {
                             return map.get(property(name.substring(2)));
-                        }
-                        else if (length == 1 && name.startsWith("set")) {
+                        } else if (length == 1 && name.startsWith("set")) {
                             map.put(property(name.substring(3)), args[0]);
                             return null;
                         }
@@ -527,7 +486,7 @@ public class Reflect {
             }
         };
 
-        return (P) Proxy.newProxyInstance(proxyType.getClassLoader(), new Class[] { proxyType }, handler);
+        return (P) Proxy.newProxyInstance(proxyType.getClassLoader(), new Class[]{proxyType}, handler);
     }
 
     /**
@@ -538,11 +497,9 @@ public class Reflect {
 
         if (length == 0) {
             return "";
-        }
-        else if (length == 1) {
+        } else if (length == 1) {
             return string.toLowerCase();
-        }
-        else {
+        } else {
             return string.substring(0, 1).toLowerCase() + string.substring(1);
         }
     }
@@ -564,8 +521,7 @@ public class Reflect {
             }
 
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -602,19 +558,18 @@ public class Reflect {
     // Utility methods
     // ---------------------------------------------------------------------
 
-    /**
+    /*
      * Wrap an object created from a constructor
      */
     private static Reflect on(Constructor<?> constructor, Object... args) throws ReflectException {
         try {
             return on(accessible(constructor).newInstance(args));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new ReflectException(e);
         }
     }
 
-    /**
+    /*
      * Wrap an object returned from a method
      */
     private static Reflect on(Method method, Object object, Object... args) throws ReflectException {
@@ -624,19 +579,14 @@ public class Reflect {
             if (method.getReturnType() == void.class) {
                 method.invoke(object, args);
                 return on(object);
-            }
-            else {
+            } else {
                 return on(method.invoke(object, args));
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new ReflectException(e);
         }
     }
 
-    /**
-     * Unwrap an object
-     */
     private static Object unwrap(Object object) {
         if (object instanceof Reflect) {
             return ((Reflect) object).get();
@@ -645,7 +595,7 @@ public class Reflect {
         return object;
     }
 
-    /**
+    /*
      * Get an array of types for an array of objects
      *
      * @see Object#getClass()
@@ -665,7 +615,7 @@ public class Reflect {
         return result;
     }
 
-    /**
+    /*
      * Load a class
      *
      * @see Class#forName(String)
@@ -673,13 +623,12 @@ public class Reflect {
     private static Class<?> forName(String name) throws ReflectException {
         try {
             return Class.forName(name);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new ReflectException(e);
         }
     }
 
-    /**
+    /*
      * Get the type of the wrapped object.
      *
      * @see Object#getClass()
@@ -687,46 +636,36 @@ public class Reflect {
     public Class<?> type() {
         if (isClass) {
             return (Class<?>) object;
-        }
-        else {
+        } else {
             return object.getClass();
         }
     }
 
-    /**
+    /*
      * Get a wrapper type for a primitive type, or the argument type itself, if
      * it is not a primitive type.
      */
     public static Class<?> wrapper(Class<?> type) {
         if (type == null) {
             return null;
-        }
-        else if (type.isPrimitive()) {
+        } else if (type.isPrimitive()) {
             if (boolean.class == type) {
                 return Boolean.class;
-            }
-            else if (int.class == type) {
+            } else if (int.class == type) {
                 return Integer.class;
-            }
-            else if (long.class == type) {
+            } else if (long.class == type) {
                 return Long.class;
-            }
-            else if (short.class == type) {
+            } else if (short.class == type) {
                 return Short.class;
-            }
-            else if (byte.class == type) {
+            } else if (byte.class == type) {
                 return Byte.class;
-            }
-            else if (double.class == type) {
+            } else if (double.class == type) {
                 return Double.class;
-            }
-            else if (float.class == type) {
+            } else if (float.class == type) {
                 return Float.class;
-            }
-            else if (char.class == type) {
+            } else if (char.class == type) {
                 return Character.class;
-            }
-            else if (void.class == type) {
+            } else if (void.class == type) {
                 return Void.class;
             }
         }

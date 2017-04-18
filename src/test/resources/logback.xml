@@ -2,13 +2,23 @@
 <configuration>
     <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] tenantId=%X{tenantId} %-5level %logger %msg%n</pattern>
         </encoder>
     </appender>
 
-    <root level="DEBUG">
+    <root level="WARN">
         <appender-ref ref="Console"/>
     </root>
+
+    <logger name="eql" level="WARN" additivity="false">
+        <appender-ref ref="Console"/>
+    </logger>
+
+    <logger name="eql.org.n3r.eql.SimpleInDynamicCondition" level="WARN" additivity="false">
+        <appender-ref ref="Console"/>
+    </logger>
+
+    <logger name="org.n3r.diamond.client" level="OFF"></logger>
 
 </configuration>
 

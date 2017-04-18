@@ -1,21 +1,21 @@
 package org.n3r.eql.trans;
 
-import org.n3r.eql.Eql;
+import com.google.common.collect.Maps;
+import lombok.SneakyThrows;
 import org.n3r.eql.EqlTran;
+import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.util.Closes;
 
-import java.io.IOException;
 import java.sql.Connection;
-import java.sql.SQLException;
+import java.util.Map;
 
 public class EqlJdbcTran implements EqlTran {
-    private final Eql eql;
     private EqlConnection eqlConnection;
-    private Connection connection;
+    private Map<String, Connection> connections = Maps.newHashMap();
 
-    public EqlJdbcTran(Eql eql, EqlConnection connection) {
-        this.eql = eql;
+    public EqlJdbcTran(EqlConnection connection) {
         this.eqlConnection = connection;
     }
 
@@ -23,55 +23,60 @@ public class EqlJdbcTran implements EqlTran {
     public void start() {
     }
 
-    @Override
+    @Override @SneakyThrows
     public void commit() {
-        if (connection == null) return;
-
-        try {
+        for (Connection connection : connections.values()) {
             connection.commit();
-        } catch (SQLException e) {
-            throw new EqlExecuteException(e);
         }
     }
 
-    @Override
+    @Override @SneakyThrows
     public void rollback() {
-        if (connection == null) return;
-
-        try {
+        for (Connection connection : connections.values()) {
             connection.rollback();
-        } catch (SQLException e) {
-            throw new EqlExecuteException(e);
         }
     }
 
-    @Override
-    public Connection getConn() {
-        return getConnection();
-    }
+    @Override @SneakyThrows
+    public Connection getConn(EqlConfig eqlConfig, EqlRun eqlRun) {
+        String dbName = eqlConnection.getDbName(eqlConfig, eqlRun);
+        Connection connection = connections.get(dbName);
+        if (connection != null) {
+            eqlRun.setConnection(connection);
+            return connection;
+        }
 
-    protected Connection getConnection() {
-        if (connection == null) connection = eqlConnection.getConnection();
+        connection = eqlConnection.getConnection(dbName);
 
         if (connection == null) throw new EqlExecuteException(
                 "EqlJdbcTran could not start transaction. " +
                         " Cause: The DataSource returned a null connection.");
-        try {
-            if (connection.getAutoCommit()) connection.setAutoCommit(false);
-        } catch (SQLException e) {
-            throw new EqlExecuteException(e);
-        }
+        if (connection.getAutoCommit()) connection.setAutoCommit(false);
+
+        connections.put(dbName, connection);
+        if (eqlRun != null) eqlRun.setConnection(connection);
 
         return connection;
+    }
+
+    @Override
+    public String getDriverName() {
+        return eqlConnection.getDriverName();
+    }
+
+    @Override
+    public String getJdbcUrl() {
+        return eqlConnection.getJdbcUrl();
     }
 
     /**
      * Oracle JDBC will auto commit when close without explicit commit/rollback.
      */
     @Override
-    public void close() throws IOException {
-        EqlUtils.closeQuietly(connection);
-        eql.resetTran();
+    public void close() {
+        for (Connection connection : connections.values()) {
+            Closes.closeQuietly(connection);
+        }
     }
 
 }

@@ -1,0 +1,17 @@
+-- [beforeClass]
+DROP TABLE IF EXISTS test_replace_sql;
+
+CREATE TABLE IF NOT EXISTS test_replace_sql (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  data VARCHAR(64) DEFAULT NULL,
+  ts TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+)
+
+-- [test1]
+REPLACE INTO test_replace_sql(id, data, ts)
+VALUES (##, ##, ##)
+
+-- [test2]
+REPLACE INTO test_replace_sql(id, data, ts)
+VALUES (#?#, #?#, #?#)

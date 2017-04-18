@@ -1,0 +1,7 @@
+-- import org/n3r/eql/SimpleTest.eql *TestTable
+
+-- [getOrders]
+SELECT *
+  FROM EQL_TEST
+ WHERE B = #merchantId#
+   AND C = #orderInfo.staffId#

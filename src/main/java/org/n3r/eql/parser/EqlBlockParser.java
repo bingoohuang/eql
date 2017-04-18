@@ -3,16 +3,16 @@ package org.n3r.eql.parser;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.n3r.eql.base.DynamicLanguageDriver;
-import org.n3r.eql.util.EqlUtils;
+import org.n3r.eql.util.S;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 
 public class EqlBlockParser {
-    private final boolean sqlParseDelay;
-    private List<Sql> sqls = Lists.newArrayList();
     private DynamicLanguageDriver dynamicLanguageDriver;
+    private final boolean sqlParseDelay;
+    private List<Sql> sqls = Lists.<Sql>newArrayList();
 
     public EqlBlockParser(DynamicLanguageDriver dynamicLanguageDriver, boolean sqlParseDelay) {
         this.dynamicLanguageDriver = dynamicLanguageDriver;
@@ -20,7 +20,7 @@ public class EqlBlockParser {
     }
 
     public void parse(EqlBlock block, List<String> sqlLines) {
-        List<String> oneSqlLines = Lists.newArrayList();
+        List<String> oneSqlLines = Lists.<String>newArrayList();
 
         // split to multiple sql
         for (String sqlLine : sqlLines) {
@@ -40,7 +40,7 @@ public class EqlBlockParser {
 
     private void addSql(EqlBlock block, List<String> oneSqlLines) {
         if (oneSqlLines.size() == 0) return;
-        if (isAllComments(oneSqlLines))return;
+        if (isAllComments(oneSqlLines)) return;
 
         Sql sql = sqlParseDelay ? new DelaySql(dynamicLanguageDriver, block, new ArrayList<String>(oneSqlLines))
                 : dynamicLanguageDriver.parse(block, oneSqlLines);
@@ -49,7 +49,7 @@ public class EqlBlockParser {
     }
 
     private boolean isAllComments(List<String> oneSqlLines) {
-        List<String> linesWoLineComments = Lists.newArrayList();
+        List<String> linesWoLineComments = Lists.<String>newArrayList();
 
         for (String line : oneSqlLines) {
             if (line.startsWith("--")) continue;
@@ -63,6 +63,6 @@ public class EqlBlockParser {
         Matcher matcher = ParserUtils.inlineComment.matcher(join);
         String pureSql = matcher.replaceAll("");
 
-        return EqlUtils.isBlank(pureSql);
+        return S.isBlank(pureSql);
     }
 }

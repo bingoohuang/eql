@@ -2,8 +2,12 @@ eql
 ====
 
 An easy framework of java JDBC to be an alternative to ibatis/mybatis.
+<br>
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.bingoohuang/eql/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/com.github.bingoohuang/eql/)
+[![License](http://img.shields.io/:license-apache-brightgreen.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+<br>
 
-I dont's like XML in ibatis. 
+I don't like XML in ibatis.
 + excuse 1:
 
 ```xml
@@ -15,7 +19,7 @@ I dont's like XML in ibatis.
 ]]>
 </select>
 ```
-Wooh, for a simple sql of only three lines, we need add a CDATA block to use **>** (I alwasy forget how to write CDATA, and every time I have to lookup XML CDATA reference). It's so bad. And also the **select** is redundant because the SQL itself is telling us it is a SELECT SQL and not some others. 
+Wooh, for a simple sql of only three lines, we need add a CDATA block to use **>** (I always forget how to write CDATA, and every time I have to lookup XML CDATA reference). It's so bad. And also the **select** is redundant because the SQL itself is telling us it is a SELECT SQL and not some others.
 
 + excuse 2:
 
@@ -52,7 +56,7 @@ There is no else in its dynamic. I have to write like:
 
 + excuse 5:
 
-I don't like XML. I like free text and freedom. And so I created EQL which is realy very easy.
+I don't like XML. I like free text and freedom. And so I created EQL which is really very easy.
 
 #One minute tutorial
 * copy [eql-DEFAULT.properties](https://github.com/bingoohuang/eql/blob/master/src/test/resources/eql/eql-DEFAULT.properties) to your classpath eql and do some changes for your database connection info such as url, password and username.
@@ -62,7 +66,7 @@ I don't like XML. I like free text and freedom. And so I created EQL which is re
 
 ```java
 String str = new Eql().selectFirst("demo").execute();
-``` 
+```
 
 * write an eql in Demo.eql
 
@@ -123,10 +127,10 @@ String x = new Eql().selectFirst("autoSeq1")
 ```sql
 -- [autoSeq1]
 select 'X' from dual
-where 'x' = ##
+where 'x' = '##'
 ```
 
-* exmpale 2
+* example 2
 
 ```java
 String x = new Eql().selectFirst("autoSeq2")
@@ -137,11 +141,11 @@ String x = new Eql().selectFirst("autoSeq2")
 ```sql
 -- [autoSeq2]
 select 'X' from dual
-where 'x' = ##
-and 'y' = ##
+where 'x' = '##'
+and 'y' = '##'
 ```
 
-* exmpale 3
+* example 3
 
 ```java
 String x = new Eql().selectFirst("autoSeq3")
@@ -152,8 +156,8 @@ String x = new Eql().selectFirst("autoSeq3")
 ```sql
 -- [autoSeq3]
 select 'X' from dual
-where 'x' = #2#
-and 'y' = #1#
+where 'x' = '#2#'
+and 'y' = '#1#'
 ```
 
 #With parameters by properties name
@@ -169,8 +173,8 @@ String x = new Eql().selectFirst("bean")
 ```sql
 -- [bean]
 select 'X' from dual
-where 'x' = #x#
-and 'y' = #y#
+where 'x' = '#x#'
+and 'y' = '#y#'
 ```
 
 * example 2
@@ -184,9 +188,36 @@ String x = new Eql().selectFirst("map")
 ```sql
 -- [map]
 select 'X' from dual
-where 'a' = #x#
-and 'b' = #y#
+where 'a' = '#x#'
+and 'b' = '#y#'
 ```
+
+* example 3
+
+```java
+String x = new Eql().selectFirst("map")
+        .params("a", "b")
+        .execute();
+```
+
+```sql
+-- [map]
+select 'X' from dual
+where 'a' = '#_1#'
+and 'b' = '#_2#'
+```
+
+In above example, the _1 and _2 are used, they are called built-in parameters.
+More built-in parameters list here:
+1. `_time` current timestamp, type: `java.sql.Timestamp`
+2. `_date` current date, type:`java.util.Date`
+3. `_host` current hostname
+4. `_ip` current ip
+5. `_params` currrent params array
+6. `_paramsCount` length of current params array
+7. `_1`,`_2`,`_3`,... the param in sequence
+8. `_dynamics` current dynamics array
+9. `_dynamicsCount` lenght of current dynamics array
 
 # Dynamic sql
 
@@ -214,23 +245,23 @@ String y = new Eql().selectFirst("ifDemo")
 -- [ifDemo]
 select 'X' from dual
 -- if x == "a"
-where 'a' = #x#
+where 'a' = '#x#'
 -- end
 
 -- [ifDemo2]
 select 'X' from dual
 -- if x == "a"
-where 'a' = #x#
+where 'a' = '#x#'
 -- else if x == "b"
-where 'b' = #x#
+where 'b' = '#x#'
 -- else
-where 'c' = ##
+where 'c' = '##'
 -- end
 
 -- or use more compact syntax
 
 -- [ifDemo]
-select 'X' from dual /* if x == "a" */  where 'a' = #x# /* end */
+select 'X' from dual /* if x == "a" */  where 'a' = '#x#' /* end */
 ```
 
 ## iff
@@ -239,12 +270,12 @@ select 'X' from dual /* if x == "a" */  where 'a' = #x# /* end */
 -- [ifDemo]
 select 'X' from dual
 -- iff x == "a"
-where 'a' = #x#
+where 'a' = '#x#'
 
 -- or use more compact syntax
 
 -- [ifDemo]
-select 'X' from dual /* iff x == "a" */  where 'a' = #x#
+select 'X' from dual /* iff x == "a" */  where 'a' = '#x#'
 ```
 
 to use STATIC fields:
@@ -273,7 +304,7 @@ public class OgnlStaticTest {
 select 'X'
 from DUAL
 -- iff state == @org.n3r.eql.OgnlStaticTest@STATE
-where 'x' = #x#
+where 'x' = '#x#'
 ```
 
 ## switch
@@ -294,7 +325,7 @@ WHERE
 
 -- [switchSelectWithDefault returnType=org.n3r.eql.SimpleTest$Bean]
 SELECT A,B,C,D,E
-FROM ESQL_TEST
+FROM eql_TEST
 WHERE
 -- switch a
 --   case 1
@@ -331,17 +362,29 @@ WHERE 'x' in
 ```sql
 -- [isEmpty]
 SELECT B
-FROM ESQL_TEST
+FROM eql_TEST
 -- isEmpty a
 WHERE A in (1,2)
+-- else
+WHERE A in (3,4)
 -- end
 
 -- [isNotEmpty]
 SELECT B
-FROM ESQL_TEST
+FROM eql_TEST
 -- isNotEmpty a
-WHERE A = #a#
+WHERE A = '#a#'
 -- end
+```
+
+## in statement in sql
+
+```sql
+SELECT NAME FROM EQL_IN WHERE ID IN (/* in _1 */)
+```
+
+```java
+List<String> names = new Eql().params(Lists.newArrayList("1", "2")).execute();
 ```
 
 ## trim
@@ -351,25 +394,25 @@ WHERE A = #a#
 update author
 -- trim prefix=SET suffixOverrides=,
   -- iff username != null
-         username=#username#,
+         username='#username#',
   -- iff password != null
-         PASSWORD=#password#,
+         PASSWORD='#password#',
   -- iff email != null
-         email=#email#,
+         email='#email#',
   -- iff bio != null
-          bio=#bio#,
+          bio='#bio#',
 -- end
-where id=#id#
+where id='#id#'
 
 -- [selectBlog]
 SELECT STATE FROM BLOG
 -- trim prefix=WHERE prefixOverrides=AND|OR
    -- iff state != null
-          state = #state#
+          state = '#state#'
    -- iff title != null
-      AND title like #title#
+      AND title like '#title#'
    -- iff author != null and author.name != null
-      AND author_name like #author.name#
+      AND author_name like '#author.name#'
 -- end
 GROUP BY STATE
 ```
@@ -389,8 +432,8 @@ assertThat(page.getTotalRows(), is(10));
 ```sql
 -- [testPage]
 SELECT A,B,C,D,E
-FROM ESQL_TEST
-WHERE C = ##
+FROM eql_TEST
+WHERE C = '##'
 ```
 
 # Dynamic table name
@@ -409,38 +452,65 @@ assertThat(str, is("x"));
 -- [replace1]
 SELECT 'x'
 FROM $$
-WHERE 'x' = ##
+WHERE 'x' = '##'
 
 
 -- [replace2]
 SELECT 'x'
 FROM $table$
-WHERE 'x' = ##
+WHERE 'x' = '##'
 ```
 
 # Batch execute
 
 ```java
-Eql esql = new Eql();
-esql.startBatch(/*batchSize*/10);
+Eql eql = new Eql();
+eql.startBatch(/*batchSize*/10);
 for (int i = 0; i < 10; ++i) {
     String orderNo = randLetters(10);
     String userId = randLetters(10);
     int prizeItem = randInt(10);
-    int ret = esql.insert("insertPrizeBingoo")
+    int ret = eql.insert("insertPrizeBingoo")
            .params(orderNo, "Olympic", "" + prizeItem, userId)
            .execute();
-    
+
     assertEquals(0, ret);
 }
 
-esql.executeBatch();
+eql.executeBatch();
 ```
 
 ```sql
 -- [insertPrizeBingoo]
 INSERT INTO EQL_TEST_BINGOO(ORDER_NO, ACTIVITY_ID, ITEM_ID, USER_ID, BINGOO_TIME)
 VALUES(##, ##, ##, ##, SYSDATE)
+```
+
+# Like option support
+
+```sql
+-- [likeDemo]
+select 'x' from demo where name like '#:Like#'
+
+-- [leftLikeDemo]
+select 'x' from demo where name like '#:LeftLike#'
+
+-- [rightLikeDemo]
+select 'x' from demo where name like '#:RightLike#'
+```
+
+```java
+new Eql().id("likeDemo").params("b").execute();
+// 16:12:51.316 [main] DEBUG org.n3r.eql.Eql - prepare sql likeDemo: select 'x' from demo where name like ?
+// 16:12:51.317 [main] DEBUG org.n3r.eql.map.EqlRun - param: [%b%]
+
+new Eql().id("leftLikeDemo").params("c").execute();
+// 16:12:51.326 [main] DEBUG org.n3r.eql.Eql - prepare sql leftLikeDemo: select 'x' from demo where name like ?
+// 16:12:51.326 [main] DEBUG org.n3r.eql.map.EqlRun - param: [%c]
+
+new Eql().id("rightLikeDemo").params("a").execute();
+// 16:12:51.331 [main] DEBUG org.n3r.eql.Eql - prepare sql rightLikeDemo: select 'x' from demo where name like ?
+// 16:12:51.331 [main] DEBUG org.n3r.eql.map.EqlRun - param: [a%]
 ```
 
 # Oracle Blob support
@@ -468,29 +538,29 @@ public static class AsResult {
     private String state;
     private String remark;
     private int seq;
-    
+
     // setters ang getters
 }
 ```
 
 ```sql
 -- [insertBlob onerr=resume]
-DROP TABLE ESQL_BLOB;
-CREATE TABLE ESQL_BLOB (BOB BLOB);
-INSERT INTO ESQL_BLOB(BOB) VALUES(#:LOB#)
+DROP TABLE eql_BLOB;
+CREATE TABLE eql_BLOB (BOB BLOB);
+INSERT INTO eql_BLOB(BOB) VALUES(#:LOB#)
 
 -- [selectBlob]
-SELECT BOB FROM ESQL_BLOB
+SELECT BOB FROM eql_BLOB
 
 -- [selectBlobString returnType=string]
-SELECT BOB FROM ESQL_BLOB
+SELECT BOB FROM eql_BLOB
 
 
 -- [selectBlobAsResult returnType=org.n3r.eql.JavaBlobTest$AsResult]
-SELECT 1 as seq, BOB as remark FROM ESQL_BLOB
+SELECT 1 as seq, BOB as remark FROM eql_BLOB
 
 -- [updateBlob]
-UPDATE ESQL_BLOB SET BOB = #:LOB#
+UPDATE eql_BLOB SET BOB = '#:LOB#'
 ```
 
 # [Diamond-miner](https://github.com/bingoohuang/diamond-miner) support example
@@ -526,7 +596,7 @@ And then in java code
 String str = new Eql("diamond").selectFirst("diamondDemo").execute();
 System.out.println(str);
 ```
-     
+
 # Reuse jdbc statements to select/update repeatedly.
 
 ```java
@@ -564,16 +634,16 @@ eql.close();
 ```sql
 -- [selectStmt]
 SELECT C
-FROM ESQL_TEST
-WHERE A = ##
+FROM eql_TEST
+WHERE A = '##'
 
 -- [updateStmt]
-UPDATE ESQL_TEST
-SET C = #2#
-WHERE A = #1#
+UPDATE eql_TEST
+SET C = '#2#'
+WHERE A = '#1#'
 ```
 
-# Custome result mapper example
+# Custom result mapper example
 
 ```java
 import org.n3r.eql.map.EqlRowMapper;
@@ -618,13 +688,13 @@ Eqll.choose(new EqlPropertiesConfig(
 
 Supported configs are listed below:
 
-## **connection.impl**   
+## **connection.impl**
 + Meaning: Full qualified class name(FQCN) that implemented `org.n3r.eql.trans.EqlConnection` interface.
 + Default: When jndiName is set, use `org.n3r.eql.trans.EqlJndiConnection`, otherwise `org.n3r.eql.trans.EqlSimpleConnection`.
-+ Samples: `org.n3r.eql.trans.EqlC3p0Connection` or your customed implementation.
++ Samples: `org.n3r.eql.trans.EqlC3p0Connection` or your custom implementation.
 
 ## **jndiName**
-+ Meaning: Specified JNDI name to use JNDI datasource.
++ Meaning: Specified JNDI name to use JNDI data source.
 + Default: N/A.
 + Samples: N/A.
 
@@ -664,19 +734,19 @@ Supported configs are listed below:
 + Samples: orcl.
 
 ## **expression.evaluator**
-+ Meaning: Full quartified class name which implements `org.n3r.eql.base.ExpressionEvaluator`.
++ Meaning: Full quantified class name which implements `org.n3r.eql.base.ExpressionEvaluator`.
 + Default: `org.n3r.eql.impl.OgnlEvaluator`.
 + Samples: customed implementation.
 
 ## **sql.resource.loader**
 + Meaning: EQL resource loader. FQCN which implements `org.n3r.eql.base.EqlResourceLoader`.
 + Default: `org.n3r.eql.impl.FileEqlResourceLoader` which read eql file of the same package and same base name with Eql's used java class.
-+ Samples: `org.n3r.eql.diamond.DiamondEqlResourceLoader` or customed implementation.
++ Samples: `org.n3r.eql.diamond.DiamondEqlResourceLoader` or custom implementation.
 
 ## **dynamic.language.driver**
-+ Meaning: EQL dynamic support language dirver. FQCN which implements `org.n3r.eql.base.DynamicLanguageDriver`.
++ Meaning: EQL dynamic support language driver. FQCN which implements `org.n3r.eql.base.DynamicLanguageDriver`.
 + Default: `org.n3r.eql.impl.DefaultDynamicLanguageDriver` which use SQL special comment to achieve dynamic SQL.
-+ Samples: `org.n3r.eql.impl.FreemarkerDynamicLanguageDriver` or customed implementation.
++ Samples: `org.n3r.eql.impl.FreemarkerDynamicLanguageDriver` or custom implementation.
 
 ## **sql.parse.lazy**
 + Meaning: Parse dynamic EQL while execution or not.
@@ -685,7 +755,7 @@ Supported configs are listed below:
 
 # Integrated with [diamond-client](https://github.com/bingoohuang/diamond-miner)
 ## Read connection configuration from diamond
-* Add a diamond stone: 
+* Add a diamond stone:
 
 ```
 group=EqlConfig,dataId=DEFAULT,content=
@@ -699,10 +769,10 @@ password=orcl
 
 ```java
 // read diamand content of group=EqlConfig, dataId=DEFAULT as connection config
-new Eql().id("xxx").execute();
+new Dql().id("xxx").execute();
 
 // read diamond content of group=EqlConfig, dataId=DSMALL as connection config
-new Eql("DSMALL").id("yyy").execute();
+new Dql("DSMALL").id("yyy").execute();
 ```
 
 ## Read eql from diamond
@@ -743,6 +813,216 @@ SELECT TO_CHAR(SYSTIMESTAMP, 'HH24:MI:SS.FF6') FROM DUAL
 The class `org.n3r.eql.cache.GuavaCacheProvider` is provided by eql and its cache builder spec is same to guava [cache spec](http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/cache/CacheBuilderSpec.html).
 Custom cache provider class should implement `org.n3r.eql.cache.EqlCacheProvider` and optionally to implement `org.n3r.eql.spec.ParamsAppliable` when there are parameters to set.
 
+
+# simple POJO-based CRUD supported
+
+**@EqlTable**
+
+To specify the table name related to the class.
+If class is not annotated by @EqlTable, the default table name will be underscore_lowercase converted from CamelClass name. eg. Person to person, PersonInfo to person_info.
+
+**@EqlId**
+
+To specify whether the field is a Primary Key in the table.
+If the property name is **id**, it is also regarded as implicit @EqlId.
+
+**@EqlColumn**
+
+To specify the column name which is different with POJO's property name.
+When non-annotated with @EqlColumn, the default column name will be underscore_lowercase converted from propertyName. eg. name to name, personName to person_name.
+
+**@EqlSkip**
+
+To skip the mapping to table field.
+
+**CRUD**
+
+the update and delete api will use the id field as its condition.
+the read api will use all the non-null fields as its combined condition.
+
+```java
+@EqlTable(name = "personx")
+public static class Person2 {
+    @EqlId
+    @EqlColumn(name = "id")
+    private String pid;
+    @EqlColumn(name = "name")
+    private String pname;
+    private Integer age;
+
+    @EqlSkip
+    private String remark;
+
+    // getters and setters
+}
+
+@Test
+public void testAnnotation() {
+    Person2 person = new Person2();
+    person.setPid("1002");
+    person.setPname("bingoo");
+    person.setAge(30);
+
+    // delete from person where id = ?
+    new Pql("mysql").delete(person);
+
+    // insert into person（id,name,age) values(?,?,?)
+    new Pql("mysql").create(person);
+
+    person.setPname("huang");
+    person.setAge(null);
+    // update person set age = ? where id = ?
+    int effectedRows = new Pql("mysql").update(person);
+    assertThat(effectedRows, is(1));
+
+    Person2 queryPerson = new Person2();
+    queryPerson.setPid("1002");
+
+    // select id,name,age from person where id = ?
+    List<Person2> resultPerson = new Pql("mysql").read(queryPerson);
+    assertThat(resultPerson.size(), is(1));
+
+    effectedRows = new Pql("mysql").delete(queryPerson);
+    assertThat(effectedRows, is(1));
+}
+```
+
+# Eqler
+In order to simplify the eql api usage, here eqler is introduced.
+Eqler is an interface wherein the methods is used to execute sql and process results.
+An Eqler instance is created by EqlerFactory.
+The following are examples:
+
+``` java
+package org.n3r.eql.eqler.crud;
+
+import org.n3r.eql.eqler.annotations.EqlerConfig;
+import org.n3r.eql.eqler.annotations.Sql;
+import org.n3r.eql.eqler.annotations.SqlId;
+
+import java.util.List;
+import java.util.Map;
+
+@EqlerConfig("mysql")
+public interface StudentEqler {
+    void prepareData();
+
+    int addStudent(int studentId, String name, int age);
+
+    @Sql("insert into eql_student values(#studentId#, #name#, #age#)")
+    int addStudent(Student student);
+
+    @Sql("insert into eql_student values(#a#, #b#, #c#)")
+    int addStudentAnotherWay(@NamedParam("a") int studentId, @NamedParam("b") String name, @NamedParam("c") int age);
+
+    @Sql("select * from eql_student")
+    List<Student> queryAllStudents();
+
+    String queryStudentName(int studentId);
+
+    @SqlId("queryStudent")
+    Map<String, Object> queryStudentMap(int studentId);
+
+    Student queryStudent(int studentId);
+}
+```
+
+```sql
+--  org/n3r/eql/eqler/crud/StudentEqler.eql
+
+-- [prepareData]
+drop table if exists eql_student;
+create table eql_student(student_id int, name varchar(10), age int);
+
+-- [addStudent]
+insert into eql_student
+values('##', '##', '##')
+
+-- [queryStudentName]
+select name from eql_student where student_id = '##'
+
+-- [queryStudent]
+select student_id, name, age from eql_student where student_id = '##'
+```
+
+```java
+@Test
+public void test() {
+    StudentEqler eqler = EqlerFactory.getEqler(StudentEqler.class);
+    eqler.prepareData();
+
+    eqler.addStudent(1, "bingoo", 123);
+    eqler.addStudent(new Student(2, "huang", 124));
+    eqler.addStudentAnotherWay(3, "dingoo", 125);
+
+    List<Student> students = eqler.queryAllStudents();
+    assertThat(students.toString(), is(equalTo(
+            "[Student{studentId=1, name='bingoo', age=123}, " +
+                    "Student{studentId=2, name='huang', age=124}, " +
+                    "Student{studentId=3, name='dingoo', age=125}]"
+    )));
+
+    Student student1 = eqler.queryStudent(1);
+    assertThat(student1.toString(), is(equalTo("Student{studentId=1, name='bingoo', age=123}")));
+
+    Map<String, Object> student2 = eqler.queryStudentMap(2);
+    assertThat(student2.toString(), is(equalTo("{age=124, name=huang, student_id=2}")));
+
+    String studentName = eqler.queryStudentName(1);
+    assertThat(studentName, is(equalTo("bingoo")));
+}
+```
+
 # TODO
 + Inline comment such as `/* iff ... */` is parsed by regular expression, and this method will not ignore `/* ... */` in the literal string such as `'literal string /* if xxx */'`.
-+ TO support some simple CRUD base on POJO.
+
+# FAQ
+## MySQLNonTransientConnectionException
+```
+com.mysql.jdbc.exceptions.jdbc4.MySQLNonTransientConnectionException: Communications link failure during rollback(). Transaction resolution unknown.
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)
+	at com.mysql.jdbc.Util.handleNewInstance(Util.java:377)
+	at com.mysql.jdbc.Util.getInstance(Util.java:360)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:956)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:935)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:924)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:870)
+	at com.mysql.jdbc.ConnectionImpl.rollback(ConnectionImpl.java:4606)
+	at org.n3r.eql.trans.SimpleDataSource.popConnection(SimpleDataSource.java:638)
+	at org.n3r.eql.trans.SimpleDataSource.getConnection(SimpleDataSource.java:207)
+	at org.n3r.eql.trans.EqlSimpleConnection.getConnection(EqlSimpleConnection.java:17)
+	at org.n3r.eql.trans.EqlJdbcTran.getConn(EqlJdbcTran.java:58)
+	at org.n3r.eql.Eql.createConn(Eql.java:105)
+	at org.n3r.eql.Eql.execute(Eql.java:157)
+```
+
+Try use url like  `jdbc:mysql://192.168.99.100:13306/dba?useUnicode=true&&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=3000&autoReconnect=true` instead of `jdbc:mysql://192.168.99.100:13306/dba`
+
+# FAQ
+## java.lang.NullPointerException
+A single primitive return type like int/long/short will cause NPE when SQL results no rows. 
+In this situation, the related wrapper type like Integer/Long/Short should be used instead.
+```java
+@Test
+public void returnInteger() {
+    Integer intValue = new Eql("h2").limit(1)
+            .returnType(Integer.class).execute("select 1 where 2 > 3");
+    assertThat(intValue).isNull();
+}
+
+@Test(expected = NullPointerException.class)
+public void returnInt() {
+    int intValue = new Eql("h2").limit(1)
+            .returnType(int.class).execute("select 1 where 2 > 3");
+}
+```
+
+# docker
+## mysql
+run mysql:<br/>
+`docker run -p 13306:3306 --name mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql`
+<br/>run client:<br/>
+`docker run -it --rm mysql mysql -h192.168.99.100 -uroot -P13306 -pmy-secret-pw`

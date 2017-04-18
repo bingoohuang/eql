@@ -1,0 +1,4 @@
+-- import org/n3r/eql/impl/OverrideParent.eql
+
+-- [selectX override]
+SELECT 'XX'

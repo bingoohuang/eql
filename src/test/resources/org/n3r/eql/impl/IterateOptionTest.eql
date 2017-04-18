@@ -1,0 +1,17 @@
+-- [beforeClass]
+DROP TABLE IF EXISTS EQL_BATCH_OPTION;
+CREATE TABLE EQL_BATCH_OPTION (ID INT, NAME VARCHAR(100));
+
+-- [insert iterate]
+INSERT INTO EQL_BATCH_OPTION VALUES(#id#, #name#)
+
+-- [select]
+SELECT ID, NAME FROM EQL_BATCH_OPTION
+
+-- [update iterate]
+UPDATE EQL_BATCH_OPTION SET NAME = #name# WHERE ID = #id#
+
+
+-- [delete iterate]
+DELETE FROM EQL_BATCH_OPTION WHERE ID = #id#
+

@@ -1,0 +1,2 @@
+-- [demo  returnType=string]
+SELECT now()

@@ -1,9 +1,6 @@
 package org.n3r.eql.trans;
 
-import org.n3r.eql.Eql;
 import org.n3r.eql.EqlTran;
-
-import java.sql.Connection;
 
 public class EqlTranFactory {
     private final EqlConnection eqlConnection;
@@ -14,10 +11,16 @@ public class EqlTranFactory {
         this.isJTA = isJTA;
     }
 
-    public EqlTran createTran(Eql eql) {
-        // Connection connection = eqlConnection.getConnection();
+    public EqlTran createTran() {
+        return isJTA ? new EqlJtaTran(eqlConnection)
+                : new EqlJdbcTran(eqlConnection);
+    }
 
-        return isJTA ? new EqlJtaTran(eql, eqlConnection)
-                : new EqlJdbcTran(eql, eqlConnection);
+    public void destory() {
+        try {
+            eqlConnection.destroy();
+        } catch (Exception e) {
+            // ignore
+        }
     }
 }

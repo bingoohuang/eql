@@ -23,4 +23,6 @@ public class DirectSqlTest {
                 .execute("select 'xx' from DUAL where 'x' = ##");
         assertThat(str, is(nullValue()));
     }
+
+
 }

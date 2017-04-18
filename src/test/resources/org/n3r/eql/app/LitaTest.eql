@@ -1,0 +1,9 @@
+-- [LITA split=/]
+BEGIN
+    dbms_output.put_line('=============');
+END;
+
+
+-- [LITA2]
+SELECT 1 FROM DUAL
+  WHERE 'ABC' = #bean.payType#

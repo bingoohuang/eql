@@ -61,4 +61,24 @@ public class EqlPage {
                 ", totalRows=" + totalRows +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        EqlPage eqlPage = (EqlPage) o;
+
+        if (pageRows != eqlPage.pageRows) return false;
+        if (startIndex != eqlPage.startIndex) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = startIndex;
+        result = 31 * result + pageRows;
+        return result;
+    }
 }
