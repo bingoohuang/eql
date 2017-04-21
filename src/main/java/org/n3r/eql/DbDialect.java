@@ -45,6 +45,7 @@ public class DbDialect {
         if ("mysql".equals(databaseId)) return createMySqlPageSql(eqlRun, page);
         if ("h2".equals(databaseId)) return createH2PageSql(eqlRun, page);
 
+        if ("sqlserver".equals(databaseId)) return createSqlserverPageSql(eqlRun, page);
         return eqlRun;
     }
 
@@ -56,6 +57,7 @@ public class DbDialect {
         if (S.containsIgnoreCase(dirverOrUrl, "mysql")) return "mysql";
         if (S.containsIgnoreCase(dirverOrUrl, "h2")) return "h2";
         if (S.containsIgnoreCase(dirverOrUrl, "db2")) return "db2";
+        if (S.containsIgnoreCase(dirverOrUrl, "sqlserver")) return "sqlserver";
 
         return driverName;
     }
@@ -97,6 +99,22 @@ public class DbDialect {
     private String createH2PageSql(String sql) {
         return "SELECT * FROM ( SELECT *, ROWNUM() RN__ FROM (" + sql
                 + " ) ROW__  WHERE ROWNUM() <= ?) WHERE RN__ > ?";
+    }
+
+    private EqlRun createSqlserverPageSql(EqlRun eqlRun0, EqlPage eqlPage) {
+        EqlRun eqlRun = eqlRun0.clone();
+        eqlRun.setRunSql(createSqlserverPageSql(eqlRun.getRunSql()));
+
+        int endIndex = eqlPage.getStartIndex() + eqlPage.getPageRows();
+        eqlRun.setExtraBindParams(endIndex, eqlPage.getStartIndex());
+
+        return eqlRun;
+    }
+
+    private String createSqlserverPageSql(String sql) {
+        return "SELECT * FROM (SELECT ROW_NUMBER () OVER (ORDER BY getdate() ASC) RowNumber ,* FROM  "
+                + "  (" + sql +")T_   )TT_ "
+                + "  WHERE    TT_.RowNumber <=?   and  TT_.RowNumber>?";
     }
 
     public EqlRun createTotalSql(EqlRun currRun) {
