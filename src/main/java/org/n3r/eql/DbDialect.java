@@ -51,13 +51,13 @@ public class DbDialect {
 
 
     private String tryParseDatabaseId() {
-        String dirverOrUrl = driverName;
-        if (dirverOrUrl == null) dirverOrUrl = jdbcUrl;
-        if (S.containsIgnoreCase(dirverOrUrl, "oracle")) return "oracle";
-        if (S.containsIgnoreCase(dirverOrUrl, "mysql")) return "mysql";
-        if (S.containsIgnoreCase(dirverOrUrl, "h2")) return "h2";
-        if (S.containsIgnoreCase(dirverOrUrl, "db2")) return "db2";
-        if (S.containsIgnoreCase(dirverOrUrl, "sqlserver")) return "sqlserver";
+        String driverOrUrl = driverName;
+        if (driverOrUrl == null) driverOrUrl = jdbcUrl;
+        if (S.containsIgnoreCase(driverOrUrl, "oracle")) return "oracle";
+        if (S.containsIgnoreCase(driverOrUrl, "mysql")) return "mysql";
+        if (S.containsIgnoreCase(driverOrUrl, "h2")) return "h2";
+        if (S.containsIgnoreCase(driverOrUrl, "db2")) return "db2";
+        if (S.containsIgnoreCase(driverOrUrl, "sqlserver")) return "sqlserver";
 
         return driverName;
     }

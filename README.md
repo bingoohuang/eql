@@ -218,6 +218,7 @@ More built-in parameters list here:
 7. `_1`,`_2`,`_3`,... the param in sequence
 8. `_dynamics` current dynamics array
 9. `_dynamicsCount` lenght of current dynamics array
+10. `_databaseId`, oracle/mysql/h2/db2/sqlserver
 
 # Dynamic sql
 
