@@ -3,6 +3,7 @@ package org.n3r.eql.impl;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import lombok.val;
 import org.n3r.eql.base.AfterPropertiesSet;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.map.*;
@@ -24,9 +25,9 @@ import java.util.Map;
 public class EqlRsRetriever {
     @Setter
     private EqlBlock eqlBlock;
-    private static int DEFAULT_MAXROWS = 100000;
+    private static int DEFAULT_MAX_ROWS = 100000;
     @Setter
-    private int maxRows = DEFAULT_MAXROWS;
+    private int maxRows = DEFAULT_MAX_ROWS;
     @Setter
     private EqlRowMapper eqlRowMapper;
     @Getter
@@ -50,7 +51,7 @@ public class EqlRsRetriever {
             return singleValue;
         }
 
-        EqlRowMapper rowMapper = getRowMapper(rs.getMetaData());
+        val rowMapper = getRowMapper(rs.getMetaData());
         Object o = rowBeanCreate(rowMapper, singleColumn, rs, 1);
         return mapResult(o, rowMapper);
     }
@@ -58,7 +59,7 @@ public class EqlRsRetriever {
     public Object selectRow(ResultSet rs, int rowIndex) throws SQLException {
         if (rowIndex > maxRows || !rs.next()) return null;
 
-        EqlRowMapper rowMapper = getRowMapper(rs.getMetaData());
+        val rowMapper = getRowMapper(rs.getMetaData());
         boolean singleColumn = rs.getMetaData().getColumnCount() == 1;
 
         return rowBeanCreate(rowMapper, singleColumn, rs, rowIndex);
@@ -68,7 +69,7 @@ public class EqlRsRetriever {
         List<Object> result = new ArrayList<Object>();
 
         boolean singleColumn = rs.getMetaData().getColumnCount() == 1;
-        EqlRowMapper rowMapper = getRowMapper(rs.getMetaData());
+        val rowMapper = getRowMapper(rs.getMetaData());
 
         for (int rowIndex = 1; rs.next() && rowIndex <= maxRows; ++rowIndex) {
             Object rowObject = rowBeanCreate(rowMapper, singleColumn, rs, rowIndex);
@@ -91,8 +92,7 @@ public class EqlRsRetriever {
         for (Method method : rowMapperClass.getMethods()) {
             if (method.isAnnotationPresent(EqlMappingResult.class)
                     && method.getParameterTypes().length == 0
-                    && method.getReturnType() != void.class
-                    ) {
+                    && method.getReturnType() != void.class) {
                 return method;
             }
         }
@@ -140,6 +140,8 @@ public class EqlRsRetriever {
     }
 
     private Object convertSingleValue(Object value, ResultSet rs) throws SQLException {
+        if (value == null) return null;
+
         if (returnType == null && eqlBlock != null)
             returnType = eqlBlock.getReturnType();
 
@@ -151,17 +153,19 @@ public class EqlRsRetriever {
 
         Object x = processString(value, returnTypeName);
         if (x != null) return x;
-
         x = processInt(value, returnTypeName);
         if (x != null) return x;
-
         x = processLong(value, returnTypeName);
         if (x != null) return x;
 
-        x = processDouble(value, returnTypeName);
-        if (x != null) return x;
 
         x = processBoolean(value, returnTypeName);
+        if (x != null) return x;
+        x = processDouble(value, returnTypeName);
+        if (x != null) return x;
+        x = processFloat(value, returnTypeName);
+        if (x != null) return x;
+        x = processShort(value, returnTypeName);
         if (x != null) return x;
 
         if (returnType == null && returnTypeName != null) {
@@ -186,7 +190,7 @@ public class EqlRsRetriever {
     private Object processString(Object value, String returnTypeName) {
         if ("string".equalsIgnoreCase(returnTypeName) || returnType == String.class) {
             if (value instanceof byte[]) return S.bytesToStr((byte[]) value);
-            return value == null ? null : String.valueOf(value);
+            return String.valueOf(value);
         }
         return null;
     }
@@ -194,7 +198,7 @@ public class EqlRsRetriever {
     private Object processInt(Object value, String returnTypeName) {
         if ("int".equalsIgnoreCase(returnTypeName) || returnType == Integer.class || returnType == int.class) {
             if (value instanceof Number) return ((Number) value).intValue();
-            return value == null ? null : Integer.parseInt(value.toString());
+            return Integer.parseInt(value.toString());
         }
         return null;
     }
@@ -202,16 +206,15 @@ public class EqlRsRetriever {
     private Object processLong(Object value, String returnTypeName) {
         if ("long".equalsIgnoreCase(returnTypeName) || returnType == Long.class || returnType == long.class) {
             if (value instanceof Number) return ((Number) value).longValue();
-            return value == null ? null : Long.parseLong(value.toString());
+            return Long.parseLong(value.toString());
         }
         return null;
     }
 
     private Object processBoolean(Object value, String returnTypeName) {
         if ("boolean".equalsIgnoreCase(returnTypeName) || returnType == Boolean.class || returnType == boolean.class) {
-            if (value instanceof Number)
-                return ((Number) value).shortValue() == 1;
-            return value == null ? null : Boolean.parseBoolean(value.toString());
+            if (value instanceof Number) return ((Number) value).shortValue() == 1;
+            return Boolean.parseBoolean(value.toString());
         }
         return null;
     }
@@ -219,12 +222,29 @@ public class EqlRsRetriever {
     private Object processDouble(Object value, String returnTypeName) {
         if ("double".equalsIgnoreCase(returnTypeName) || returnType == Double.class || returnType == double.class) {
             if (value instanceof Number) return ((Number) value).doubleValue();
-            return value == null ? null : Double.parseDouble(value.toString());
+            return Double.parseDouble(value.toString());
         }
         return null;
     }
 
+    private Object processFloat(Object value, String returnTypeName) {
+        if ("float".equalsIgnoreCase(returnTypeName) || returnType == Float.class || returnType == float.class) {
+            if (value instanceof Number) return ((Number) value).floatValue();
+            return Float.parseFloat(value.toString());
+        }
+        return null;
+    }
+
+    private Object processShort(Object value, String returnTypeName) {
+        if ("short".equalsIgnoreCase(returnTypeName) || returnType == Short.class || returnType == short.class) {
+            if (value instanceof Number) return ((Number) value).shortValue();
+            return Short.parseShort(value.toString());
+        }
+        return null;
+    }
+
+
     public void resetMaxRows() {
-        this.maxRows = DEFAULT_MAXROWS;
+        this.maxRows = DEFAULT_MAX_ROWS;
     }
 }
