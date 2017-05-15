@@ -15,6 +15,22 @@ import static org.junit.Assert.assertNull;
 import static org.n3r.eql.dbfieldcryptor.parser.OracleSensitiveFieldsParser.parseSql;
 
 public class OracleSensitiveFieldsParserTest {
+    String zhangkaihuaSql = "UPDATE TF_B_ORDER_POST\n" +
+            "SET   MOBILE_PHONE = #mobilePhone#, UPDATE_TIME = SYSDATE\n" +
+            "WHERE ORDER_ID = (SELECT F.ORDER_ID\n" +
+            "                    FROM TF_B_ORDER_NETIN F\n" +
+            "                   WHERE SUBSTR(F.ICCID, 13, 19) = #ICCID#\n" +
+            "                     AND F.PSPT_NO = #IDCARD#\n" +
+            "                     AND ROWNUM = 1)";
+    @Test
+    public void testZhangkaihua() {
+        HashSet<String> liuleiSecuretFields = Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO");
+        val parser = parseSql(zhangkaihuaSql, liuleiSecuretFields);
+
+        Assert.assertEquals(Sets.newHashSet(3), parser.getSecureBindIndices());
+    }
+
+
     String liuleiSql = "SELECT * FROM ( SELECT ROW__.*, ROWNUM RN__ FROM (SELECT  N.PSPT_NO \"psptNo\",O.ORDER_NO \"orderNo\", CA.PARA_CODE2 \"orderFrom\",\n" +
             "O.PROVINCE_CODE \"provinceCode\", O.CITY_CODE \"cityCode\",\n" +
             "O.PAY_TYPE \"payType\", to_char(O.TOPAY_MONEY/1000,'FM9999999999990.00') \"toPayMoney\",\n" +
