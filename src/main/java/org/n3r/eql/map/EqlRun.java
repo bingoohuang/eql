@@ -6,17 +6,18 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.joda.time.DateTime;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.EqlParamsParser;
 import org.n3r.eql.param.PlaceholderType;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.*;
-import org.slf4j.Logger;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -24,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 public class EqlRun implements Cloneable {
-    public List<Pair<Integer, Object>> realParams = Lists.<Pair<Integer, Object>>newArrayList();
+    public List<Pair<Integer, Object>> realParams = Lists.newArrayList();
 
     @Setter List<Object> boundParams;
     @Getter @Setter Connection connection;
@@ -41,7 +42,7 @@ public class EqlRun implements Cloneable {
         realParams.add(Pair.of(index, value));
     }
 
-    List<Pair<Integer, Integer>> outParameters = Lists.<Pair<Integer, Integer>>newArrayList();
+    List<Pair<Integer, Integer>> outParameters = Lists.newArrayList();
 
     public void registerOutParameter(int index, int type) {
         outParameters.add(Pair.of(index, type));
@@ -51,13 +52,29 @@ public class EqlRun implements Cloneable {
         createEvalSql(-1, sqlClassPath, eqlConfig, tagSqlId, boundParams.toString());
     }
 
+    public static final boolean HasJodaDateTime = BlackcatUtils.classExists("org.joda.time.DateTime");
+
+    @SneakyThrows
+    public void setParam(PreparedStatement ps, int parameterIndex, Object parameterValue) {
+        if (HasJodaDateTime) {
+            if (parameterValue instanceof DateTime) {
+                val dateTime = (DateTime) parameterValue;
+                ps.setObject(parameterIndex, new Timestamp(dateTime.getMillis()));
+                return;
+            }
+        }
+
+        ps.setObject(parameterIndex, parameterValue);
+    }
+
     @SneakyThrows
     public void bindParams(PreparedStatement ps, String sqlClassPath) {
-        for (Pair<Integer, Object> param : realParams) {
-            ps.setObject(param._1, param._2);
+        for (val param : realParams) {
+            setParam(ps, param._1, param._2);
         }
-        for (Pair<Integer, Integer> out : outParameters) {
-            ((CallableStatement) ps).registerOutParameter(out._1, out._2);
+        for (val out : outParameters) {
+            val cs = (CallableStatement) ps;
+            cs.registerOutParameter(out._1, out._2);
         }
 
         createEvalSql(-1, sqlClassPath, eqlConfig, tagSqlId, boundParams.toString());
@@ -65,8 +82,9 @@ public class EqlRun implements Cloneable {
 
     @SneakyThrows
     public void bindBatchParams(PreparedStatement ps, int index, String sqlClassPath) {
-        for (Pair<Integer, Object> param : realParams) {
-            ps.setObject(param._1, ((Object[]) param._2)[index]);
+        for (val param : realParams) {
+            val x = ((Object[]) param._2)[index];
+            setParam(ps, param._1, x);
         }
 
         createEvalSql(index, sqlClassPath, eqlConfig, tagSqlId, batchParamsString(boundParams, index));
@@ -76,15 +94,13 @@ public class EqlRun implements Cloneable {
                                String tagSqlId, String msg) {
         boolean hasBoundParams = boundParams != null && boundParams.size() > 0;
 
-
-
         if (hasBoundParams) {
-            Logger log = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "params");
+            val log = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "params");
             log.debug(msg);
         }
 
         if (hasBoundParams) {
-            Logger evalLog = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "eval");
+            val evalLog = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "eval");
             /* if (isForEvaluate() || evalLog.isDebugEnabled()) */
             this.evalSql = parseEvalSql(index);
             evalLog.debug(this.evalSql);
@@ -177,7 +193,8 @@ public class EqlRun implements Cloneable {
     @Setter @Getter Object[] dynamics;
     @Setter @Getter Object paramBean;
 
-    @Override @SneakyThrows
+    @Override
+    @SneakyThrows
     public EqlRun clone() {
         return (EqlRun) super.clone();
     }

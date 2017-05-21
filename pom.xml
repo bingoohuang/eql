@@ -58,6 +58,12 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.9.4</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>com.github.bingoohuang</groupId>
             <artifactId>blackcat-instrument</artifactId>
             <version>0.0.13</version>
