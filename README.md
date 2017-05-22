@@ -1029,10 +1029,12 @@ run mysql:<br/>
 `docker run -it --rm mysql mysql -h192.168.99.100 -uroot -P13306 -pmy-secret-pw`
 
 # OGNL 相关知识
+eql默认使用OGNL表达式来做动态条件SQL的判断，OGNL表达式可以参见[ognl language guide](https://commons.apache.org/proper/commons-ognl/language-guide.html).
+## 注意项
 `'a'` 表示字符a，要表示字符串a，需要使用双引号`"a"`;
-`'ab'`和`"ab""` 都可以表示字符串ab，详细见[ognl language guide](https://commons.apache.org/proper/commons-ognl/language-guide.html).
+`'ab'`和`"ab""` 都可以表示字符串ab。
 
-OGNL has the following kinds of constants:
+## OGNL has the following kinds of constants:
 
 1. String literals, as in Java (with the addition of single quotes): delimited by single- or double-quotes, with the full set of character escapes;
 2. Character literals, also as in Java: delimited by single-quotes, also with the full set of escapes;
@@ -1042,14 +1044,29 @@ OGNL has the following kinds of constants:
 
 If you want to compare variable with string in dynamic sql, be careful with single or double quotes.
 
-<br>Testing code:
+##Testing code:
 ```java
 @SneakyThrows
 public static void main(String[] args) {
-    val map = ImmutableMap.of("a", "1", "b", "11");
+    val map = ImmutableMap.of(
+            "a", "1",
+            "b", "11",
+            "c", 0,
+            "d", "0");
     out.println(Ognl.getValue("a == '1'", map)); // false
-    out.println(Ognl.getValue("b == '11'", map)); // true
+    out.println(Ognl.getValue("a == 1", map)); // true
     out.println(Ognl.getValue("a == \"1\"", map)); // true
+
+    out.println(Ognl.getValue("b == '11'", map)); // true
+    out.println(Ognl.getValue("b == 11", map)); // true
+
+    out.println(Ognl.getValue("c == \"0\"", map)); // true
+    out.println(Ognl.getValue("c == '0'", map)); // false
+    out.println(Ognl.getValue("c == 0", map)); // true
+
+    out.println(Ognl.getValue("d == \"0\"", map)); // true
+    out.println(Ognl.getValue("d == '0'", map)); // false
+    out.println(Ognl.getValue("d == 0", map)); // true
 }
 ```
 
