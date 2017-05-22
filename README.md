@@ -1030,7 +1030,7 @@ run mysql:<br/>
 
 # OGNL 相关知识
 `'a'` 表示字符a，要表示字符串a，需要使用双引号`"a"`;
-`'ab'` 表示字符串ab，详细见[ognl language guide](https://commons.apache.org/proper/commons-ognl/language-guide.html).
+`'ab'`和`"ab""` 都可以表示字符串ab，详细见[ognl language guide](https://commons.apache.org/proper/commons-ognl/language-guide.html).
 
 OGNL has the following kinds of constants:
 
