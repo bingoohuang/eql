@@ -108,7 +108,7 @@ public class Rs {
             value = rs.getClob(index);
         } else if (EqlRun.HasJodaDateTime && requiredType == DateTime.class) {
             Timestamp ts = rs.getTimestamp(index);
-            value = new DateTime(ts.getTime());
+            value = ts == null ? null : new DateTime(ts.getTime());
         } else { // Some unknown type desired -> rely on getObject.
             value = getResultSetValue(rs, index);
         }
