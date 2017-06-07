@@ -9,14 +9,12 @@ import org.n3r.eql.EqlTran;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.eqler.annotations.Dynamic;
 import org.n3r.eql.eqler.annotations.Param;
-import org.n3r.eql.eqler.annotations.ReturnType;
 import org.n3r.eql.eqler.annotations.SqlId;
 import org.n3r.eql.impl.EqlBatch;
 import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.pojo.annotations.EqlId;
 import org.objectweb.asm.Type;
 
-import java.lang.annotation.Annotation;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -42,7 +40,7 @@ public class MethodAllParam {
 
     public void compute() {
         int offset = 0;
-        for (MethodParam methodParam : methodParams) {
+        for (val methodParam : methodParams) {
             computeMethodParam(methodParam);
             methodParam.setOffset(offset);
             if (isWildType(methodParam)) ++offset;
@@ -104,10 +102,10 @@ public class MethodAllParam {
 
         ++methodParamsCount;
 
-        Param param = methodParam.getParam();
+        val param = methodParam.getParam();
         if (param != null) methodParam.setSeqParamIndex(namedParamsCount++);
 
-        Dynamic dynamic = methodParam.getDynamic();
+        val dynamic = methodParam.getDynamic();
         if (dynamic == null) {
             if (param == null) methodParam.setSeqParamIndex(seqParamsCount++);
         } else {
@@ -126,7 +124,7 @@ public class MethodAllParam {
     }
 
     private boolean isReturnTypeAnnotated(MethodParam methodParam) {
-        ReturnType returnType = methodParam.getReturnType();
+        val returnType = methodParam.getReturnType();
         if (returnType == null) return false;
 
 
@@ -164,7 +162,7 @@ public class MethodAllParam {
     }
 
     private void checkNonAnnotations(MethodParam methodParam) {
-        Annotation[] paramAnnotations = methodParam.getParamAnnotations();
+        val paramAnnotations = methodParam.getParamAnnotations();
         if (paramAnnotations.length == 0) return;
 
         throw new RuntimeException("Annotations are not supported for type "

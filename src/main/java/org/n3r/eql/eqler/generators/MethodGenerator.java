@@ -199,7 +199,7 @@ public class MethodGenerator<T> {
 
     private void result() {
         Class<?> returnType = method.getReturnType();
-        Type tp = Type.getType(returnType);
+        val tp = Type.getType(returnType);
 
         if (tp.equals(Type.BOOLEAN_TYPE)) {
             mv.visitTypeInsn(CHECKCAST, "java/lang/Boolean");
@@ -207,15 +207,15 @@ public class MethodGenerator<T> {
             mv.visitInsn(IRETURN);
         } else if (tp.equals(Type.BYTE_TYPE)) {
             mv.visitTypeInsn(CHECKCAST, "java/lang/Byte");
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Byte", "valueOf", "(B)Ljava/lang/Byte;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Byte", "byteValue", "()B", false);
             mv.visitInsn(IRETURN);
         } else if (tp.equals(Type.CHAR_TYPE)) {
             mv.visitTypeInsn(CHECKCAST, "java/lang/Character");
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Character", "valueOf", "(C)Ljava/lang/Character;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Character", "charValue", "()C", false);
             mv.visitInsn(IRETURN);
         } else if (tp.equals(Type.SHORT_TYPE)) {
             mv.visitTypeInsn(CHECKCAST, "java/lang/Short");
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Short", "valueOf", "(S)Ljava/lang/Short;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Short", "shortValue", "()S", false);
             mv.visitInsn(IRETURN);
         } else if (tp.equals(Type.INT_TYPE)) {
             mv.visitTypeInsn(CHECKCAST, "java/lang/Integer");
@@ -227,11 +227,11 @@ public class MethodGenerator<T> {
             mv.visitInsn(LRETURN);
         } else if (tp.equals(Type.FLOAT_TYPE)) {
             mv.visitTypeInsn(CHECKCAST, "java/lang/Float");
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Float", "valueOf", "(F)Ljava/lang/Float;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Float", "floatValue", "()F", false);
             mv.visitInsn(FRETURN);
         } else if (tp.equals(Type.DOUBLE_TYPE)) {
             mv.visitTypeInsn(CHECKCAST, "java/lang/Double");
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Double", "doubleValue", "()D", false);
             mv.visitInsn(DRETURN);
         } else if (tp.equals(Type.VOID_TYPE)) {
             mv.visitInsn(POP);
@@ -308,7 +308,7 @@ public class MethodGenerator<T> {
         Class<?> returnTypeClass = method.getReturnType();
         Type tp = Type.getType(returnTypeClass);
 
-        MethodParam eqlRowMapper = methodAllParam.getEqlRowMapper();
+        val eqlRowMapper = methodAllParam.getEqlRowMapper();
         if (eqlRowMapper != null) {
             mv.visitVarInsn(ALOAD, eqlRowMapper.getVarIndex());
             mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType",
@@ -316,7 +316,7 @@ public class MethodGenerator<T> {
             return;
         }
 
-        EqlMapper eqlMapper = method.getAnnotation(EqlMapper.class);
+        val eqlMapper = method.getAnnotation(EqlMapper.class);
         if (eqlMapper != null) {
             Type returnType = Type.getType(eqlMapper.value());
             mv.visitLdcInsn(returnType);
@@ -325,7 +325,7 @@ public class MethodGenerator<T> {
             return;
         }
 
-        MethodParam paramReturnType = methodAllParam.getParamReturnType();
+        val paramReturnType = methodAllParam.getParamReturnType();
         if (paramReturnType != null) {
             mv.visitVarInsn(ALOAD, paramReturnType.getVarIndex());
             mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType",
@@ -352,16 +352,16 @@ public class MethodGenerator<T> {
         } else if (tp.equals(Type.DOUBLE_TYPE)) {
             mv.visitFieldInsn(GETSTATIC, "java/lang/Double", "TYPE", "Ljava/lang/Class;");
         } else {
-            java.lang.reflect.Type genericReturnType = method.getGenericReturnType();
+            val genericReturnType = method.getGenericReturnType();
 
-            boolean isCollectionGeneric = genericReturnType instanceof ParameterizedType
+            val isCollectionGeneric = genericReturnType instanceof ParameterizedType
                     && Collection.class.isAssignableFrom(returnTypeClass);
             if (isCollectionGeneric) {
                 ParameterizedType parameterizedType = (ParameterizedType) genericReturnType;
                 returnTypeClass = (Class) parameterizedType.getActualTypeArguments()[0];
             }
 
-            Type returnType = Type.getType(returnTypeClass);
+            val returnType = Type.getType(returnTypeClass);
             mv.visitLdcInsn(returnType);
         }
 
