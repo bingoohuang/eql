@@ -8,7 +8,7 @@ public class GotoRealPartition extends RealPartition {
     private final int gotoAnotherRule;
 
     public GotoRealPartition(int gotoAnotherRule) {
-       this.gotoAnotherRule = gotoAnotherRule;
+        this.gotoAnotherRule = gotoAnotherRule;
     }
 
     public int getGotoRuleNum() {

@@ -18,7 +18,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
@@ -434,7 +433,7 @@ public class MethodGenerator<T> {
 
         int index = 0;
         for (int i = 0; i < methodAllParam.getParamsSize(); ++i) {
-            MethodParam methodParam = methodAllParam.getMethodParam(i);
+            val methodParam = methodAllParam.getMethodParam(i);
             if (methodParam.getSeqParamIndex() < 0) continue;
 
             mv.visitInsn(DUP);
@@ -469,7 +468,7 @@ public class MethodGenerator<T> {
 
         int index = 0;
         for (int i = 0; i < methodAllParam.getParamsSize(); ++i) {
-            MethodParam methodParam = methodAllParam.getMethodParam(i);
+            val methodParam = methodAllParam.getMethodParam(i);
             if (methodParam.getSeqDynamicIndex() < 0) continue;
 
             mv.visitInsn(DUP);
@@ -484,12 +483,12 @@ public class MethodGenerator<T> {
     }
 
     private MethodAllParam parseParams(Method method) {
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        Annotation[][] paramAnnotations = method.getParameterAnnotations();
-        MethodAllParam methodAllParam = new MethodAllParam();
+        val parameterTypes = method.getParameterTypes();
+        val paramAnnotations = method.getParameterAnnotations();
+        val methodAllParam = new MethodAllParam();
 
         for (int i = 0; i < parameterTypes.length; ++i) {
-            MethodParam methodParam = new MethodParam();
+            val methodParam = new MethodParam();
             methodAllParam.addMethodParam(methodParam);
 
             methodParam.setParamIndex(i);

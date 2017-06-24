@@ -40,7 +40,7 @@ public class TruncateTailTest {
                 .limit(1)
                 .execute(
                         "select id, times, times2, times3, update_time, sex " +
-                        "from test_times where id = ##");
+                                "from test_times where id = ##");
         assertThat(bean2).isEqualTo(expected);
 
         id = RandomStringUtils.randomAlphanumeric(10);

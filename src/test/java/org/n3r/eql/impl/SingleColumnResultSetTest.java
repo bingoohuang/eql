@@ -66,6 +66,7 @@ public class SingleColumnResultSetTest {
             return id != null ? id.hashCode() : 0;
         }
     }
+
     public static class IntIdBean {
         private int id;
 

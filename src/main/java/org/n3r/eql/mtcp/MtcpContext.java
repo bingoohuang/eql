@@ -19,6 +19,7 @@ public class MtcpContext {
     public static String getTenantId() {
         return tenantIdLocal.get();
     }
+
     public static String getTenantCode() {
         return tenantCodeLocal.get();
     }

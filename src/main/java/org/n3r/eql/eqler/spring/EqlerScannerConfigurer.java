@@ -47,7 +47,6 @@ public class EqlerScannerConfigurer implements BeanDefinitionRegistryPostProcess
     }
 
 
-
     public void setProcessPropertyPlaceHolders(boolean processPropertyPlaceHolders) {
         this.processPropertyPlaceHolders = processPropertyPlaceHolders;
     }

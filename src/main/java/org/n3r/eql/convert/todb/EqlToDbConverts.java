@@ -25,7 +25,7 @@ public class EqlToDbConverts {
                     if (ecas.isEmpty()) return Optional.absent();
 
                     val eqlerToDbConverter = new EqlerToDbConverter();
-                    for(val eca : ecas) {
+                    for (val eca : ecas) {
                         eqlerToDbConverter.addConvertAnn(eca);
                     }
 

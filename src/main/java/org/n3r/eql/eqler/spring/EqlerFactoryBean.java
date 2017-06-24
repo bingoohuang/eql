@@ -3,7 +3,7 @@ package org.n3r.eql.eqler.spring;
 import org.n3r.eql.eqler.EqlerFactory;
 import org.springframework.beans.factory.FactoryBean;
 
-public class EqlerFactoryBean<T>  implements FactoryBean<T> {
+public class EqlerFactoryBean<T> implements FactoryBean<T> {
     private Class<T> eqlerInterface;
 
     public void setEqlerInterface(Class<T> eqlerInterface) {

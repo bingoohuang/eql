@@ -7,8 +7,6 @@ import lombok.val;
 import org.n3r.eql.EqlPage;
 import org.n3r.eql.EqlTran;
 import org.n3r.eql.config.EqlConfig;
-import org.n3r.eql.eqler.annotations.Dynamic;
-import org.n3r.eql.eqler.annotations.Param;
 import org.n3r.eql.eqler.annotations.SqlId;
 import org.n3r.eql.impl.EqlBatch;
 import org.n3r.eql.map.EqlRowMapper;

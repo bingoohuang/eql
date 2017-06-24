@@ -13,8 +13,7 @@ import java.sql.ResultSet;
 
 import static java.lang.reflect.Proxy.newProxyInstance;
 
-@Slf4j @AllArgsConstructor
-class PreparedStmtHandler implements InvocationHandler {
+@Slf4j @AllArgsConstructor class PreparedStmtHandler implements InvocationHandler {
     private final PreparedStatement pstmt;
     private final SensitiveFieldsParser parser;
     private final SensitiveCryptor cryptor;

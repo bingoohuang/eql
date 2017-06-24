@@ -17,10 +17,10 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [commondCondition]\n" +
-                "A == #a#\n" +
-                "-- [lookup]\n" +
-                "select 1\n" +
-                "-- include commondCondition");
+                        "A == #a#\n" +
+                        "-- [lookup]\n" +
+                        "select 1\n" +
+                        "-- include commondCondition");
 
         EqlBlock eqlBlock = map.get("lookup");
         assertThat(((StaticSql) eqlBlock.getSqls().get(0)).getSql(), is("select 1\nA == #a#\n"));
@@ -31,19 +31,19 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [selectIf2 returnType=org.n3r.eql.SimpleTest$Bean]\n" +
-                "SELECT A,B,C,D,E\n" +
-                "FROM EQL_TEST\n" +
-                "WHERE A = #a#\n" +
-                "AND\n" +
-                "-- if e == 100\n" +
-                "C = #c#\n" +
-                "/* if a == 1 */ AND B = 'A' /* end */\n" +
-                "and 1 = 1\n" +
-                "-- elseif e == 200\n" +
-                "C = 'AC'\n" +
-                "-- else\n" +
-                "C = 'FALSE'\n" +
-                "-- end");
+                        "SELECT A,B,C,D,E\n" +
+                        "FROM EQL_TEST\n" +
+                        "WHERE A = #a#\n" +
+                        "AND\n" +
+                        "-- if e == 100\n" +
+                        "C = #c#\n" +
+                        "/* if a == 1 */ AND B = 'A' /* end */\n" +
+                        "and 1 = 1\n" +
+                        "-- elseif e == 200\n" +
+                        "C = 'AC'\n" +
+                        "-- else\n" +
+                        "C = 'FALSE'\n" +
+                        "-- end");
 
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
         assertThat(blocks.size(), is(1));
@@ -71,7 +71,7 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog]\r\n"
-                + "SELECT * FROM BLOG");
+                        + "SELECT * FROM BLOG");
 
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
         assertThat(blocks.size(), is(1));
@@ -91,8 +91,8 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog]\r\n"
-                + "SELECT * FROM BLOG1;\r\n"
-                + "SELECT * FROM BLOG2\r\n");
+                        + "SELECT * FROM BLOG1;\r\n"
+                        + "SELECT * FROM BLOG2\r\n");
 
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
         assertThat(blocks.size(), is(1));
@@ -115,9 +115,9 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog1]\r\n"
-                + "SELECT * FROM BLOG\r\n"
-                + "-- [queryBlog2]\r\n"
-                + "SELECT * FROM BLOG"
+                        + "SELECT * FROM BLOG\r\n"
+                        + "-- [queryBlog2]\r\n"
+                        + "SELECT * FROM BLOG"
         );
 
         EqlBlock eqlBlock = map.get("queryBlog1");
@@ -143,10 +143,10 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog]\r\n"
-                + "SELECT * FROM BLOG\r\n"
-                + "-- if name != null\r\n"
-                + "   where name = #name#\r\n"
-                + "-- end"
+                        + "SELECT * FROM BLOG\r\n"
+                        + "-- if name != null\r\n"
+                        + "   where name = #name#\r\n"
+                        + "-- end"
         );
 
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
@@ -184,11 +184,11 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog]\r\n"
-                + "SELECT * FROM BLOG\r\n"
-                + "-- switch name\r\n"
-                + "--    case bingoo\r\n"
-                + "        where name = #name#\r\n"
-                + "-- end"
+                        + "SELECT * FROM BLOG\r\n"
+                        + "-- switch name\r\n"
+                        + "--    case bingoo\r\n"
+                        + "        where name = #name#\r\n"
+                        + "-- end"
         );
 
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
@@ -200,11 +200,11 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog]\r\n"
-                + "SELECT * FROM BLOG\r\n"
-                + "/* switch name */"
-                + "/*    case bingoo */"
-                + "        where name = #name#"
-                + "/* end */"
+                        + "SELECT * FROM BLOG\r\n"
+                        + "/* switch name */"
+                        + "/*    case bingoo */"
+                        + "        where name = #name#"
+                        + "/* end */"
         );
 
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
@@ -266,13 +266,13 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog]\r\n"
-                + "SELECT * FROM BLOG\r\n"
-                + "-- switch name\r\n"
-                + "-- case bingoo\r\n"
-                + "     where name = #name#\r\n"
-                + "-- default\r\n"
-                + "     where sex = #sex#\r\n"
-                + "-- end"
+                        + "SELECT * FROM BLOG\r\n"
+                        + "-- switch name\r\n"
+                        + "-- case bingoo\r\n"
+                        + "     where name = #name#\r\n"
+                        + "-- default\r\n"
+                        + "     where sex = #sex#\r\n"
+                        + "-- end"
         );
 
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
@@ -285,13 +285,13 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog]\r\n"
-                + "SELECT * FROM BLOG\r\n"
-                + "/* switch name*/\n"
-                + "-- case bingoo\r\n"
-                + "     where name = #name#\r\n"
-                + "-- default\r\n"
-                + "     where sex = #sex#\r\n"
-                + "/* end */"
+                        + "SELECT * FROM BLOG\r\n"
+                        + "/* switch name*/\n"
+                        + "-- case bingoo\r\n"
+                        + "     where name = #name#\r\n"
+                        + "-- default\r\n"
+                        + "     where sex = #sex#\r\n"
+                        + "/* end */"
         );
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
 
@@ -366,8 +366,8 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog]\r\n"
-                + "SELECT * FROM BLOG\r\n"
-                + "/* if name != null */ where name = #name# /* end */"
+                        + "SELECT * FROM BLOG\r\n"
+                        + "/* if name != null */ where name = #name# /* end */"
         );
 
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
@@ -403,8 +403,8 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog]\r\n"
-                + "SELECT * FROM BLOG\r\n"
-                + "/* if name != null */ \r\n where name = #name# \r\n/* end */"
+                        + "SELECT * FROM BLOG\r\n"
+                        + "/* if name != null */ \r\n where name = #name# \r\n/* end */"
         );
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
 
@@ -444,12 +444,12 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog]\r\n"
-                + "SELECT * FROM BLOG\r\n"
-                + "-- if name != null\r\n"
-                + "   where name = #name#\r\n"
-                + "-- else if sex != null\r\n"
-                + "   where sex = #sex#\r\n"
-                + "-- end"
+                        + "SELECT * FROM BLOG\r\n"
+                        + "-- if name != null\r\n"
+                        + "   where name = #name#\r\n"
+                        + "-- else if sex != null\r\n"
+                        + "   where sex = #sex#\r\n"
+                        + "-- end"
         );
 
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
@@ -461,12 +461,12 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog]\r\n"
-                + "SELECT * FROM BLOG\r\n"
-                + "/* if name != null*/"
-                + "   where name = #name#\r\n"
-                + "/* else if sex != null*/"
-                + "   where sex = #sex#\r\n"
-                + "-- end"
+                        + "SELECT * FROM BLOG\r\n"
+                        + "/* if name != null*/"
+                        + "   where name = #name#\r\n"
+                        + "/* else if sex != null*/"
+                        + "   where sex = #sex#\r\n"
+                        + "-- end"
         );
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
 
@@ -511,12 +511,12 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog]\r\n"
-                + "SELECT * FROM BLOG\r\n"
-                + "-- if name != null\r\n"
-                + "   where name = #name#\r\n"
-                + "-- else\r\n"
-                + "   where sex = #sex#\r\n"
-                + "-- end"
+                        + "SELECT * FROM BLOG\r\n"
+                        + "-- if name != null\r\n"
+                        + "   where name = #name#\r\n"
+                        + "-- else\r\n"
+                        + "   where sex = #sex#\r\n"
+                        + "-- end"
         );
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
 
@@ -558,10 +558,10 @@ public class EqlParserTest {
         EqlParser eqlParser = new EqlParser(null, "");
         Map<String, EqlBlock> map = eqlParser.parse(
                 "-- [queryBlog]\r\n"
-                + "SELECT * FROM BLOG where name in\r\n"
-                + "-- for item=item collection=names open=( close=) seperate=,\r\n"
-                + "   #item#\r\n"
-                + "-- end"
+                        + "SELECT * FROM BLOG where name in\r\n"
+                        + "-- for item=item collection=names open=( close=) seperate=,\r\n"
+                        + "   #item#\r\n"
+                        + "-- end"
         );
         List<EqlBlock> blocks = new ArrayList<EqlBlock>(map.values());
 
@@ -583,10 +583,10 @@ public class EqlParserTest {
         EqlPart eqlPart1 = sqlParts.part(1);
         assertThat(eqlPart1 instanceof ForPart, is(true));
         ForPart part = (ForPart) eqlPart1;
-        assertThat(((LiteralPart)part.getPart().part(0)).getSql(), is("#item#\n"));
+        assertThat(((LiteralPart) part.getPart().part(0)).getSql(), is("#item#\n"));
     }
 
-    @Test(expected=Exception.class)
+    @Test(expected = Exception.class)
     public void duplicatedSqlIdImportBlock() {
         EqlParser eqlParser = new EqlParser(null, "");
         eqlParser.parse(

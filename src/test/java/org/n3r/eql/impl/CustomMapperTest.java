@@ -19,10 +19,10 @@ public class CustomMapperTest {
     @Test
     public void test1() {
         DecodeMapper myMapper = new DecodeMapper(
-                "A000014","brandCode","brandName",
-                "A000015", "modelCode","modelName",
-                "A000016","colorCode", "colorName"
-                );
+                "A000014", "brandCode", "brandName",
+                "A000015", "modelCode", "modelName",
+                "A000016", "colorCode", "colorName"
+        );
 
         new Eql("mysql").returnType(myMapper).execute();
         Map<String, String> map = myMapper.getMap();

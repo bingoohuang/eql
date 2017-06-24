@@ -30,6 +30,7 @@ if(obj instanceof String && ((String) obj).length() >= 4000) {
     stmt.setClob(i+1, clob);
 }
  */
+
 /**
  * @author bingoohuang [bingoohuang@gmail.com] Created on 2016/12/18.
  */

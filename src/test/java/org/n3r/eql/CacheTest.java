@@ -47,7 +47,7 @@ public class CacheTest {
         List<String> strs2 = new Eql().limit(eqlPage).execute();
 
         assertThat(strs1, is(equalTo(strs2)));
-        assertThat(eqlPage.getTotalRows(), is (11));
+        assertThat(eqlPage.getTotalRows(), is(11));
     }
 
     @BeforeClass

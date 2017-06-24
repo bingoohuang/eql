@@ -10,6 +10,7 @@ public interface EqlResourceLoader {
     Map<String, EqlBlock> load(String classPath);
 
     void setDynamicLanguageDriver(DynamicLanguageDriver dynamicLanguageDriver);
+
     DynamicLanguageDriver getDynamicLanguageDriver();
 
     void setEqlLazyLoad(boolean eqlLazyLoad);

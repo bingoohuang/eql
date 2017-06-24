@@ -27,7 +27,7 @@ public class Logs {
         }
     }
 
-    public static Logger createLogger(EqlConfig eqlConfig, String sqlClassPath, String sqlId,  String tagSqlId, String tag) {
+    public static Logger createLogger(EqlConfig eqlConfig, String sqlClassPath, String sqlId, String tagSqlId, String tag) {
         String loggerPrefix = eqlConfig.getStr("logger.prefix");
         if (S.isBlank(loggerPrefix) || loggerPrefix.equals("auto")) loggerPrefix = "eql";
         if (loggerPrefix.endsWith(".")) loggerPrefix = loggerPrefix.substring(0, loggerPrefix.length() - 1);

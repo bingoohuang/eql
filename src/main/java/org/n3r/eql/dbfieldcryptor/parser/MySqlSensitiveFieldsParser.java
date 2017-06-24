@@ -100,7 +100,7 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
     }
 
 
-    private static MySqlSensitiveFieldsParser  parseStatement(
+    private static MySqlSensitiveFieldsParser parseStatement(
             MySqlSensitiveFieldsParser parser, SQLStatement sqlStatement) {
         if (sqlStatement instanceof SQLSelectStatement) {
             parser.parseSelectQuery(((SQLSelectStatement) sqlStatement).getSelect().getQuery());

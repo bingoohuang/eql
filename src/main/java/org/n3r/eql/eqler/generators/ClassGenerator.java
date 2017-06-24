@@ -8,7 +8,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 
 import java.io.FileOutputStream;
-import java.lang.reflect.Method;
 
 import static org.objectweb.asm.Opcodes.*;
 

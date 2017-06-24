@@ -59,7 +59,7 @@ public class EqlBaseBeanMapper {
         val noneUnderstore = lowerCaseName.replaceAll("_", "");
 
         var pd = this.mappedProperties.get(lowerCaseName);
-        if (pd == null)  pd = this.mappedProperties.get(noneUnderstore);
+        if (pd == null) pd = this.mappedProperties.get(noneUnderstore);
         if (pd != null) {
             Object value = Rs.getResultSetValue(rs, index, pd.getPropertyType());
 

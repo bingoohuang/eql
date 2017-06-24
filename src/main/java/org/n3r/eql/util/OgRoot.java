@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-public class OgRoot implements Map<String, Object>  {
+public class OgRoot implements Map<String, Object> {
     private final Map map;
 
     public OgRoot(Map<String, Object> m) {

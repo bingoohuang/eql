@@ -22,6 +22,7 @@ public class OracleSensitiveFieldsParserTest {
             "                   WHERE SUBSTR(F.ICCID, 13, 19) = #ICCID#\n" +
             "                     AND F.PSPT_NO = #IDCARD#\n" +
             "                     AND ROWNUM = 1)";
+
     @Test
     public void testZhangkaihua() {
         HashSet<String> liuleiSecuretFields = Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO");

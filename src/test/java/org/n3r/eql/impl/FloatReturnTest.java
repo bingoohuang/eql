@@ -17,6 +17,7 @@ public class FloatReturnTest {
     public interface FloatDao {
         @Sql("select 1")
         float sum1();
+
         @Sql("select 1")
         Float sum2();
     }

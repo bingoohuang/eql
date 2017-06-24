@@ -12,8 +12,7 @@ import java.sql.CallableStatement;
 
 import static java.lang.reflect.Proxy.newProxyInstance;
 
-@Slf4j @AllArgsConstructor
-class CallableStmtHandler implements InvocationHandler {
+@Slf4j @AllArgsConstructor class CallableStmtHandler implements InvocationHandler {
     private final CallableStatement stmt;
     private final SensitiveFieldsParser parser;
     private final SensitiveCryptor cryptor;

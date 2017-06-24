@@ -9,7 +9,7 @@ import org.n3r.eql.impl.DefaultEqlConfigDecorator;
 public class EqlDiamondConfig extends EqlPropertiesConfig
         implements EqlTranFactoryCacheLifeCycle {
     public static final String EQL_CONFIG_GROUP_NAME = "EqlConfig";
-    
+
     private String connectionName;
     private DiamondListenerAdapter diamondListener;
     private DiamondManager diamondManager;

@@ -11,7 +11,7 @@ public class BlockOptionsParser {
     public static Map<String, String> parseOptions(
             String optionsStr, OptionValueParser... optionValueParsers) {
         HashMap<String, String> options = new HashMap<String, String>();
-        if (optionsStr == null ) return options;
+        if (optionsStr == null) return options;
 
         Matcher matcher = OPTION_PATTERN.matcher(optionsStr);
         int pos = 0;

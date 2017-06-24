@@ -113,7 +113,7 @@ public class DbDialect {
 
     private String createSqlserverPageSql(String sql) {
         return "SELECT * FROM (SELECT ROW_NUMBER () OVER (ORDER BY getdate() ASC) RowNumber ,* FROM  "
-                + "  (" + sql +")T_   )TT_ "
+                + "  (" + sql + ")T_   )TT_ "
                 + "  WHERE    TT_.RowNumber <=?   and  TT_.RowNumber>?";
     }
 

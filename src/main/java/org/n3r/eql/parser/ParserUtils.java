@@ -4,6 +4,7 @@ import java.util.regex.Pattern;
 
 public class ParserUtils {
     public static Pattern inlineComment = Pattern.compile("/\\*\\s*(.+?)\\s*\\*/", Pattern.DOTALL);
+
     public static String substr(String line, int startIndex) {
         if (startIndex >= line.length()) return "";
 
