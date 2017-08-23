@@ -1,3 +1,5 @@
+-- noinspection SqlNoDataSourceInspectionForFile
+
 -- [beforeClass]
 DROP TABLE IF EXISTS member_card_week_times;
 CREATE TABLE member_card_week_times (

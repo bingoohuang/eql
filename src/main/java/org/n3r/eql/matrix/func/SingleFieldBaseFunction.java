@@ -16,7 +16,7 @@ public abstract class SingleFieldBaseFunction implements MatrixFunction {
     }
 
     @Override
-    public  boolean match(MatrixTableFieldValue[] fieldValues) {
+    public boolean match(MatrixTableFieldValue[] fieldValues) {
         return matrixTableField.find(fieldValues);
     }
 

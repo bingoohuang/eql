@@ -1,7 +1,11 @@
 package org.n3r.eql;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+import lombok.Cleanup;
+import lombok.Getter;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.n3r.eql.codedesc.CodeDescs;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.config.EqlConfigCache;
@@ -17,24 +21,23 @@ import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.trans.spring.EqlTransactionManager;
 import org.n3r.eql.util.*;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.sql.*;
-import java.util.Iterator;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings("unchecked") @Slf4j
 public class Eql {
     public static final String DEFAULT_CONN_NAME = "DEFAULT";
     public static final int STACKTRACE_DEEP_FOUR = 4;
     public static final int STACKTRACE_DEEP_FIVE = 5;
 
-    protected static Logger logger = LoggerFactory.getLogger(Eql.class);
-
-    protected EqlConfigDecorator eqlConfig;
+    @Getter protected EqlConfigDecorator eqlConfig;
     protected EqlBlock eqlBlock;
-    protected Object[] params;
+    @Getter protected Object[] params;
     private String sqlClassPath;
     private EqlPage page;
     protected EqlBatch batch;
@@ -51,6 +54,7 @@ public class Eql {
     private boolean cached = true;
     private String tagSqlId; // for eqler log convenience
     private String sqlId;
+    private String options; // for eqler to fully support dynamic sql
 
     public Eql() {
         this(Eql.STACKTRACE_DEEP_FIVE);
@@ -81,6 +85,11 @@ public class Eql {
         return this;
     }
 
+    public Eql options(String options) {
+        this.options = options;
+        return this;
+    }
+
     private void init(EqlConfig eqlConfig, int stackDeep) {
         this.eqlConfig = eqlConfig instanceof EqlConfigDecorator
                 ? (EqlConfigDecorator) eqlConfig
@@ -90,7 +99,7 @@ public class Eql {
     }
 
     private void prepareDefaultSqlId(int stackDeep) {
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        val stackTrace = Thread.currentThread().getStackTrace();
         StackTraceElement e = stackTrace[stackDeep];
         defaultSqlId = e.getMethodName();
     }
@@ -100,7 +109,7 @@ public class Eql {
     }
 
     private void createDbDialect() {
-        EqlTran eqlTran = internalTran != null ? internalTran : externalTran;
+        val eqlTran = internalTran != null ? internalTran : externalTran;
         dbDialect = DbDialect.parseDbType(eqlTran.getDriverName(), eqlTran.getJdbcUrl());
         execContext.put("_databaseId", dbDialect.getDatabaseId());
     }
@@ -120,9 +129,10 @@ public class Eql {
 
         execContext = EqlUtils.newExecContext(params, dynamics);
 
-        if (directSqls.length > 0) eqlBlock = new EqlBlock();
+        if (directSqls.length > 0) eqlBlock = new EqlBlock(options);
 
-        eqlRuns = eqlBlock.createEqlRuns(tagSqlId, eqlConfig, execContext, params, dynamics, directSqls);
+        eqlRuns = eqlBlock.createEqlRuns(tagSqlId, eqlConfig,
+                execContext, params, dynamics, directSqls);
 
         IterateOptions.checkIterateOption(eqlBlock, eqlRuns, params);
 
@@ -132,7 +142,7 @@ public class Eql {
 
             if (S.isBlank(currRun.getRunSql())) continue;
 
-            new EqlParamsBinder().prepareBindParams(eqlBlock.hasIterateOption(), currRun);
+            new EqlParamsBinder().prepareBindParams(eqlBlock.isIterateOption(), currRun);
 
             currRun.bindParamsForEvaluation(sqlClassPath);
         }
@@ -140,7 +150,7 @@ public class Eql {
         return eqlRuns;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") @SneakyThrows
     public <T> T execute(String... directSqls) {
         checkPreconditions(directSqls);
 
@@ -154,9 +164,10 @@ public class Eql {
             tranStart();
             createDbDialect();
 
-            if (directSqls.length > 0) eqlBlock = new EqlBlock();
+            if (directSqls.length > 0) eqlBlock = new EqlBlock(options);
 
-            eqlRuns = eqlBlock.createEqlRuns(tagSqlId, eqlConfig, execContext, params, dynamics, directSqls);
+            eqlRuns = eqlBlock.createEqlRuns(tagSqlId, eqlConfig,
+                    execContext, params, dynamics, directSqls);
             IterateOptions.checkIterateOption(eqlBlock, eqlRuns, params);
 
             isAllSelect = checkAllSelect(eqlRuns);
@@ -167,7 +178,7 @@ public class Eql {
                 if (S.isBlank(currRun.getRunSql())) continue;
 
                 checkBatchCmdsSupporting(eqlRun);
-                new EqlParamsBinder().prepareBindParams(eqlBlock.hasIterateOption(), currRun);
+                new EqlParamsBinder().prepareBindParams(eqlBlock.isIterateOption(), currRun);
                 createConn();
 
                 ret = runEql();
@@ -181,8 +192,9 @@ public class Eql {
             if (!isAllSelect) tranCommit();
         } catch (Throwable e) {
             if (!isAllSelect) tranRollback();
-            logger.error("exec sql {} exception", currRun == null ? "none" : currRun.getPrintSql(), e);
-            throw Fucks.fuck(e);
+            log.error("exec sql {} exception", currRun == null
+                    ? "none" : currRun.getPrintSql(), e);
+            throw e;
         } finally {
             resetState();
             close();
@@ -212,7 +224,7 @@ public class Eql {
     private Object tryGetCache(String[] directSqls) {
         if (!isCacheUsable(directSqls)) return null;
 
-        Optional<Object> cachedResult = eqlBlock.getCachedResult(params, dynamics, page);
+        val cachedResult = eqlBlock.getCachedResult(params, dynamics, page);
         if (cachedResult == null) return null;
 
         return cachedResult.orNull();
@@ -234,7 +246,8 @@ public class Eql {
                 // OK!
                 break;
             default:
-                throw new EqlExecuteException(currRun.getPrintSql() + " is not supported in batch mode");
+                throw new EqlExecuteException(currRun.getPrintSql()
+                        + " is not supported in batch mode");
         }
     }
 
@@ -267,7 +280,8 @@ public class Eql {
         execContext = EqlUtils.newExecContext(params, dynamics);
         tranStart();
 
-        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(tagSqlId, eqlConfig, execContext, params, dynamics);
+        val sqlSubs = eqlBlock.createEqlRunsByEqls(tagSqlId,
+                eqlConfig, execContext, params, dynamics);
         if (sqlSubs.size() != 1)
             throw new EqlExecuteException("only one select sql supported");
 
@@ -275,7 +289,7 @@ public class Eql {
         if (!currRun.getSqlType().isSelect())
             throw new EqlExecuteException("only one select sql supported");
 
-        ESelectStmt selectStmt = new ESelectStmt();
+        val selectStmt = new ESelectStmt();
         prepareStmt(selectStmt);
 
         selectStmt.setRsRetriever(rsRetriever);
@@ -291,15 +305,18 @@ public class Eql {
         tranStart();
         createConn();
 
-        List<EqlRun> sqlSubs = eqlBlock.createEqlRunsByEqls(tagSqlId, eqlConfig, execContext, params, dynamics);
+        val sqlSubs = eqlBlock.createEqlRunsByEqls(tagSqlId,
+                eqlConfig, execContext, params, dynamics);
         if (sqlSubs.size() != 1)
-            throw new EqlExecuteException("only one update sql supported in this method");
+            throw new EqlExecuteException(
+                    "only one update sql supported in this method");
 
         currRun = sqlSubs.get(0);
         if (!currRun.getSqlType().isUpdateStmt())
-            throw new EqlExecuteException("only one update/merge/delete/insert sql supported in this method");
+            throw new EqlExecuteException(
+                    "only one update/merge/delete/insert sql supported in this method");
 
-        EUpdateStmt updateStmt = new EUpdateStmt();
+        val updateStmt = new EUpdateStmt();
         prepareStmt(updateStmt);
 
         return updateStmt;
@@ -313,39 +330,36 @@ public class Eql {
             return;
         }
 
-        if (S.isBlank(defaultSqlId)) throw new EqlExecuteException("No sqlid defined!");
+        if (S.isBlank(defaultSqlId))
+            throw new EqlExecuteException("No sqlid defined!");
 
         initSqlId(defaultSqlId, STACKTRACE_DEEP_FIVE);
     }
 
+    @SneakyThrows
     protected Object runEql() {
         try {
             return currRun.getSqlType().isDdl() ? execDdl() : pageExecute();
         } catch (Exception ex) {
-            if (!currRun.getEqlBlock().isOnerrResume()) throw Fucks.fuck(ex);
-            else logger.warn("execute sql {} error {}", currRun.getPrintSql(), ex.getMessage());
+            if (!currRun.getEqlBlock().isOnErrResume()) throw ex;
+            else
+                log.warn("execute sql {} error {}",
+                        currRun.getPrintSql(), ex.getMessage());
         }
 
         return 0;
     }
 
+    @SneakyThrows
     private boolean execDdl() {
-        Statement stmt = null;
-        logger.debug("ddl sql for {}: {}", getSqlId(), currRun.getPrintSql());
-        try {
-            stmt = currRun.getConnection().createStatement();
-            EqlUtils.setQueryTimeout(eqlConfig, stmt);
-            return stmt.execute(currRun.getRunSql());
-        } catch (SQLException ex) {
-            throw Fucks.fuck(ex);
-        } finally {
-            Closes.closeQuietly(stmt);
-        }
+        log.debug("ddl sql for {}: {}", getSqlId(), currRun.getPrintSql());
+        @Cleanup val stmt = currRun.getConnection().createStatement();
+        EqlUtils.setQueryTimeout(eqlConfig, stmt);
+        return stmt.execute(currRun.getRunSql());
     }
 
     private Object pageExecute() throws SQLException {
         if (page == null || !currRun.isLastSelectSql()) return execDml();
-
         if (page.getTotalRows() == 0) page.setTotalRows(executeTotalRowsSql());
 
         return executePageSql();
@@ -355,7 +369,7 @@ public class Eql {
         EqlRun temp = currRun;
         currRun = dbDialect.createPageSql(currRun, page);
 
-        new EqlParamsBinder().prepareBindParams(eqlBlock.hasIterateOption(), currRun);
+        new EqlParamsBinder().prepareBindParams(eqlBlock.isIterateOption(), currRun);
 
         Object o = execDml();
         currRun = temp;
@@ -384,11 +398,13 @@ public class Eql {
 
         if (totalRows instanceof Number) return ((Number) totalRows).intValue();
 
-        throw new EqlExecuteException("returned total rows object " + totalRows + " is not a number");
+        throw new EqlExecuteException("returned total rows object "
+                + totalRows + " is not a number");
     }
 
     private Object execDml() throws SQLException {
         Object execRet = batch != null ? execDmlInBatch() : execDmlNoBatch();
+        currRun.traceResult(execRet);
 
         Logs.logResult(eqlConfig, sqlClassPath, execRet, getSqlId(), tagSqlId);
 
@@ -399,34 +415,36 @@ public class Eql {
         return batch.addBatch(currRun);
     }
 
+    @SneakyThrows
     private void prepareStmt(EStmt stmt) {
         PreparedStatement ps = null;
+
         try {
             ps = prepareSql();
-
             stmt.setPreparedStatment(ps);
             stmt.setEqlRun(currRun);
             stmt.setSqlClassPath(sqlClassPath);
-            stmt.setLogger(logger);
+            stmt.setLogger(log);
             stmt.params(params);
             stmt.setEqlTran(externalTran != null ? externalTran : internalTran);
         } catch (Exception ex) {
             Closes.closeQuietly(ps);
-            throw Fucks.fuck(ex);
+            throw ex;
         }
     }
 
-    private Object execDmlNoBatch() throws SQLException {
+    @SneakyThrows
+    private Object execDmlNoBatch() {
         ResultSet rs = null;
         PreparedStatement ps = null;
         try {
             ps = prepareSql();
 
-            if (eqlBlock.hasIterateOption()) {
+            if (eqlBlock.isIterateOption()) {
                 int rowCount = 0;
 
                 if (params[0] instanceof Iterable) {
-                    Iterator<Object> iterator = ((Iterable<Object>) params[0]).iterator();
+                    val iterator = ((Iterable<Object>) params[0]).iterator();
                     for (int i = 0; iterator.hasNext(); ++i, iterator.next()) {
                         currRun.bindBatchParams(ps, i, sqlClassPath);
                         rowCount += ps.executeUpdate();
@@ -446,7 +464,8 @@ public class Eql {
                     rs = ps.executeQuery();
                     if (fetchSize > 0) rs.setFetchSize(fetchSize);
 
-                    ResultSet wrapRs = CodeDescs.codeDescWrap(currRun, eqlBlock, eqlConfig, sqlClassPath, rs, tagSqlId);
+                    val wrapRs = CodeDescs.codeDescWrap(currRun, eqlBlock,
+                            eqlConfig, sqlClassPath, rs, tagSqlId);
                     Object convertedValue = rsRetriever.convert(wrapRs, currRun);
                     return convertedValue;
                 }
@@ -462,9 +481,10 @@ public class Eql {
         }
     }
 
-    private PreparedStatement prepareSql() throws SQLException {
+    private PreparedStatement prepareSql() {
         createConn();
-        return EqlUtils.prepareSQL(sqlClassPath, eqlConfig, currRun, getSqlId(), tagSqlId);
+        return EqlUtils.prepareSQL(sqlClassPath,
+                eqlConfig, currRun, getSqlId(), tagSqlId);
     }
 
     public Eql returnType(Class<?> returnType) {
@@ -615,10 +635,6 @@ public class Eql {
         return EqlConfigManager.getConfig(eqlConfig).createTran();
     }
 
-    public EqlConfig getEqlConfig() {
-        return eqlConfig;
-    }
-
     public String getSqlPath() {
         return sqlClassPath;
     }
@@ -630,7 +646,6 @@ public class Eql {
 
     public Eql limit(EqlPage page) {
         this.page = page;
-
         return this;
     }
 
@@ -644,12 +659,8 @@ public class Eql {
         return this;
     }
 
-    public Object[] getParams() {
-        return params;
-    }
-
     public Logger getLogger() {
-        return logger;
+        return log;
     }
 
     public Eql returnType(String returnTypeName) {

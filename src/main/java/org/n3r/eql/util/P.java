@@ -1,105 +1,56 @@
 package org.n3r.eql.util;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Optional;
-import com.google.common.collect.Maps;
-import org.n3r.eql.base.EqlToProperties;
+import lombok.Cleanup;
+import lombok.SneakyThrows;
+import lombok.val;
+import org.n3r.eql.convert.todb.EqlToDbConverts;
 
-import java.beans.BeanInfo;
-import java.beans.PropertyDescriptor;
-import java.io.*;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.lang.reflect.AccessibleObject;
 import java.util.Map;
 import java.util.Properties;
 
 @SuppressWarnings("unchecked")
 public class P {
-
-    public static Map<String, Object> mergeProperties(
-            Map<String, Object> context, Object bean) {
-        Map<String, Object> map = Maps.newHashMap(context);
-        if (bean == null) return map;
-
-        if (bean instanceof Map) {
-            map.putAll((Map<String, Object>) bean);
-            return map;
-        }
-
-        if (bean instanceof EqlToProperties) {
-            map.putAll(((EqlToProperties) bean).toProperties());
-        } else {
-            mergeDeclaredProperties(bean, map);
-            mergeReadProperties(bean, map);
-        }
-
-        return map;
+    public static Map<String, Object> mergeProperties(Map<String, Object> context, Object bean) {
+        return MapInvocationHandler.proxy(context, bean);
     }
 
-    private static void mergeDeclaredProperties(
-            Object bean, Map<String, Object> map) {
-        for (Field field : bean.getClass().getDeclaredFields()) {
-            try {
-                field.setAccessible(true);
-                map.put(field.getName(), field.get(bean));
-            } catch (Exception e) {
-                // ignore
-            }
-        }
+    public static Object toDbConvert(AccessibleObject accessibleObject, Object value) {
+        val converter = EqlToDbConverts.getConverter(accessibleObject);
+        if (!converter.isPresent()) return value;
+
+        return converter.get().convert(null, value);
     }
 
-    private static void mergeReadProperties(
-            Object bean, Map<String, Object> map) {
-        BeanInfo info = O.getBeanInfo(bean.getClass());
-
-        for (PropertyDescriptor pDesc : info.getPropertyDescriptors()) {
-            Method method = pDesc.getReadMethod();
-            if (method == null) continue;
-
-            String name = pDesc.getName();
-            Optional<Object> value = O.invokeMethod(bean, method);
-            if (value.isPresent()) map.put(name, value.get());
-        }
-    }
-
+    @SneakyThrows
     public static Properties toProperties(String properties) {
         Properties result = new Properties();
 
-        try {
-            byte[] bytes = properties.getBytes(Charsets.UTF_8);
-            result.load(new ByteArrayInputStream(bytes));
-        } catch (IOException e) {
-            throw Fucks.fuck(e);
-        }
+        byte[] bytes = properties.getBytes(Charsets.UTF_8);
+        result.load(new ByteArrayInputStream(bytes));
 
         return result;
     }
 
+    @SneakyThrows
     public static Properties toProperties(File file) {
         Properties result = new Properties();
 
-        FileInputStream fis = null;
-        try {
-            fis = new FileInputStream(file);
-            result.load(fis);
-        } catch (IOException e) {
-            throw Fucks.fuck(e);
-        } finally {
-            Closes.closeQuietly(fis);
-        }
+        @Cleanup FileInputStream fis = new FileInputStream(file);
+        result.load(fis);
 
         return result;
     }
 
+    @SneakyThrows
     public static Properties toProperties(InputStream is) {
         Properties result = new Properties();
-
-        try {
-            result.load(is);
-        } catch (IOException e) {
-            throw Fucks.fuck(e);
-        }
-
+        result.load(is);
         return result;
     }
 }

@@ -1,13 +1,12 @@
 package org.n3r.eql.trans;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import lombok.SneakyThrows;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.util.EqlUtils;
-import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.O;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Map;
 
 public class EqlDruidConnection extends AbstractEqlConnection {
@@ -22,13 +21,9 @@ public class EqlDruidConnection extends AbstractEqlConnection {
     }
 
 
-    @Override
+    @Override @SneakyThrows
     public Connection getConnection(String dbName) {
-        try {
-            return dataSource.getConnection();
-        } catch (SQLException e) {
-            throw Fucks.fuck(e);
-        }
+        return dataSource.getConnection();
     }
 
     @Override

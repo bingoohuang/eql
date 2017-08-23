@@ -1,5 +1,6 @@
 package org.n3r.eql.dbfieldcryptor.proxy;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.n3r.eql.dbfieldcryptor.SensitiveCryptor;
 import org.n3r.eql.dbfieldcryptor.parser.SensitiveFieldsParser;
@@ -12,19 +13,10 @@ import java.sql.ResultSet;
 
 import static java.lang.reflect.Proxy.newProxyInstance;
 
-@Slf4j class PreparedStmtHandler implements InvocationHandler {
+@Slf4j @AllArgsConstructor class PreparedStmtHandler implements InvocationHandler {
     private final PreparedStatement pstmt;
-    private final SensitiveCryptor cryptor;
     private final SensitiveFieldsParser parser;
-
-    public PreparedStmtHandler(
-            PreparedStatement pStmt,
-            SensitiveFieldsParser parser,
-            SensitiveCryptor cryptor) {
-        this.pstmt = pStmt;
-        this.parser = parser;
-        this.cryptor = cryptor;
-    }
+    private final SensitiveCryptor cryptor;
 
     @Override
     public Object invoke(

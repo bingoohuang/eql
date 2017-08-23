@@ -2,6 +2,10 @@ eql
 ====
 
 An easy framework of java JDBC to be an alternative to ibatis/mybatis.
+<br>
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.bingoohuang/eql/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/com.github.bingoohuang/eql/)
+[![License](http://img.shields.io/:license-apache-brightgreen.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+<br>
 
 I don't like XML in ibatis.
 + excuse 1:
@@ -202,6 +206,19 @@ select 'X' from dual
 where 'a' = '#_1#'
 and 'b' = '#_2#'
 ```
+
+In above example, the _1 and _2 are used, they are called built-in parameters.
+More built-in parameters list here:
+1. `_time` current timestamp, type: `java.sql.Timestamp`
+2. `_date` current date, type:`java.util.Date`
+3. `_host` current hostname
+4. `_ip` current ip
+5. `_params` currrent params array
+6. `_paramsCount` length of current params array
+7. `_1`,`_2`,`_3`,... the param in sequence
+8. `_dynamics` current dynamics array
+9. `_dynamicsCount` lenght of current dynamics array
+10. `_databaseId`, oracle/mysql/h2/db2/sqlserver
 
 # Dynamic sql
 
@@ -984,3 +1001,72 @@ com.mysql.jdbc.exceptions.jdbc4.MySQLNonTransientConnectionException: Communicat
 ```
 
 Try use url like  `jdbc:mysql://192.168.99.100:13306/dba?useUnicode=true&&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=3000&autoReconnect=true` instead of `jdbc:mysql://192.168.99.100:13306/dba`
+
+# FAQ
+## java.lang.NullPointerException
+A single primitive return type like int/long/short will cause NPE when SQL results no rows. 
+In this situation, the related wrapper type like Integer/Long/Short should be used instead.
+```java
+@Test
+public void returnInteger() {
+    Integer intValue = new Eql("h2").limit(1)
+            .returnType(Integer.class).execute("select 1 where 2 > 3");
+    assertThat(intValue).isNull();
+}
+
+@Test(expected = NullPointerException.class)
+public void returnInt() {
+    int intValue = new Eql("h2").limit(1)
+            .returnType(int.class).execute("select 1 where 2 > 3");
+}
+```
+
+# docker
+## mysql
+run mysql:<br/>
+`docker run -p 13306:3306 --name mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql`
+<br/>run client:<br/>
+`docker run -it --rm mysql mysql -h192.168.99.100 -uroot -P13306 -pmy-secret-pw`
+
+# OGNL 相关知识
+eql默认使用OGNL表达式来做动态条件SQL的判断，OGNL表达式可以参见[ognl language guide](https://commons.apache.org/proper/commons-ognl/language-guide.html).
+## 注意项
+`'a'` 表示字符a，要表示字符串a，需要使用双引号`"a"`;
+`'ab'`和`"ab""` 都可以表示字符串ab。
+
+## OGNL has the following kinds of constants:
+
+1. String literals, as in Java (with the addition of single quotes): delimited by single- or double-quotes, with the full set of character escapes;
+2. Character literals, also as in Java: delimited by single-quotes, also with the full set of escapes;
+3. Numeric literals, with a few more kinds than Java. In addition to Java's ints, longs, floats and doubles, OGNL lets you specify BigDecimals with a "b" or "B" suffix, and BigIntegers with an "h" or "H" suffix (think "huge"---we chose "h" for BigIntegers because it does not interfere with hexadecimal digits);
+4. Boolean (true and false) literals;
+5. The null literal.
+
+If you want to compare variable with string in dynamic sql, be careful with single or double quotes.
+
+##Testing code:
+```java
+@SneakyThrows
+public static void main(String[] args) {
+    val map = ImmutableMap.of(
+            "a", "1",
+            "b", "11",
+            "c", 0,
+            "d", "0");
+    out.println(Ognl.getValue("a == '1'", map)); // false
+    out.println(Ognl.getValue("a == 1", map)); // true
+    out.println(Ognl.getValue("a == \"1\"", map)); // true
+
+    out.println(Ognl.getValue("b == '11'", map)); // true
+    out.println(Ognl.getValue("b == 11", map)); // true
+
+    out.println(Ognl.getValue("c == \"0\"", map)); // true
+    out.println(Ognl.getValue("c == '0'", map)); // false
+    out.println(Ognl.getValue("c == 0", map)); // true
+
+    out.println(Ognl.getValue("d == \"0\"", map)); // true
+    out.println(Ognl.getValue("d == '0'", map)); // false
+    out.println(Ognl.getValue("d == 0", map)); // true
+}
+```
+

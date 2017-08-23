@@ -19,7 +19,8 @@ import java.util.Map;
  * // Invoke methods using the call() method:
  * .call("toString")
  * // Retrieve the wrapped object
- *</code>
+ * </code>
+ *
  * @author Lukas Eder
  */
 
@@ -164,9 +165,9 @@ public class Reflect {
 
     private Object convertValue(Field field, Object unwrapValue) {
         if (field.getType().isEnum()) {
-            Class<? > type = field.getType();
+            Class<?> type = field.getType();
             if (unwrapValue instanceof String) {
-                return Enum.valueOf((Class<Enum>) type, (String)unwrapValue );
+                return Enum.valueOf((Class<Enum>) type, (String) unwrapValue);
 
             }
         }

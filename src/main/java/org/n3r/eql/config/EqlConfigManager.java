@@ -1,6 +1,7 @@
 package org.n3r.eql.config;
 
 import com.google.common.cache.*;
+import lombok.val;
 import org.n3r.eql.ex.EqlConfigException;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.trans.EqlConnection;
@@ -13,7 +14,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class EqlConfigManager {
-    private static LoadingCache<EqlConfigDecorator, EqlTranFactory> eqlTranFactoryCache = CacheBuilder.newBuilder()
+    private static LoadingCache<EqlConfigDecorator, EqlTranFactory>
+            eqlTranFactoryCache = CacheBuilder.newBuilder()
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .removalListener(new RemovalListener<EqlConfigDecorator, EqlTranFactory>() {
                 @Override
@@ -37,11 +39,11 @@ public class EqlConfigManager {
             });
 
     private static EqlTranFactory createEqlTranFactory(EqlConfig eqlConfig) {
-        EqlConnection eqlConnection = createEqlConnection(eqlConfig, EqlConfigKeys.CONNECTION_IMPL);
-        eqlConnection.initialize(eqlConfig);
+        val eqlConn = createEqlConnection(eqlConfig, EqlConfigKeys.CONNECTION_IMPL);
+        eqlConn.initialize(eqlConfig);
 
-        return new EqlTranFactory(eqlConnection,
-                EqlConfigKeys.JTA.equalsIgnoreCase(eqlConfig.getStr(EqlConfigKeys.TRANSACTION_TYPE)));
+        String tranType = eqlConfig.getStr(EqlConfigKeys.TRANSACTION_TYPE);
+        return new EqlTranFactory(eqlConn, EqlConfigKeys.JTA.equalsIgnoreCase(tranType));
     }
 
     public static EqlConnection createEqlConnection(EqlConfig eqlConfig, String implKey) {
@@ -49,7 +51,9 @@ public class EqlConfigManager {
 
         if (S.isBlank(eqlConfigClass)) {
             String jndiName = eqlConfig.getStr(EqlConfigKeys.JNDI_NAME);
-            return S.isBlank(jndiName) ? new EqlSimpleConnection() : new EqlJndiConnection();
+            return S.isBlank(jndiName)
+                    ? new EqlSimpleConnection()
+                    : new EqlJndiConnection();
         }
 
         return Reflect.on(eqlConfigClass).create().get();

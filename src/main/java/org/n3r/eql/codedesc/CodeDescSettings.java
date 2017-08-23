@@ -2,6 +2,7 @@ package org.n3r.eql.codedesc;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import lombok.val;
 import org.n3r.eql.util.KeyValue;
 import org.n3r.eql.util.S;
 
@@ -24,7 +25,7 @@ public class CodeDescSettings {
     }
 
     public static String map(CodeDesc codeDesc, String code) {
-        CodeDescMapper codeDescMapper = codeDescCache.getIfPresent(codeDesc.getDescLabel());
+        val codeDescMapper = codeDescCache.getIfPresent(codeDesc.getDescLabel());
         if (codeDescMapper != null) return codeDescMapper.map(code);
 
         return null;

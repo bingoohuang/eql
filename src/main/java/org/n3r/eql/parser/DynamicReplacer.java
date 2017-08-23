@@ -1,7 +1,7 @@
 package org.n3r.eql.parser;
 
 import com.google.common.base.Objects;
-import org.n3r.eql.base.ExpressionEvaluator;
+import lombok.val;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlDynamic;
@@ -25,7 +25,7 @@ public class DynamicReplacer {
             eqlRun.setEvalEqlDynamic(new DynamicParser().parseRawSql(eqlRun.getEvalSqlTemplate()));
         }
 
-        EqlDynamic eqlDynamic = eqlRun.getEqlDynamic();
+        val eqlDynamic = eqlRun.getEqlDynamic();
         if (eqlDynamic == null) return;
 
         eqlRun.setRunSql(replaceRunSqlDynamics(eqlDynamic));
@@ -76,9 +76,9 @@ public class DynamicReplacer {
     }
 
     private Object findDynamicByName(EqlDynamic eqlDynamic, int index) {
-        String varName = eqlDynamic.getPlaceholders()[index].getPlaceholder();
+        val varName = eqlDynamic.getPlaceholders()[index].getPlaceholder();
 
-        ExpressionEvaluator evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
+        val evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
         Object property = evaluator.evalDynamic(varName, eqlRun);
         if (property != null) return property;
 

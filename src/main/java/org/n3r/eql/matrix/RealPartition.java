@@ -1,16 +1,12 @@
 package org.n3r.eql.matrix;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+@AllArgsConstructor @NoArgsConstructor
 public class RealPartition {
     public String databaseName;
     public String tableName;
-
-    public RealPartition() {
-    }
-
-    public RealPartition(String db, String table) {
-        this.databaseName = db;
-        this.tableName = table;
-    }
 
     public static RealPartition parse(String right) {
         String db = "";

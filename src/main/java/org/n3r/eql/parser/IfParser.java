@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 public class IfParser implements PartParser {
     private String lastCondExpr;
     private MultiPart multiPart = new MultiPart();
-    private List<IfCondition> conditions = Lists.newArrayList();
+    private List<IfCondition> conditions = Lists.<IfCondition>newArrayList();
 
     public IfParser(String firstCondExpr) {
         this.lastCondExpr = firstCondExpr;

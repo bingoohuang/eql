@@ -41,8 +41,8 @@ public class IsEmptyPart implements EqlPart {
         if (target instanceof Collection) return ((Collection) target).isEmpty();
         if (target instanceof Map) return ((Map) target).isEmpty();
         if (target instanceof Iterable) return !((Iterable) target).iterator().hasNext();
-        if (target instanceof CharSequence) return ((CharSequence)target).length() == 0;
-        if (target.getClass().isArray()) return ((Object[])target).length == 0;
+        if (target instanceof CharSequence) return ((CharSequence) target).length() == 0;
+        if (target.getClass().isArray()) return ((Object[]) target).length == 0;
 
         return false;
     }

@@ -68,7 +68,7 @@ public class EnumMappingTest {
     }
 
     public enum Sex {
-        male,female
+        male, female
     }
 
     public static class Custom {
@@ -77,7 +77,7 @@ public class EnumMappingTest {
     }
 
     public enum Sex2 implements InternalValueable<String> {
-        male("1"),female("0");
+        male("1"), female("0");
         private final String value;
 
         Sex2(String value) {
@@ -90,8 +90,8 @@ public class EnumMappingTest {
         }
 
         public static Sex2 valueOff(String value) {
-            for(Sex2 v : values())
-                if(v.internalValue().equalsIgnoreCase(value)) return v;
+            for (Sex2 v : values())
+                if (v.internalValue().equalsIgnoreCase(value)) return v;
             throw new IllegalArgumentException();
         }
     }

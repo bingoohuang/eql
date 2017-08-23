@@ -1,5 +1,6 @@
 package org.n3r.eql.eqler;
 
+import lombok.Cleanup;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -49,17 +50,16 @@ public class TranBatchEqlerTest {
 
     @Test
     public void incrCntBatch() {
-        EqlTran eqlTran = new Eql("mysql").newTran();
+        @Cleanup EqlTran eqlTran = new Eql("mysql").newTran();
         eqlTran.start();
-        EqlBatch eqlBatch = new EqlBatch(2);
 
+        EqlBatch eqlBatch = new EqlBatch(2);
         eqler.incrCntBatch(11, eqlTran, eqlBatch);
         eqler.incrCntBatch(22, eqlTran, eqlBatch);
         eqler.incrCntBatch(33, eqlTran, eqlBatch);
         eqlBatch.executeBatch();
 
         eqlTran.commit();
-        eqlTran.close();
 
         assertThat(eqler.queryCnt(), is(66));
     }

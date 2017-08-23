@@ -1,5 +1,6 @@
 package org.n3r.eql.dbfieldcryptor.proxy;
 
+import lombok.AllArgsConstructor;
 import lombok.val;
 import org.n3r.eql.DbDialect;
 import org.n3r.eql.dbfieldcryptor.SensitiveCryptor;
@@ -14,22 +15,12 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
+@AllArgsConstructor
 public class ConnectionHandler implements InvocationHandler {
-    private final ParserCache parserCache;
     private final Connection connection;
     private final SensitiveCryptor cryptor;
+    private final ParserCache parserCache;
     private final DbDialect dbDialect;
-
-    public ConnectionHandler(
-            Connection connection,
-            SensitiveCryptor cryptor,
-            ParserCache parserCache,
-            DbDialect dbDialect) {
-        this.connection = connection;
-        this.cryptor = cryptor;
-        this.parserCache = parserCache;
-        this.dbDialect = dbDialect;
-    }
 
     @Override
     public Object invoke(

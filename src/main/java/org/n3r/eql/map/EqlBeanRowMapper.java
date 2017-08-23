@@ -20,7 +20,6 @@ public class EqlBeanRowMapper extends EqlBaseBeanMapper implements EqlRowMapper 
             if (mappedClass == boolean.class || mappedClass == Boolean.class) return rs.getBoolean(1);
             if (mappedClass == short.class || mappedClass == Short.class) return rs.getShort(1);
             if (mappedClass == int.class || mappedClass == Integer.class) return rs.getInt(1);
-            if (mappedClass == int.class || mappedClass == Integer.class) return rs.getInt(1);
             if (mappedClass == long.class || mappedClass == Long.class) return rs.getLong(1);
             if (mappedClass == float.class || mappedClass == Float.class) return rs.getFloat(1);
             if (mappedClass == double.class || mappedClass == Double.class) return rs.getDouble(1);

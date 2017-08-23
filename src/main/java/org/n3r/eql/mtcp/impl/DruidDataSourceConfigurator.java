@@ -3,10 +3,9 @@ package org.n3r.eql.mtcp.impl;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
+import lombok.extern.slf4j.Slf4j;
 import org.n3r.eql.mtcp.DataSourceConfigurator;
 import org.n3r.eql.util.O;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.util.Map;
@@ -14,9 +13,8 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static com.codahale.metrics.MetricRegistry.name;
 
+@Slf4j
 public class DruidDataSourceConfigurator implements DataSourceConfigurator {
-    Logger log = LoggerFactory.getLogger(DruidDataSourceConfigurator.class);
-
     DruidDataSource druidDataSource = new DruidDataSource();
 
     @Override

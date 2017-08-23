@@ -1,5 +1,7 @@
 package org.n3r.eql;
 
+import com.google.common.truth.Truth;
+import lombok.Data;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.n3r.eql.util.Closes;
@@ -15,7 +17,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-//@Ignore
 public class OracleSpTest {
     @BeforeClass
     public static void beforeClass() {
@@ -55,6 +56,17 @@ public class OracleSpTest {
         assertThat(bc.get(1), is("WORLD hjb"));
     }
 
+
+    @Test
+    public void callOutType() {
+        new Eqll().update("createSpEqlType").execute();
+        List<Object> bc = new Eqll()
+                .procedure("callSpEqlType")
+                .execute();
+        Truth.assertThat(bc.get(0)).isEqualTo(Long.valueOf(18602506990L));
+        Truth.assertThat(bc.get(1)).isEqualTo(Integer.valueOf(12345));
+    }
+
     @Test
     public void procedure3() throws SQLException {
         new Eqll().update("createSpEql2").execute();
@@ -65,26 +77,10 @@ public class OracleSpTest {
         assertThat(bc.get("b"), is("WORLD hjb"));
     }
 
+    @Data
     public static class Ab {
         private String a;
         private String b;
-
-        public String getA() {
-            return a;
-        }
-
-        public void setA(String a) {
-            this.a = a;
-        }
-
-        public String getB() {
-            return b;
-        }
-
-        public void setB(String b) {
-            this.b = b;
-        }
-
     }
 
     @Test
@@ -96,6 +92,7 @@ public class OracleSpTest {
         assertThat(ab.getA(), is("HELLO hjb"));
         assertThat(ab.getB(), is("WORLD hjb"));
     }
+
 
     @Test
     public void procedureNoOut() throws SQLException {
@@ -166,4 +163,5 @@ public class OracleSpTest {
                 .execute();
         /*  System.out.println(ret);*/
     }
+
 }

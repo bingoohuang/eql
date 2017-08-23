@@ -1,11 +1,13 @@
 package org.n3r.eql.eqler.generators;
 
 import com.google.common.collect.Maps;
+import lombok.val;
 import org.n3r.eql.Eql;
 import org.n3r.eql.EqlPage;
 import org.n3r.eql.EqlTran;
 import org.n3r.eql.EqlTranable;
 import org.n3r.eql.config.EqlConfig;
+import org.n3r.eql.eqler.OnErr;
 import org.n3r.eql.eqler.annotations.*;
 import org.n3r.eql.impl.EqlBatch;
 import org.n3r.eql.map.EqlRowMapper;
@@ -16,7 +18,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
@@ -41,11 +42,10 @@ public class MethodGenerator<T> {
     public MethodGenerator(ClassWriter classWriter, Method method, Class<T> eqlerClass) {
         this.method = method;
         this.eqlerClass = eqlerClass;
-        EqlerConfig eqlerConfig = method.getAnnotation(EqlerConfig.class);
-        this.eqlerConfig = eqlerConfig != null ?
-                eqlerConfig : eqlerClass.getAnnotation(EqlerConfig.class);
-        this.eqlClassName = this.eqlerConfig != null ?
-                Type.getInternalName(this.eqlerConfig.eql()) : EQL;
+        val methodEqlerConfig = method.getAnnotation(EqlerConfig.class);
+        val classEqlerConfig = eqlerClass.getAnnotation(EqlerConfig.class);
+        this.eqlerConfig = methodEqlerConfig != null ? methodEqlerConfig : classEqlerConfig;
+        this.eqlClassName = this.eqlerConfig != null ? Type.getInternalName(this.eqlerConfig.eql()) : EQL;
         this.classUseSqlFile = eqlerClass.getAnnotation(UseSqlFile.class);
         this.mv = classWriter.visitMethod(ACC_PUBLIC, method.getName(),
                 Type.getMethodDescriptor(method), null, null);
@@ -67,6 +67,7 @@ public class MethodGenerator<T> {
         id();
         returnType();
         limit();
+        options();
         execute();
         result();
 
@@ -197,7 +198,7 @@ public class MethodGenerator<T> {
 
     private void result() {
         Class<?> returnType = method.getReturnType();
-        Type tp = Type.getType(returnType);
+        val tp = Type.getType(returnType);
 
         if (tp.equals(Type.BOOLEAN_TYPE)) {
             mv.visitTypeInsn(CHECKCAST, "java/lang/Boolean");
@@ -205,15 +206,15 @@ public class MethodGenerator<T> {
             mv.visitInsn(IRETURN);
         } else if (tp.equals(Type.BYTE_TYPE)) {
             mv.visitTypeInsn(CHECKCAST, "java/lang/Byte");
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Byte", "valueOf", "(B)Ljava/lang/Byte;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Byte", "byteValue", "()B", false);
             mv.visitInsn(IRETURN);
         } else if (tp.equals(Type.CHAR_TYPE)) {
             mv.visitTypeInsn(CHECKCAST, "java/lang/Character");
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Character", "valueOf", "(C)Ljava/lang/Character;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Character", "charValue", "()C", false);
             mv.visitInsn(IRETURN);
         } else if (tp.equals(Type.SHORT_TYPE)) {
             mv.visitTypeInsn(CHECKCAST, "java/lang/Short");
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Short", "valueOf", "(S)Ljava/lang/Short;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Short", "shortValue", "()S", false);
             mv.visitInsn(IRETURN);
         } else if (tp.equals(Type.INT_TYPE)) {
             mv.visitTypeInsn(CHECKCAST, "java/lang/Integer");
@@ -225,11 +226,11 @@ public class MethodGenerator<T> {
             mv.visitInsn(LRETURN);
         } else if (tp.equals(Type.FLOAT_TYPE)) {
             mv.visitTypeInsn(CHECKCAST, "java/lang/Float");
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Float", "valueOf", "(F)Ljava/lang/Float;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Float", "floatValue", "()F", false);
             mv.visitInsn(FRETURN);
         } else if (tp.equals(Type.DOUBLE_TYPE)) {
             mv.visitTypeInsn(CHECKCAST, "java/lang/Double");
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;", false);
+            mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Double", "doubleValue", "()D", false);
             mv.visitInsn(DRETURN);
         } else if (tp.equals(Type.VOID_TYPE)) {
             mv.visitInsn(POP);
@@ -238,6 +239,26 @@ public class MethodGenerator<T> {
             mv.visitTypeInsn(CHECKCAST, Type.getInternalName(returnType));
             mv.visitInsn(ARETURN);
         }
+    }
+
+    private void options() {
+        SqlOptions sqlOptions = method.getAnnotation(SqlOptions.class);
+        if (sqlOptions == null) return;
+
+        mv.visitLdcInsn(createOptions(sqlOptions));
+        mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "options",
+                sig(Eql.class, String.class), false);
+    }
+
+    private String createOptions(SqlOptions sqlOptions) {
+        val optionsStr = new StringBuilder();
+        if (sqlOptions.iterate()) optionsStr.append(" iterate ");
+        if (sqlOptions.onErr() == OnErr.Resume)
+            optionsStr.append(" onerr=resume ");
+        String split = sqlOptions.split();
+        if (S.isNotEmpty(split)) optionsStr.append(" split=").append(split);
+
+        return optionsStr.toString();
     }
 
     private void execute() {
@@ -285,9 +306,8 @@ public class MethodGenerator<T> {
     private void returnType() {
         Class<?> returnTypeClass = method.getReturnType();
         Type tp = Type.getType(returnTypeClass);
-//        if (tp.equals(Type.VOID_TYPE)) return;
 
-        MethodParam eqlRowMapper = methodAllParam.getEqlRowMapper();
+        val eqlRowMapper = methodAllParam.getEqlRowMapper();
         if (eqlRowMapper != null) {
             mv.visitVarInsn(ALOAD, eqlRowMapper.getVarIndex());
             mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType",
@@ -295,7 +315,7 @@ public class MethodGenerator<T> {
             return;
         }
 
-        EqlMapper eqlMapper = method.getAnnotation(EqlMapper.class);
+        val eqlMapper = method.getAnnotation(EqlMapper.class);
         if (eqlMapper != null) {
             Type returnType = Type.getType(eqlMapper.value());
             mv.visitLdcInsn(returnType);
@@ -304,13 +324,15 @@ public class MethodGenerator<T> {
             return;
         }
 
-        MethodParam paramReturnType = methodAllParam.getParamReturnType();
+        val paramReturnType = methodAllParam.getParamReturnType();
         if (paramReturnType != null) {
             mv.visitVarInsn(ALOAD, paramReturnType.getVarIndex());
             mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "returnType",
                     sig(Eql.class, Class.class), false);
             return;
         }
+
+        if (tp.equals(Type.VOID_TYPE)) return;
 
         if (tp.equals(Type.BOOLEAN_TYPE)) {
             mv.visitFieldInsn(GETSTATIC, "java/lang/Boolean", "TYPE", "Ljava/lang/Class;");
@@ -329,16 +351,16 @@ public class MethodGenerator<T> {
         } else if (tp.equals(Type.DOUBLE_TYPE)) {
             mv.visitFieldInsn(GETSTATIC, "java/lang/Double", "TYPE", "Ljava/lang/Class;");
         } else {
-            java.lang.reflect.Type genericReturnType = method.getGenericReturnType();
+            val genericReturnType = method.getGenericReturnType();
 
-            boolean isCollectionGeneric = genericReturnType instanceof ParameterizedType
+            val isCollectionGeneric = genericReturnType instanceof ParameterizedType
                     && Collection.class.isAssignableFrom(returnTypeClass);
             if (isCollectionGeneric) {
                 ParameterizedType parameterizedType = (ParameterizedType) genericReturnType;
                 returnTypeClass = (Class) parameterizedType.getActualTypeArguments()[0];
             }
 
-            Type returnType = Type.getType(returnTypeClass);
+            val returnType = Type.getType(returnTypeClass);
             mv.visitLdcInsn(returnType);
         }
 
@@ -411,7 +433,7 @@ public class MethodGenerator<T> {
 
         int index = 0;
         for (int i = 0; i < methodAllParam.getParamsSize(); ++i) {
-            MethodParam methodParam = methodAllParam.getMethodParam(i);
+            val methodParam = methodAllParam.getMethodParam(i);
             if (methodParam.getSeqParamIndex() < 0) continue;
 
             mv.visitInsn(DUP);
@@ -446,7 +468,7 @@ public class MethodGenerator<T> {
 
         int index = 0;
         for (int i = 0; i < methodAllParam.getParamsSize(); ++i) {
-            MethodParam methodParam = methodAllParam.getMethodParam(i);
+            val methodParam = methodAllParam.getMethodParam(i);
             if (methodParam.getSeqDynamicIndex() < 0) continue;
 
             mv.visitInsn(DUP);
@@ -461,12 +483,12 @@ public class MethodGenerator<T> {
     }
 
     private MethodAllParam parseParams(Method method) {
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        Annotation[][] paramAnnotations = method.getParameterAnnotations();
-        MethodAllParam methodAllParam = new MethodAllParam();
+        val parameterTypes = method.getParameterTypes();
+        val paramAnnotations = method.getParameterAnnotations();
+        val methodAllParam = new MethodAllParam();
 
         for (int i = 0; i < parameterTypes.length; ++i) {
-            MethodParam methodParam = new MethodParam();
+            val methodParam = new MethodParam();
             methodAllParam.addMethodParam(methodParam);
 
             methodParam.setParamIndex(i);

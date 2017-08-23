@@ -16,8 +16,8 @@ import java.util.List;
 public class FreemarkerDynamicLanguageDriver implements DynamicLanguageDriver {
 
     @Override
-    public Sql parse(EqlBlock block, List<String> onEQLLines) {
-        String template = Joiner.on('\n').join(onEQLLines);
+    public Sql parse(EqlBlock block, List<String> oneSqlLines) {
+        String template = Joiner.on('\n').join(oneSqlLines);
 
         if (template.indexOf("<#") < 0) return new StaticSql(template);
 

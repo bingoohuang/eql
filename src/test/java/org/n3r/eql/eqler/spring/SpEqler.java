@@ -2,13 +2,11 @@ package org.n3r.eql.eqler.spring;
 
 import org.n3r.eql.EqlPage;
 import org.n3r.eql.diamond.Dql;
-import org.n3r.eql.eqler.annotations.Diagnose;
 import org.n3r.eql.eqler.annotations.EqlerConfig;
 import org.n3r.eql.eqler.annotations.Sql;
 
 import java.util.List;
 
-@Diagnose
 @EqlerConfig(value = "mysql", eql = Dql.class)
 public interface SpEqler {
     int queryOne();

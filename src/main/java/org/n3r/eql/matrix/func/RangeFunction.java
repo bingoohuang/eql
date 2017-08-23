@@ -6,7 +6,7 @@ import org.n3r.eql.matrix.MatrixTableFieldValue;
 import java.util.List;
 
 public class RangeFunction extends SingleFieldBaseFunction {
-    private List<Tuple<Long, Long, String>> ranges = Lists.newArrayList();
+    private List<Tuple<Long, Long, String>> ranges = Lists.<Tuple<Long, Long, String>>newArrayList();
 
 
     @Override

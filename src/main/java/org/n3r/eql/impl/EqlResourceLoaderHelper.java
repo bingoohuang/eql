@@ -5,13 +5,13 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import lombok.val;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.parser.EqlParser;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class EqlResourceLoaderHelper {
     public static LoadingCache<EqlUniqueSqlId, Optional<EqlBlock>> buildSqlCache(
@@ -29,12 +29,10 @@ public class EqlResourceLoaderHelper {
     private static Optional<EqlBlock> loadBlocks(
             Cache<String, Optional<Map<String, EqlBlock>>> fileCache,
             EqlUniqueSqlId eqlUniqueSqlId) {
-        Optional<Map<String, EqlBlock>> blocks;
-        blocks = fileCache.getIfPresent(eqlUniqueSqlId.getSqlClassPath());
+        val blocks = fileCache.getIfPresent(eqlUniqueSqlId.getSqlClassPath());
         if (!blocks.isPresent()) return Optional.absent();
 
-        Map<String, EqlBlock> blockMap = blocks.get();
-        EqlBlock eqlBlock = blockMap.get(eqlUniqueSqlId.getSqlId());
+        val eqlBlock = blocks.get().get(eqlUniqueSqlId.getSqlId());
         if (eqlBlock == null) return Optional.absent();
 
         eqlBlock.tryParseSqls();
@@ -42,19 +40,20 @@ public class EqlResourceLoaderHelper {
         return Optional.of(eqlBlock);
     }
 
-    public static void updateBlockCache(String sqlContent,
-                                        EqlResourceLoader eqlResourceLoader,
-                                        String sqlClassPath,
-                                        Cache<EqlUniqueSqlId, Optional<EqlBlock>> sqlCache,
-                                        Cache<String, Optional<Map<String, EqlBlock>>> fileCache) {
-        Optional<Map<String, EqlBlock>> oldBlocks = fileCache.getIfPresent(sqlClassPath);
-        Set<String> oldSqlIds = oldBlocks.or(new HashMap<String, EqlBlock>()).keySet();
+    public static void updateBlockCache(
+            String sqlContent,
+            EqlResourceLoader eqlResourceLoader,
+            String sqlClassPath,
+            Cache<EqlUniqueSqlId, Optional<EqlBlock>> sqlCache,
+            Cache<String, Optional<Map<String, EqlBlock>>> fileCache) {
+        val oldBlocks = fileCache.getIfPresent(sqlClassPath);
+        val oldSqlIds = oldBlocks.or(new HashMap<String, EqlBlock>()).keySet();
 
-        EqlParser eqlParser = new EqlParser(eqlResourceLoader, sqlClassPath);
-        Map<String, EqlBlock> sqlBlocks = eqlParser.parse(sqlContent);
+        val eqlParser = new EqlParser(eqlResourceLoader, sqlClassPath);
+        val sqlBlocks = eqlParser.parse(sqlContent);
 
         for (EqlBlock sqlBlock : sqlBlocks.values()) {
-            EqlUniqueSqlId uniqueSqlId = sqlBlock.getUniqueSqlId();
+            val uniqueSqlId = sqlBlock.getUniqueSqlId();
             sqlCache.put(uniqueSqlId, Optional.of(sqlBlock));
             oldSqlIds.remove(uniqueSqlId.getSqlId());
         }
@@ -66,9 +65,10 @@ public class EqlResourceLoaderHelper {
         fileCache.put(sqlClassPath, Optional.of(sqlBlocks));
     }
 
-    public static Map<String, EqlBlock> updateFileCache(String sqlContent,
-                                                        EqlResourceLoader eqlResourceLoader,
-                                                        String sqlClassPath, boolean eqlLazyLoad) {
+    public static Map<String, EqlBlock> updateFileCache(
+            String sqlContent,
+            EqlResourceLoader eqlResourceLoader,
+            String sqlClassPath, boolean eqlLazyLoad) {
         EqlParser eqlParser = new EqlParser(eqlResourceLoader, sqlClassPath);
         return eqlLazyLoad ? eqlParser.delayParse(sqlContent) : eqlParser.parse(sqlContent);
     }

@@ -39,7 +39,7 @@ public class InSqlTest {
     }
 
     @Test
-    public void testArray () {
+    public void testArray() {
         String[] ids = new String[]{"1", "2"};
         Eql eql = new Eql("mysql").id("test").params(ids, null); // null is to ensure that string[] to be a whole parameter
         List<String> result = eql.execute();

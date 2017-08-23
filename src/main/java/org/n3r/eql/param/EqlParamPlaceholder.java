@@ -1,94 +1,101 @@
 package org.n3r.eql.param;
 
 import com.google.common.base.Splitter;
+import lombok.Data;
+import lombok.val;
+import org.n3r.eql.param.EqlParamsParser.PlaceHolderTemp;
 import org.n3r.eql.util.S;
 
+import java.sql.Types;
+import java.util.regex.Pattern;
+
+import static org.n3r.eql.param.EqlParamsParser.SUB;
+
+@Data
 public class EqlParamPlaceholder {
+    public enum InOut {IN, OUT, INOUT;}
+
+    public enum Like {None, Like, LeftLike, RightLike;}
+
+    private int outType = Types.VARCHAR;
     private boolean lob;
     private Like like = Like.None;
     private boolean numberColumn;
-
-    public void setNumberColumn(boolean numberColumn) {
-        this.numberColumn = numberColumn;
-    }
-
-    public boolean isNumberColumn() {
-        return numberColumn;
-    }
-
-    public static enum InOut {
-        IN, OUT, INOUT
-    }
-
-    public static enum Like {
-        None, Like, LeftLike, RightLike
-    }
-
     private String placeholder;
     private InOut inOut = InOut.IN;
     private PlaceholderType placeholderType;
     private int seq;
-    private String option;
+    private boolean escape;
+    private String escapeValue;
 
-    public String getPlaceholder() {
-        return placeholder;
-    }
-
-    public void setPlaceholder(String placeholder) {
-        this.placeholder = placeholder;
-    }
-
-    public int getSeq() {
-        return seq;
-    }
-
-    public void setSeq(int seq) {
-        this.seq = seq;
-    }
-
-    public PlaceholderType getPlaceholderType() {
-        return placeholderType;
-    }
-
-    public void setPlaceholderType(PlaceholderType placeholderType) {
-        this.placeholderType = placeholderType;
-    }
-
-    public InOut getInOut() {
-        return inOut;
-    }
-
-    public void setInOut(InOut inOut) {
-        this.inOut = inOut;
-    }
-
-    public void setOption(String placeHolderOption) {
-        this.option = placeHolderOption;
-        Iterable<String> optionParts = Splitter.on(',').omitEmptyStrings().trimResults().split(this.option);
+    public void parseOption(PlaceHolderTemp holder, String evalSqlTemplate) {
+        val splitter = Splitter.on(',').omitEmptyStrings().trimResults();
+        val optionParts = splitter.split(S.upperCase(holder.getPlaceHolderOptions()));
         for (String optionPart : optionParts) {
-            if (S.equalsIgnoreCase("OUT", optionPart)) setInOut(InOut.OUT);
-            else if (S.equalsIgnoreCase("INOUT", optionPart)) setInOut(InOut.INOUT);
-            else if (S.equalsIgnoreCase("LOB", optionPart)) setLob(true);
-            else if (S.equalsIgnoreCase("Like", optionPart)) setLike(Like.Like);
-            else if (S.equalsIgnoreCase("LeftLike", optionPart)) setLike(Like.LeftLike);
-            else if (S.equalsIgnoreCase("RightLike", optionPart)) setLike(Like.RightLike);
-            else if (S.equalsIgnoreCase("Number", optionPart)) setNumberColumn(true);
+            String upperPureOption = parsePureOption(optionPart);
+            String upperSubOption = parseSubOption(optionPart);
+            if (S.equals("OUT", upperPureOption)) {
+                setInOut(InOut.OUT);
+                parseOutType(upperSubOption);
+            } else if (S.equals("INOUT", upperPureOption)) {
+                setInOut(InOut.INOUT);
+                parseOutType(upperSubOption);
+            } else if (S.equals("LOB", upperPureOption)) {
+                setLob(true);
+            } else if (S.equals("LIKE", upperPureOption)) {
+                setLike(Like.Like);
+                parseEscape(holder, evalSqlTemplate);
+            } else if (S.equals("LEFTLIKE", upperPureOption)) {
+                setLike(Like.LeftLike);
+                parseEscape(holder, evalSqlTemplate);
+            } else if (S.equals("RIGHTLIKE", upperPureOption)) {
+                setLike(Like.RightLike);
+                parseEscape(holder, evalSqlTemplate);
+            } else if (S.equals("NUMBER", upperPureOption)) {
+                setNumberColumn(true);
+            }
         }
     }
 
-    public void setLob(boolean lob) {
-        this.lob = lob;
+    private void parseEscape(PlaceHolderTemp holder, String evalSqlTemplate) {
+        val fromSub = S.wrap(holder.getQuestionSeq(), SUB);
+        int fromSubIndex = evalSqlTemplate.indexOf(fromSub) + fromSub.length();
+
+        val escapePattern = Pattern.compile("\\s+ESCAPE\\s+(\\S+)",
+                Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+        val substring = evalSqlTemplate.substring(fromSubIndex);
+        val matcher = escapePattern.matcher(substring);
+        setEscape(matcher.find());
+
+        if (!isEscape()) return;
+
+        val val = S.unQuote(matcher.group(1), "'");
+        setEscapeValue(S.isNotEmpty(val) ? val.substring(0, 1) : "\\");
     }
 
-    public boolean isLob() {
-        return lob;
+    private void parseOutType(String subOptionUpper) {
+        if (subOptionUpper == null) return;
+
+        // ref: http://docs.oracle.com/javase/1.5.0/docs/guide/jdbc/getstart/mapping.html
+        if ("LONG".equals(subOptionUpper)) setOutType(Types.BIGINT);
+        else if ("INT".equals(subOptionUpper)) setOutType(Types.INTEGER);
     }
 
-    public void setLike(Like like) {
-        this.like = like;
+    private String parseSubOption(String optionPart) {
+        int leftBrace = optionPart.indexOf('(');
+        if (leftBrace == -1) return null;
+
+        int rightBrace = optionPart.indexOf(')', leftBrace);
+        if (rightBrace == -1)
+            throw new RuntimeException("option " + optionPart + " hasn't right brace");
+
+        return S.trim(optionPart.substring(leftBrace + 1, rightBrace));
     }
 
-    public Like getLike() {
-        return like;
+    private String parsePureOption(String optionPart) {
+        int leftBrace = optionPart.indexOf('(');
+        if (leftBrace == -1) return optionPart;
+
+        return S.trim(optionPart.substring(0, leftBrace));
     }
 }

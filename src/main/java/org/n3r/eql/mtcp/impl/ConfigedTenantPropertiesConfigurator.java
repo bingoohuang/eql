@@ -7,7 +7,8 @@ import org.n3r.eql.spec.ParamsAppliable;
 
 import java.util.Map;
 
-public class ConfigedTenantPropertiesConfigurator implements TenantPropertiesConfigurator, ParamsAppliable {
+public class ConfigedTenantPropertiesConfigurator
+        implements TenantPropertiesConfigurator, ParamsAppliable {
     private StringTable stringTable;
 
     @Override

@@ -29,7 +29,7 @@ public class PojoParser {
 
     private static Field[] parsePropertiesName(Class<?> pojoClass) {
         Field[] declaredFields = pojoClass.getDeclaredFields();
-        List<Field> properties = Lists.newArrayList();
+        List<Field> properties = Lists.<Field>newArrayList();
         for (Field field : declaredFields) {
             if (Modifier.isStatic(field.getModifiers())) continue;
             if (field.getAnnotation(EqlSkip.class) != null) continue;
