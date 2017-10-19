@@ -4,6 +4,8 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.google.common.cache.*;
+import lombok.experimental.var;
+import lombok.val;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.mtcp.utils.Mtcps;
 import org.n3r.eql.util.S;
@@ -13,7 +15,6 @@ import javax.sql.DataSource;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -65,16 +66,16 @@ public class MtcpDataSourceHandler implements InvocationHandler {
     }
 
     private LoadingCache<String, DataSourceConfigurator> createMtcpCache(EqlConfig eqlConfig) {
-        String key = "mtcpCacheSpec";
-        String mtcpCacheSpec = eqlConfig.getStr(key);
+        val key = "mtcpCacheSpec";
+        val mtcpCacheSpec = eqlConfig.getStr(key);
         checkNotNull(mtcpCacheSpec, "%s should not be empty!", key);
 
         return CacheBuilder.from(mtcpCacheSpec)
                 .removalListener(new RemovalListener<String, DataSourceConfigurator>() {
                     @Override
                     public void onRemoval(RemovalNotification<String, DataSourceConfigurator> notification) {
-                        String tenantId = notification.getKey();
-                        DataSourceConfigurator dataSourceConfigurator = notification.getValue();
+                        val tenantId = notification.getKey();
+                        val dataSourceConfigurator = notification.getValue();
                         dataSourceConfigurator.destory(tenantId, metricsRegistry);
                     }
                 })
@@ -87,28 +88,27 @@ public class MtcpDataSourceHandler implements InvocationHandler {
     }
 
     private TenantPropertiesConfigurator createMtcpTenantPropertiesConfigurator(EqlConfig eqlConfig) {
-        String key = "tenantPropertiesConfigurator.spec";
-        String impl = eqlConfig.getStr(key);
+        val key = "tenantPropertiesConfigurator.spec";
+        val impl = eqlConfig.getStr(key);
         checkNotNull(impl, "%s should not be empty!", key);
         return Mtcps.createObjectBySpec(impl, TenantPropertiesConfigurator.class);
     }
 
     private DataSource getTenantDataSource() {
-        String tenantId = MtcpContext.getTenantId();
+        val tenantId = MtcpContext.getTenantId();
         checkNotNull(tenantId, "there is no tenant id set in current thread local");
 
         return mtcpCache.getUnchecked(tenantId).getDataSource();
     }
 
     private DataSourceConfigurator createTenantDataSource(String tenantId) {
-        String key = "dataSourceConfigurator.spec";
-        String impl = eqlConfig.getStr(key);
+        val key = "dataSourceConfigurator.spec";
+        var impl = eqlConfig.getStr(key);
         if (S.isBlank(impl)) impl = "@com.github.bingoohuang.mtcp.impl.DruidDataSourceConfigurator";
 
-        DataSourceConfigurator dataSourceConfigurator = Mtcps.createObjectBySpec(impl, DataSourceConfigurator.class);
+        val dataSourceConfigurator = Mtcps.createObjectBySpec(impl, DataSourceConfigurator.class);
 
-        Map<String, String> props = Mtcps.merge(eqlConfig.params(),
-                tenantPropertiesConfigurator.getTenantProperties(tenantId));
+        val props = Mtcps.merge(eqlConfig.params(), tenantPropertiesConfigurator.getTenantProperties(tenantId));
         dataSourceConfigurator.prepare(tenantId, props, metricsRegistry, destroyScheduler);
 
         return dataSourceConfigurator;
@@ -120,7 +120,7 @@ public class MtcpDataSourceHandler implements InvocationHandler {
     }
 
     public DataSource newMtcpDataSource() {
-        ClassLoader cl = getClass().getClassLoader();
+        val cl = getClass().getClassLoader();
         return (DataSource) Proxy.newProxyInstance(cl, new Class[]{DataSource.class}, this);
     }
 
