@@ -43,38 +43,42 @@ public class DruidDataSourceConfigurator implements DataSourceConfigurator {
 
     public void registerMetrics(String tenantPrefixedId, MetricRegistry metricsRegistry) {
         val simpleName = DruidDataSource.class.getSimpleName();
+        try {
+            val connectCount = new Gauge<Long>() {
+                @Override
+                public Long getValue() {
+                    return druidDataSource.getConnectCount();
+                }
+            };
+            metricsRegistry.register(name(simpleName, tenantPrefixedId, "connectCount"), connectCount);
 
-        val connectCount = new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-                return druidDataSource.getConnectCount();
-            }
-        };
-        metricsRegistry.register(name(simpleName, tenantPrefixedId, "connectCount"), connectCount);
+            val destroyCount = new Gauge<Long>() {
+                @Override
+                public Long getValue() {
+                    return druidDataSource.getDestroyCount();
+                }
+            };
+            metricsRegistry.register(name(simpleName, tenantPrefixedId, "destroyCount"), destroyCount);
 
-        val destroyCount = new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-                return druidDataSource.getDestroyCount();
-            }
-        };
-        metricsRegistry.register(name(simpleName, tenantPrefixedId, "destroyCount"), destroyCount);
+            val activeCount = new Gauge<Integer>() {
+                @Override
+                public Integer getValue() {
+                    return druidDataSource.getActiveCount();
+                }
+            };
+            metricsRegistry.register(name(simpleName, tenantPrefixedId, "activeCount"), activeCount);
 
-        val activeCount = new Gauge<Integer>() {
-            @Override
-            public Integer getValue() {
-                return druidDataSource.getActiveCount();
-            }
-        };
-        metricsRegistry.register(name(simpleName, tenantPrefixedId, "activeCount"), activeCount);
-
-        val poolingCount = new Gauge<Integer>() {
-            @Override
-            public Integer getValue() {
-                return druidDataSource.getPoolingCount();
-            }
-        };
-        metricsRegistry.register(name(simpleName, tenantPrefixedId, "poolingCount"), poolingCount);
+            val poolingCount = new Gauge<Integer>() {
+                @Override
+                public Integer getValue() {
+                    return druidDataSource.getPoolingCount();
+                }
+            };
+            metricsRegistry.register(name(simpleName, tenantPrefixedId, "poolingCount"), poolingCount);
+        } catch (Exception ex) {
+            // ignore all exceptions
+            log.warn("register metrics err", ex);
+        }
     }
 
     @Override
@@ -94,9 +98,14 @@ public class DruidDataSourceConfigurator implements DataSourceConfigurator {
     private void unregisterMetrics(String tenantPrefixedId, MetricRegistry metricsRegistry) {
         val simpleName = DruidDataSource.class.getSimpleName();
 
-        metricsRegistry.remove(name(simpleName, tenantPrefixedId, "connectCount"));
-        metricsRegistry.remove(name(simpleName, tenantPrefixedId, "destroyCount"));
-        metricsRegistry.remove(name(simpleName, tenantPrefixedId, "activeCount"));
-        metricsRegistry.remove(name(simpleName, tenantPrefixedId, "poolingCount"));
+        try {
+            metricsRegistry.remove(name(simpleName, tenantPrefixedId, "connectCount"));
+            metricsRegistry.remove(name(simpleName, tenantPrefixedId, "destroyCount"));
+            metricsRegistry.remove(name(simpleName, tenantPrefixedId, "activeCount"));
+            metricsRegistry.remove(name(simpleName, tenantPrefixedId, "poolingCount"));
+        } catch (Exception ex) {
+            // ignore all exceptions
+            log.warn("unregister metrics err", ex);
+        }
     }
 }
