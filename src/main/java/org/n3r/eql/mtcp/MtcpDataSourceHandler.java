@@ -76,7 +76,7 @@ public class MtcpDataSourceHandler implements InvocationHandler {
                     public void onRemoval(RemovalNotification<String, DataSourceConfigurator> notification) {
                         val tenantId = notification.getKey();
                         val dataSourceConfigurator = notification.getValue();
-                        dataSourceConfigurator.destory(tenantId, metricsRegistry);
+                        dataSourceConfigurator.destroy(tenantId, metricsRegistry);
                     }
                 })
                 .build(new CacheLoader<String, DataSourceConfigurator>() {

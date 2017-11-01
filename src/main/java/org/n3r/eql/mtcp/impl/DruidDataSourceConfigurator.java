@@ -78,12 +78,12 @@ public class DruidDataSourceConfigurator implements DataSourceConfigurator {
     }
 
     @Override
-    public void destory(String tenantId, MetricRegistry metricsRegistry) {
+    public void destroy(String tenantId, MetricRegistry metricsRegistry) {
         unregisterMetrics(tenantId + "-" + uniqueCode, metricsRegistry);
-        destoryDatasource();
+        destroyDatasource();
     }
 
-    private void destoryDatasource() {
+    private void destroyDatasource() {
         try {
             druidDataSource.close();
         } catch (Exception e) {

@@ -32,6 +32,6 @@ public interface DataSourceConfigurator {
      * @param tenantId        商户id
      * @param metricsRegistry 度量注册器
      */
-    void destory(String tenantId, MetricRegistry metricsRegistry);
+    void destroy(String tenantId, MetricRegistry metricsRegistry);
 
 }
