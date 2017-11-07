@@ -165,6 +165,7 @@ public class EqlParamsParser {
         switch (sqlType) {
             case SELECT:
             case UPDATE:
+            case DELETE:
                 variableName = inferVarNameInUpdateSQL(rawSql, startPos, endPos);
                 break;
             case INSERT:
