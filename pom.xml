@@ -4,7 +4,7 @@
 
     <groupId>com.github.bingoohuang</groupId>
     <artifactId>eql</artifactId>
-    <version>0.0.88-SNAPSHOT</version>
+    <version>0.0.89-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>easy sql</name>

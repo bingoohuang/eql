@@ -1,9 +1,8 @@
 package org.n3r.eql.trans;
 
+import lombok.extern.slf4j.Slf4j;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.util.T;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;
@@ -32,10 +31,8 @@ import java.util.*;
  * Pool.QuietMode
  */
 @SuppressWarnings("unchecked")
+@Slf4j
 public class SimpleDataSource implements DataSource {
-
-    private static final Logger log = LoggerFactory.getLogger(SimpleDataSource.class);
-
     // Required Properties
     public static final String PROP_JDBC_DRIVER = "JDBC.Driver";
     public static final String PROP_JDBC_URL = "JDBC.ConnectionURL";
