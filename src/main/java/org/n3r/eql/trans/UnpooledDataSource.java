@@ -1,6 +1,7 @@
 package org.n3r.eql.trans;
 
 
+import com.alibaba.druid.util.JdbcUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,7 +24,7 @@ public class UnpooledDataSource implements DataSource {
     @Getter @Setter private Properties driverProperties;
     private static Map<String, Driver> registeredDrivers = new ConcurrentHashMap<String, Driver>();
 
-    @Getter @Setter private String driver;
+    @Getter @Setter private String driverClass;
     @Getter @Setter private String url;
     @Getter @Setter private String username;
     @Getter @Setter private String password;
@@ -39,17 +40,21 @@ public class UnpooledDataSource implements DataSource {
         }
     }
 
-    public UnpooledDataSource(String driver, String url, String username, String password) {
-        this.driver = driver;
+    public UnpooledDataSource(String driverClass, String url, String username, String password) {
+        this.driverClass = driverClass;
         this.url = url;
         this.username = username;
         this.password = password;
     }
 
-    public UnpooledDataSource(String driver, String url, Properties driverProperties) {
-        this.driver = driver;
+    public UnpooledDataSource(String driverClass, String url, Properties driverProperties) {
+        this.driverClass = driverClass;
         this.url = url;
         this.driverProperties = driverProperties;
+    }
+
+    public void setDriver(String driverClass) {
+        this.driverClass = driverClass;
     }
 
     public void setUser(String user) {
@@ -102,15 +107,19 @@ public class UnpooledDataSource implements DataSource {
     }
 
     private synchronized void initializeDriver() throws SQLException {
-        if (!registeredDrivers.containsKey(driver)) {
+        if (this.driverClass == null || this.driverClass.isEmpty()) {
+            this.driverClass = JdbcUtils.getDriverClassName(url);
+        }
+
+        if (!registeredDrivers.containsKey(driverClass)) {
             Class<?> driverType;
             try {
-                driverType = Class.forName(driver);
+                driverType = Class.forName(driverClass);
                 // DriverManager requires the driver to be loaded via the system ClassLoader.
                 // http://www.kfu.com/~nsayer/Java/dyn-jdbc.html
                 Driver driverInstance = (Driver) driverType.newInstance();
                 DriverManager.registerDriver(new DriverProxy(driverInstance));
-                registeredDrivers.put(driver, driverInstance);
+                registeredDrivers.put(driverClass, driverInstance);
             } catch (Exception e) {
                 throw new SQLException("Error setting driver on UnpooledDataSource. Cause: " + e);
             }
