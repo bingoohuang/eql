@@ -1,19 +1,17 @@
 package org.n3r.eql.trans;
 
 import lombok.SneakyThrows;
+import lombok.val;
 import org.n3r.eql.config.EqlConfig;
-import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.util.O;
 
 import java.sql.Connection;
-import java.util.Map;
 
 public class EqlUnpooledConnection extends AbstractEqlConnection {
     private UnpooledDataSource dataSource = new UnpooledDataSource();
 
     @Override public void initialize(EqlConfig eqlConfig) {
-        Map<String, String> params = eqlConfig.params();
-        EqlUtils.compatibleWithUserToUsername(params);
+        val params = eqlConfig.params();
 
         O.populate(dataSource, params);
     }

@@ -2,14 +2,11 @@ package org.n3r.eql.trans;
 
 
 import com.alibaba.druid.util.JdbcUtils;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.*;
-import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,9 +30,9 @@ public class UnpooledDataSource implements DataSource {
     @Getter @Setter private Integer defaultTransactionIsolationLevel;
 
     static {
-        Enumeration<Driver> drivers = DriverManager.getDrivers();
+        val drivers = DriverManager.getDrivers();
         while (drivers.hasMoreElements()) {
-            Driver driver = drivers.nextElement();
+            val driver = drivers.nextElement();
             registeredDrivers.put(driver.getClass().getName(), driver);
         }
     }
@@ -53,12 +50,28 @@ public class UnpooledDataSource implements DataSource {
         this.driverProperties = driverProperties;
     }
 
-    public void setDriver(String driverClass) {
-        this.driverClass = driverClass;
+    public void setDriver(String driver) {
+        this.driverClass = driver;
+    }
+
+    public String getDriver() {
+        return this.driverClass;
+    }
+
+    public void setJdbcUrl(String jdbcUrl) {
+        this.url = jdbcUrl;
+    }
+
+    public String getJdbcUrl() {
+        return this.url;
     }
 
     public void setUser(String user) {
         this.username = user;
+    }
+
+    public String getUser() {
+        return this.username;
     }
 
     public Connection getConnection() throws SQLException {
@@ -86,7 +99,7 @@ public class UnpooledDataSource implements DataSource {
     }
 
     private Connection doGetConnection(String username, String password) throws SQLException {
-        Properties props = new Properties();
+        val props = new Properties();
         if (driverProperties != null) {
             props.putAll(driverProperties);
         }
@@ -101,7 +114,7 @@ public class UnpooledDataSource implements DataSource {
 
     private Connection doGetConnection(Properties properties) throws SQLException {
         initializeDriver();
-        Connection connection = DriverManager.getConnection(url, properties);
+        val connection = DriverManager.getConnection(url, properties);
         configureConnection(connection);
         return connection;
     }
@@ -135,12 +148,9 @@ public class UnpooledDataSource implements DataSource {
         }
     }
 
+    @AllArgsConstructor
     private static class DriverProxy implements Driver {
-        private Driver driver;
-
-        DriverProxy(Driver d) {
-            this.driver = d;
-        }
+        private final Driver driver;
 
         public boolean acceptsURL(String u) throws SQLException {
             return this.driver.acceptsURL(u);

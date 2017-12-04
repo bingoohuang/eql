@@ -6,10 +6,8 @@ import lombok.SneakyThrows;
 import lombok.val;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.map.EqlRun;
-import org.slf4j.Logger;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
@@ -38,30 +36,30 @@ public class EqlUtils {
     }
 
     public static Map<String, Object> newExecContext(Object[] params, Object[] dynamics) {
-        Map<String, Object> executionContext = Maps.newHashMap();
-        executionContext.put("_time", new Timestamp(System.currentTimeMillis()));
-        executionContext.put("_date", new java.util.Date());
-        executionContext.put("_host", HostAddress.getHost());
-        executionContext.put("_ip", HostAddress.getIp());
-        executionContext.put("_results", newArrayList());
-        executionContext.put("_lastResult", "");
-        executionContext.put("_params", params);
+        val execContext = Maps.<String, Object>newHashMap();
+        execContext.put("_time", new Timestamp(System.currentTimeMillis()));
+        execContext.put("_date", new java.util.Date());
+        execContext.put("_host", HostAddress.getHost());
+        execContext.put("_ip", HostAddress.getIp());
+        execContext.put("_results", newArrayList());
+        execContext.put("_lastResult", "");
+        execContext.put("_params", params);
         if (params != null) {
-            executionContext.put("_paramsCount", params.length);
+            execContext.put("_paramsCount", params.length);
             for (int i = 0; i < params.length; ++i)
-                executionContext.put("_" + (i + 1), params[i]);
+                execContext.put("_" + (i + 1), params[i]);
         }
 
-        executionContext.put("_dynamics", dynamics);
+        execContext.put("_dynamics", dynamics);
         if (dynamics != null)
-            executionContext.put("_dynamicsCount", dynamics.length);
+            execContext.put("_dynamicsCount", dynamics.length);
 
-        return executionContext;
+        return execContext;
     }
 
     public static String trimLastUnusedPart(String sql) {
-        String returnSql = S.trimRight(sql);
-        String upper = S.upperCase(returnSql);
+        val returnSql = S.trimRight(sql);
+        val upper = S.upperCase(returnSql);
         if (S.endsWith(upper, "WHERE"))
             return returnSql.substring(0, sql.length() - "WHERE".length());
 
@@ -77,14 +75,14 @@ public class EqlUtils {
     @SneakyThrows
     public static PreparedStatement prepareSQL(
             String sqlClassPath, EqlConfig eqlConfig, EqlRun eqlRun, String sqlId, String tagSqlId) {
-        Logger log = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "prepare");
+        val log = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "prepare");
 
         log.debug(eqlRun.getPrintSql());
 
-        Connection conn = eqlRun.getConnection();
-        String sql = eqlRun.getRunSql();
-        boolean procedure = eqlRun.getSqlType().isProcedure();
-        PreparedStatement ps = procedure ? conn.prepareCall(sql) : conn.prepareStatement(sql);
+        val conn = eqlRun.getConnection();
+        val sql = eqlRun.getRunSql();
+        val procedure = eqlRun.getSqlType().isProcedure();
+        val ps = procedure ? conn.prepareCall(sql) : conn.prepareStatement(sql);
 
         setQueryTimeout(eqlConfig, ps);
 
@@ -92,7 +90,7 @@ public class EqlUtils {
     }
 
     public static int getConfigInt(EqlConfig eqlConfig, String key, int defaultValue) {
-        String configValue = eqlConfig.getStr(key);
+        val configValue = eqlConfig.getStr(key);
         if (S.isBlank(configValue)) return defaultValue;
 
         if (configValue.matches("\\d+")) return Integer.parseInt(configValue);
@@ -109,7 +107,7 @@ public class EqlUtils {
 
     public static Iterable<?> evalCollection(String collectionExpr, EqlRun eqlRun) {
         val evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
-        Object value = evaluator.eval(collectionExpr, eqlRun);
+        val value = evaluator.eval(collectionExpr, eqlRun);
         if (value == null) return null;
 
         if (value instanceof Iterable) return (Iterable<?>) value;
