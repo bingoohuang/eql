@@ -11,12 +11,14 @@ import java.util.concurrent.ScheduledExecutorService;
 
 public class UnpooledDataSourceConfigurator implements DataSourceConfigurator {
     private final UnpooledDataSource dataSource = new UnpooledDataSource();
+    private String tenantId;
 
     @Override
     public void prepare(String tenantId,
                         Map<String, String> props,
                         MetricRegistry metricsRegistry,
                         ScheduledExecutorService destroyScheduler) {
+        this.tenantId = tenantId;
         O.populate(dataSource, props);
     }
 
@@ -26,5 +28,9 @@ public class UnpooledDataSourceConfigurator implements DataSourceConfigurator {
 
     @Override public void destroy(String tenantId, MetricRegistry metricsRegistry) {
 
+    }
+
+    @Override public String shrink() {
+        return "tenantId: " + tenantId + " use UnpooledDataSource, there is nothing to shrink";
     }
 }

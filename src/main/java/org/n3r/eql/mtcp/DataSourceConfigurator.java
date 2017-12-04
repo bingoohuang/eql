@@ -34,4 +34,10 @@ public interface DataSourceConfigurator {
      */
     void destroy(String tenantId, MetricRegistry metricsRegistry);
 
+
+    /**
+     * 缩减连接池空闲连接.
+     */
+    String shrink();
+
 }

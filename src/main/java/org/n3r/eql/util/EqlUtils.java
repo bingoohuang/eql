@@ -17,6 +17,17 @@ import static com.google.common.collect.Lists.newArrayList;
 
 @SuppressWarnings("unchecked")
 public class EqlUtils {
+    public static final String USER_HOME = System.getProperty("user.home");
+    public static final String LINE_SEPARATOR = System.getProperty("line.separator");
+
+    public static String expandUserHome(String path) {
+        if (path.startsWith("~")) {
+            return USER_HOME + path.substring(1);
+        }
+
+        return path;
+    }
+
     public static void compatibleWithUserToUsername(Map<String, String> params) {
         if (params.containsKey("username")) return;
         if (params.containsKey("user"))

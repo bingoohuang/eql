@@ -4,17 +4,24 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.google.common.cache.*;
+import com.google.common.io.Files;
+import lombok.SneakyThrows;
 import lombok.experimental.var;
 import lombok.val;
+import org.apache.commons.codec.Charsets;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.mtcp.utils.Mtcps;
+import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.util.S;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
+import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class MtcpDataSourceHandler implements InvocationHandler {
     final TenantPropertiesConfigurator tenantPropertiesConfigurator;
     final EqlConfig eqlConfig;
-    final ScheduledExecutorService destroyScheduler;
+    final ScheduledExecutorService scheduler;
     final MetricRegistry metricsRegistry;
     final LoadingCache<String/*tenant id*/, DataSourceConfigurator /*tenant ds*/> mtcpCache;
 
@@ -35,14 +42,20 @@ public class MtcpDataSourceHandler implements InvocationHandler {
         tenantPropertiesConfigurator = createMtcpTenantPropertiesConfigurator(eqlConfig);
 
         mtcpCache = createMtcpCache(eqlConfig);
-        destroyScheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler = Executors.newSingleThreadScheduledExecutor();
 
-        destroyScheduler.scheduleWithFixedDelay(new Runnable() {
+        scheduler.scheduleWithFixedDelay(new Runnable() {
             @Override
             public void run() {
                 mtcpCache.cleanUp();
             }
-        }, 600, 600, TimeUnit.SECONDS);
+        }, 10, 10, TimeUnit.MINUTES);
+
+        scheduler.scheduleWithFixedDelay(new Runnable() {
+            @Override public void run() {
+                shrink();
+            }
+        }, 10, 10, TimeUnit.SECONDS);
 
         metricsRegistry = new MetricRegistry();
 
@@ -63,6 +76,31 @@ public class MtcpDataSourceHandler implements InvocationHandler {
                 .build();
 
         reporter.start(1, TimeUnit.MINUTES);
+    }
+
+    private static final String SHRINK_NOW_FILE_NAME = EqlUtils.expandUserHome("~/.eql/shrink.now");
+
+    @SneakyThrows
+    private void shrink() {
+        val shrinkNowFile = new File(SHRINK_NOW_FILE_NAME);
+        if (!shrinkNowFile.exists() || !shrinkNowFile.isFile()) return;
+
+        val simpleDateFormat = new SimpleDateFormat(".yyyyMMDDHHmmss.SSS");
+        val dest = new File(SHRINK_NOW_FILE_NAME + simpleDateFormat.format(new Date()));
+        shrinkNowFile.renameTo(dest);
+
+        val configurators = mtcpCache.asMap().values();
+        val stat = new StringBuilder();
+        int shrunk = 0;
+        for (val configurator : configurators) {
+            ++shrunk;
+            stat.append(configurator.shrink()).append(EqlUtils.LINE_SEPARATOR);
+        }
+
+        stat.append("Total " + shrunk + "/" + mtcpCache.size()
+                + " were shrunk.").append(EqlUtils.LINE_SEPARATOR);
+
+        Files.write(stat.toString(), dest, Charsets.UTF_8);
     }
 
     private LoadingCache<String, DataSourceConfigurator> createMtcpCache(EqlConfig eqlConfig) {
@@ -104,12 +142,12 @@ public class MtcpDataSourceHandler implements InvocationHandler {
     private DataSourceConfigurator createTenantDataSource(String tenantId) {
         val key = "dataSourceConfigurator.spec";
         var impl = eqlConfig.getStr(key);
-        if (S.isBlank(impl)) impl = "@com.github.bingoohuang.mtcp.impl.DruidDataSourceConfigurator";
+        if (S.isBlank(impl)) impl = "@org.n3r.eql.mtcp.impl.DruidDataSourceConfigurator";
 
         val dataSourceConfigurator = Mtcps.createObjectBySpec(impl, DataSourceConfigurator.class);
 
         val props = Mtcps.merge(eqlConfig.params(), tenantPropertiesConfigurator.getTenantProperties(tenantId));
-        dataSourceConfigurator.prepare(tenantId, props, metricsRegistry, destroyScheduler);
+        dataSourceConfigurator.prepare(tenantId, props, metricsRegistry, scheduler);
 
         return dataSourceConfigurator;
     }
