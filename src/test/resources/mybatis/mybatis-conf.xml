@@ -10,9 +10,9 @@
             <transactionManager type="JDBC" />
             <dataSource type="POOLED">
                 <property name="driver" value="com.mysql.jdbc.Driver" />
-                <property name="url" value="jdbc:mysql://localhost:3306/dba" />
-                <property name="username" value="dba" />
-                <property name="password" value="dba" />
+                <property name="url" value="jdbc:mysql://127.0.0.1:13306/dba" />
+                <property name="username" value="root" />
+                <property name="password" value="my-secret-pw" />
             </dataSource>
         </environment>
     </environments>

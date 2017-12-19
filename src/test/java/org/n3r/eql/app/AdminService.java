@@ -17,7 +17,7 @@ public class AdminService {
     }
 
     public Admin findAdmin(String username) {
-        Admin admin = new Eql("jndi")
+        Admin admin = new Eql()
                 .selectFirst("findAdmin")
                 .params(username)
                 .returnType(Admin.class)

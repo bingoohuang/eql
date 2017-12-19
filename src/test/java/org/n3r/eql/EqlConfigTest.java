@@ -17,21 +17,21 @@ public class EqlConfigTest {
     @BeforeClass
     public static void beforeClass() {
         Eqll.choose(new EqlJdbcConfig("oracle.jdbc.driver.OracleDriver",
-                "jdbc:oracle:thin:@192.168.99.100:49161:xe", "system", "oracle"));
+                "jdbc:oracle:thin:@127.0.0.1:49161:xe", "system", "oracle"));
         new Eqll().execute("CREATE TABLE PERSON （id varchar2(100), sex varchar2(2), name varchar2(100))");
     }
 
     @AfterClass
     public static void afterClass() {
         Eqll.choose(new EqlJdbcConfig("oracle.jdbc.driver.OracleDriver",
-                "jdbc:oracle:thin:@192.168.99.100:49161:xe", "system", "oracle"));
+                "jdbc:oracle:thin:@127.0.0.1:49161:xe", "system", "oracle"));
         new Eqll().execute("DROP TABLE PERSON");
     }
 
     @Test
     public void testEqlJdbcConfig() {
         Eqll.choose(new EqlJdbcConfig("oracle.jdbc.driver.OracleDriver",
-                "jdbc:oracle:thin:@192.168.99.100:49161:xe", "system", "oracle"));
+                "jdbc:oracle:thin:@127.0.0.1:49161:xe", "system", "oracle"));
 
         Timestamp ts = new Eqll().limit(1).execute("SELECT SYSDATE FROM DUAL");
         assertThat(ts, not(nullValue()));
@@ -41,7 +41,7 @@ public class EqlConfigTest {
     public void testEqlPropertiesConfig() {
         Eqll.choose(new EqlPropertiesConfig(
                 EqlConfigKeys.DRIVER + "=oracle.jdbc.driver.OracleDriver\n" +
-                        EqlConfigKeys.URL + "=jdbc:oracle:thin:@192.168.99.100:49161:xe\n" +
+                        EqlConfigKeys.URL + "=jdbc:oracle:thin:@127.0.0.1:49161:xe\n" +
                         EqlConfigKeys.USER + "=system\n" +
                         EqlConfigKeys.PASSWORD + "=oracle\n"));
 
@@ -84,11 +84,11 @@ public class EqlConfigTest {
     @Test
     public void testEqll() {
         Eqll.choose(new EqlJdbcConfig("oracle.jdbc.driver.OracleDriver",
-                "jdbc:oracle:thin:@192.168.99.100:49161:xe", "system", "oracle"));
+                "jdbc:oracle:thin:@127.0.0.1:49161:xe", "system", "oracle"));
         Person pa = new Eqll().returnType(Person.class).limit(1).execute("SELECT * FROM PERSON");
 
         Eqll.choose(new EqlJdbcConfig("oracle.jdbc.driver.OracleDriver",
-                "jdbc:oracle:thin:@192.168.99.100:49161:xe", "system", "oracle"));
+                "jdbc:oracle:thin:@127.0.0.1:49161:xe", "system", "oracle"));
         Person pb = new Eqll().returnType(Person.class).limit(1).execute("SELECT * FROM PERSON");
 
         Eqll.clear();

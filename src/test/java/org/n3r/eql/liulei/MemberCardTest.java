@@ -43,7 +43,7 @@ public class MemberCardTest {
         new Eql("dba").execute();
     }
 
-    public static final int SIZE = 52 /* 52 weeks per year */ * 10 /* 100 years */;
+    public static final int SIZE = 52 /* 52 weeks per year */ * 2 /* 100 years */;
 
     @Test public void testAddRecords() {
         for (MemberCard memberCard : memberCards) {

@@ -16,7 +16,7 @@ public class ZhoujunSpOutTruncTest {
     @BeforeClass
     public static void beforeClass() {
         str = C.classResourceToString("org/n3r/eql/impl/numbers.txt");
-        new Eql("jndi").dynamics(str).execute();
+        new Eql().dynamics(str).execute();
     }
 
     // http://dbasolved.com/2013/06/26/change-varchar2-to-32k-12c-edition/
@@ -28,7 +28,7 @@ public class ZhoujunSpOutTruncTest {
     @Test
     public void test() {
         String sql = "{call $$(#P_HEAD:OUT#,#P_SQL:OUT#,#P_RETCODE:OUT#,#P_RETMSG:OUT#)}";
-        Map<String, String> map = new Eql("jndi").dynamics("SP_RPT_ANALYSIS_043_1").execute(sql);
+        Map<String, String> map = new Eql().dynamics("SP_RPT_ANALYSIS_043_1").execute(sql);
         assertThat(map.get("P_SQL"), equalTo(str));
     }
 }

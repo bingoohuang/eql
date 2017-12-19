@@ -1000,7 +1000,7 @@ com.mysql.jdbc.exceptions.jdbc4.MySQLNonTransientConnectionException: Communicat
 	at org.n3r.eql.Eql.execute(Eql.java:157)
 ```
 
-Try use url like  `jdbc:mysql://192.168.99.100:13306/dba?useUnicode=true&&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=3000&autoReconnect=true` instead of `jdbc:mysql://192.168.99.100:13306/dba`
+Try use url like  `jdbc:mysql://127.0.0.1:13306/dba?useUnicode=true&&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=3000&autoReconnect=true` instead of `jdbc:mysql://127.0.0.1:13306/dba`
 
 # FAQ
 ## java.lang.NullPointerException
@@ -1022,11 +1022,32 @@ public void returnInt() {
 ```
 
 # docker
-## mysql
-run mysql:<br/>
-`docker run -p 13306:3306 --name mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql`
-<br/>run client:<br/>
-`docker run -it --rm mysql mysql -h192.168.99.100 -uroot -P13306 -pmy-secret-pw`
+## MySQL
+
+1. `docker pull mysql`
+2. `docker run -p 13306:3306 --name mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql`
+3. run client: `docker run -it --rm mysql mysql -h192.168.99.100 -uroot -P13306 -pmy-secret-pw`
+
+## ORACLE
+1. `docker pull wnameless/oracle-xe-11g`
+2. `docker run -d -p 49160:22 -p 49161:1521 -e ORACLE_ALLOW_REMOTE=true wnameless/oracle-xe-11g`
+3. download oracle jdbc from [oracle website](http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html)
+4. `mvn install:install-file -Dfile=ojdbc6.jar -DgroupId=com.oracle -DartifactId=ojdbc6 -Dversion=11.2.0.4.0 -Dpackaging=jar`
+Connect database with following setting:
+
+```
+hostname: localhost
+port: 49161
+sid: xe
+username: system
+password: oracle
+Password for SYS & SYSTEM
+
+Login by SSH
+ssh root@localhost -p 49160
+password: admin
+Support custom DB Initialization
+```
 
 # OGNL 相关知识
 eql默认使用OGNL表达式来做动态条件SQL的判断，OGNL表达式可以参见[ognl language guide](https://commons.apache.org/proper/commons-ognl/language-guide.html).

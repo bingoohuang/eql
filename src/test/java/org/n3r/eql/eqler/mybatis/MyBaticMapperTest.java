@@ -1,33 +1,30 @@
 package org.n3r.eql.eqler.mybatis;
 
+import lombok.val;
 import org.apache.ibatis.io.Resources;
-import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 public class MyBaticMapperTest {
-    @Ignore
-    @Test
+    @Test @Ignore
     public void testMyBatis() throws IOException {
-        String resource = "mybatis/mybatis-conf.xml";
-        InputStream inputStream = Resources.getResourceAsStream(resource);
-        SqlSessionFactory sessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
-        SqlSession session = sessionFactory.openSession();
-        EmployeeMapper mapper = session.getMapper(EmployeeMapper.class);
+        val resource = "mybatis/mybatis-conf.xml";
+        val inputStream = Resources.getResourceAsStream(resource);
+        val sessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+        val session = sessionFactory.openSession();
+        val mapper = session.getMapper(EmployeeMapper.class);
 
 
-        Employee emp = new Employee();
+        val emp = new Employee();
         emp.setEmpid(1);
         emp.setFirstName("Manik");
         emp.setLastName("Magar");
         mapper.insertEmployee(emp);
 
-        Employee employee = mapper.getEmployeeName(1);
+        val employee = mapper.getEmployeeName(1);
 
         System.out.println(employee);
 

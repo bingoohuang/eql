@@ -2,6 +2,7 @@ package org.n3r.eql;
 
 import lombok.Data;
 import lombok.val;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -15,7 +16,7 @@ import static org.junit.Assert.assertThat;
  */
 public class SqlserverTest {
 
-    @Test
+    @Test @Ignore
     public void test1() {
         new Eql("sqlserver").id("create").execute();
 
