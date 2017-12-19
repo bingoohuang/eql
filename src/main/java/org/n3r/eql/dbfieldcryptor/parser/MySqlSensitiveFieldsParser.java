@@ -6,7 +6,6 @@ import com.alibaba.druid.sql.ast.expr.*;
 import com.alibaba.druid.sql.ast.statement.*;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlDeleteStatement;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlInsertStatement;
-import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlReplaceStatement;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlUpdateStatement;
 import com.alibaba.druid.sql.dialect.mysql.parser.MySqlStatementParser;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlASTVisitorAdapter;
@@ -108,8 +107,8 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
             parser.parseDelete((MySqlDeleteStatement) sqlStatement);
         } else if (sqlStatement instanceof MySqlInsertStatement) {
             parser.parseInsert((MySqlInsertStatement) sqlStatement);
-        } else if (sqlStatement instanceof MySqlReplaceStatement) {
-            parser.parseReplace((MySqlReplaceStatement) sqlStatement);
+        } else if (sqlStatement instanceof SQLReplaceStatement) {
+            parser.parseReplace((SQLReplaceStatement) sqlStatement);
         } else if (sqlStatement instanceof MySqlUpdateStatement) {
             parser.parseUpdate((MySqlUpdateStatement) sqlStatement);
         } else if (sqlStatement instanceof SQLCallStatement) {
@@ -503,7 +502,7 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
         return subParser;
     }
 
-    private void parseReplace(MySqlReplaceStatement x) {
+    private void parseReplace(SQLReplaceStatement x) {
         val tableSource = x.getTableSource();
         if (tableSource.getExpr() instanceof SQLIdentifierExpr)
             addTableAlias(tableSource, (SQLIdentifierExpr) tableSource.getExpr());
@@ -519,7 +518,7 @@ public class MySqlSensitiveFieldsParser implements SensitiveFieldsParser {
                 walkInsertValues(secureFieldsIndices, valuesClause.getValues());
             }
         } else if (x.getQuery() != null) {
-            SQLQueryExpr query = x.getQuery();
+//            SQLQueryExpr query = x.getQuery();
 //            parseQuery4Insert(secureFieldsIndices, (SQLSelectQueryBlock) query.gets());
         }
     }

@@ -16,16 +16,16 @@ import static org.n3r.eql.dbfieldcryptor.parser.OracleSensitiveFieldsParser.pars
 
 public class OracleSensitiveFieldsParserTest {
     String zhangkaihuaSql = "UPDATE TF_B_ORDER_POST\n" +
-            "SET   MOBILE_PHONE = #mobilePhone#, UPDATE_TIME = SYSDATE\n" +
+            "SET   MOBILE_PHONE = ?, UPDATE_TIME = SYSDATE\n" +
             "WHERE ORDER_ID = (SELECT F.ORDER_ID\n" +
             "                    FROM TF_B_ORDER_NETIN F\n" +
-            "                   WHERE SUBSTR(F.ICCID, 13, 19) = #ICCID#\n" +
-            "                     AND F.PSPT_NO = #IDCARD#\n" +
+            "                   WHERE SUBSTR(F.ICCID, 13, 19) = ?\n" +
+            "                     AND F.PSPT_NO = ?\n" +
             "                     AND ROWNUM = 1)";
 
     @Test
     public void testZhangkaihua() {
-        HashSet<String> liuleiSecuretFields = Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO");
+        val liuleiSecuretFields = Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO");
         val parser = parseSql(zhangkaihuaSql, liuleiSecuretFields);
 
         Assert.assertEquals(Sets.newHashSet(3), parser.getSecureBindIndices());

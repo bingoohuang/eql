@@ -142,7 +142,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
-            <version>1.0.13</version>
+            <version>1.1.6</version>
             <optional>true</optional>
         </dependency>
         <dependency>
