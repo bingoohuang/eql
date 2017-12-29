@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.spec.ParamsAppliable;
-import org.n3r.eql.spec.Spec;
 import org.n3r.eql.spec.SpecParser;
 import org.n3r.eql.util.KeyValue;
 
@@ -39,13 +38,13 @@ public class EqlCacheSettings {
             boolean addToCache) {
         if (!cacheModelSetting.keyStartsWith("impl")) return null;
 
-        KeyValue implKeyValue = cacheModelSetting.removeKeyPrefix("impl");
-        String cacheModelName = implKeyValue.getKey();
-        String cacheModelImpl = implKeyValue.getValue();
+        val implKeyValue = cacheModelSetting.removeKeyPrefix("impl");
+        val cacheModelName = implKeyValue.getKey();
+        val cacheModelImpl = implKeyValue.getValue();
 
-        Spec spec = SpecParser.parseSpecLeniently(cacheModelImpl);
+        val spec = SpecParser.parseSpecLeniently(cacheModelImpl);
         try {
-            Class<?> clazz = Class.forName(spec.getName());
+            val clazz = Class.forName(spec.getName());
 
             if (!EqlCacheProvider.class.isAssignableFrom(clazz)) {
                 log.error("processCacheModel {} required to implement " +
@@ -89,9 +88,9 @@ public class EqlCacheSettings {
     private static EqlCacheProvider createDefaultGuavaCacheModel(
             String sqlClassPath,
             EqlCacheModelKey cacheModelKey) {
-        String settingKey = "impl." + DEFAULT_GUAVA_CACHE_MODEL;
-        String settingVal = "@org.n3r.eql.cache.GuavaCacheProvider(\"expireAfterWrite=1d\")";
-        KeyValue setting = new KeyValue(settingKey, settingVal);
+        val settingKey = "impl." + DEFAULT_GUAVA_CACHE_MODEL;
+        val settingVal = "@org.n3r.eql.cache.GuavaCacheProvider(\"expireAfterWrite=1d\")";
+        val setting = new KeyValue(settingKey, settingVal);
 
         return createCacheModel(sqlClassPath, cacheModelKey, setting);
     }
@@ -99,9 +98,9 @@ public class EqlCacheSettings {
     private static EqlCacheProvider createDefaultDiamondGuavaCacheModel(
             String sqlClassPath,
             EqlCacheModelKey cacheModelKey) {
-        String settingKey = "impl." + DEFAULT_DIAMOND_GUAVA_CACHE_MODEL;
-        String settingVal = "@org.n3r.eql.cache.DiamondGuavaCacheProvider";
-        KeyValue setting = new KeyValue(settingKey, settingVal);
+        val settingKey = "impl." + DEFAULT_DIAMOND_GUAVA_CACHE_MODEL;
+        val settingVal = "@org.n3r.eql.cache.DiamondGuavaCacheProvider";
+        val setting = new KeyValue(settingKey, settingVal);
 
         return createCacheModel(sqlClassPath, cacheModelKey, setting);
     }

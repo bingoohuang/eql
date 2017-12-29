@@ -1,5 +1,6 @@
 package org.n3r.eql.config;
 
+import lombok.val;
 import org.n3r.eql.util.P;
 
 import java.io.File;
@@ -41,7 +42,7 @@ public class EqlPropertiesConfig implements EqlConfig {
 
     @Override
     public Map<String, String> params() {
-        HashMap<String, String> map = new HashMap<String, String>(properties.size());
+        val map = new HashMap<String, String>(properties.size());
         for (final String name : properties.stringPropertyNames())
             map.put(name, properties.getProperty(name));
         return map;
@@ -52,7 +53,7 @@ public class EqlPropertiesConfig implements EqlConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        EqlPropertiesConfig that = (EqlPropertiesConfig) o;
+        val that = (EqlPropertiesConfig) o;
 
         if (!properties.equals(that.properties)) return false;
 

@@ -14,9 +14,9 @@ public class CodeDescSettings {
     }
 
     private static CodeDescMapper parseCodeDescMapper(String mapperExpr) {
-        int bracePos = mapperExpr.indexOf('(');
-        String mapperAlias = bracePos < 0 ? mapperExpr : mapperExpr.substring(0, bracePos);
-        String valueStr = bracePos < 0 ? "" : S.substrInQuotes(mapperExpr, '(', bracePos);
+        val bracePos = mapperExpr.indexOf('(');
+        val mapperAlias = bracePos < 0 ? mapperExpr : mapperExpr.substring(0, bracePos);
+        val valueStr = bracePos < 0 ? "" : S.substrInQuotes(mapperExpr, '(', bracePos);
 
         if ("decode".equalsIgnoreCase(mapperAlias)) return new DecodeCodeDescMapper(valueStr);
         if ("mapping".equalsIgnoreCase(mapperAlias)) return new MappingCodeDescMapper(valueStr);

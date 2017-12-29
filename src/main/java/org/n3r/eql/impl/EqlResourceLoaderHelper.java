@@ -19,7 +19,7 @@ public class EqlResourceLoaderHelper {
         return CacheBuilder.newBuilder().build(
                 new CacheLoader<EqlUniqueSqlId, Optional<EqlBlock>>() {
                     @Override
-                    public Optional<EqlBlock> load(EqlUniqueSqlId eqlUniqueSqlId) throws Exception {
+                    public Optional<EqlBlock> load(EqlUniqueSqlId eqlUniqueSqlId) {
                         return loadBlocks(fileCache, eqlUniqueSqlId);
                     }
                 }
@@ -30,7 +30,7 @@ public class EqlResourceLoaderHelper {
             Cache<String, Optional<Map<String, EqlBlock>>> fileCache,
             EqlUniqueSqlId eqlUniqueSqlId) {
         val blocks = fileCache.getIfPresent(eqlUniqueSqlId.getSqlClassPath());
-        if (!blocks.isPresent()) return Optional.absent();
+        if (blocks == null || !blocks.isPresent()) return Optional.absent();
 
         val eqlBlock = blocks.get().get(eqlUniqueSqlId.getSqlId());
         if (eqlBlock == null) return Optional.absent();

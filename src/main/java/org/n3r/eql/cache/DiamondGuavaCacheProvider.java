@@ -6,7 +6,6 @@ import com.google.common.cache.CacheBuilder;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.Miner;
-import org.n3r.diamond.client.Minerable;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 
 import java.util.concurrent.Callable;
@@ -25,7 +24,7 @@ public class DiamondGuavaCacheProvider implements EqlCacheProvider {
         val cachedSqlIdVersion = cachEQLIdVersion.getIfPresent(uniqueSQLId);
         if (cachedSqlIdVersion == null) return null;
 
-        String sqlIdVersion = getSqlIdCacheVersion(uniqueSQLId);
+        val sqlIdVersion = getSqlIdCacheVersion(uniqueSQLId);
         if (!StringUtils.equals(sqlIdVersion, cachedSqlIdVersion.orNull())) {
             cache.invalidate(uniqueSQLId);
             cachEQLIdVersion.put(uniqueSQLId, Optional.fromNullable(sqlIdVersion));
@@ -46,10 +45,9 @@ public class DiamondGuavaCacheProvider implements EqlCacheProvider {
                     new Callable<Cache<EqlCacheKey, Optional<Object>>>() {
                         @Override
                         public Cache<EqlCacheKey, Optional<Object>> call() throws Exception {
-                            String sqlIdVersion = getSqlIdCacheVersion(uniqueSQLId);
+                            val sqlIdVersion = getSqlIdCacheVersion(uniqueSQLId);
                             cachEQLIdVersion.put(uniqueSQLId, Optional.fromNullable(sqlIdVersion));
-                            Cache<EqlCacheKey, Optional<Object>> subCache = CacheBuilder.newBuilder().build();
-                            return subCache;
+                            return CacheBuilder.newBuilder().build();
                         }
                     });
 
@@ -60,9 +58,9 @@ public class DiamondGuavaCacheProvider implements EqlCacheProvider {
     }
 
     private String getSqlIdCacheVersion(EqlUniqueSqlId uniquEQLId) {
-        final String dataId = uniquEQLId.getSqlClassPath().replaceAll("/", ".");
-        Minerable sqlFileProperties = new Miner().getMiner(EQL_CACHE, dataId);
-        String key = uniquEQLId.getSqlId() + ".cacheVersion";
+        val dataId = uniquEQLId.getSqlClassPath().replaceAll("/", ".");
+        val sqlFileProperties = new Miner().getMiner(EQL_CACHE, dataId);
+        val key = uniquEQLId.getSqlId() + ".cacheVersion";
         return sqlFileProperties.getString(key);
     }
 

@@ -1,6 +1,7 @@
 package org.n3r.eql.codedesc;
 
 import lombok.SneakyThrows;
+import lombok.val;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
@@ -12,7 +13,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
@@ -46,10 +46,10 @@ public class CodeDescResultSetHandler implements InvocationHandler {
 
     @SneakyThrows
     private int findCodeIndex(String columnName) {
-        ResultSetMetaData metaData = resultSet.getMetaData();
-        int columnCount = metaData.getColumnCount();
+        val metaData = resultSet.getMetaData();
+        val columnCount = metaData.getColumnCount();
         for (int i = 1; i <= columnCount; ++i) { // first find the desc column index
-            String lookupColumnName = Rs.lookupColumnName(metaData, i);
+            val lookupColumnName = Rs.lookupColumnName(metaData, i);
             if (S.equalsIgnoreCase(columnName, lookupColumnName)) {
                 for (int j = i - 1; j >= 1; --j) {
                     // then back find the first column(not desc column) to view as code
@@ -63,7 +63,7 @@ public class CodeDescResultSetHandler implements InvocationHandler {
     }
 
     private boolean codeDescsContainsColumnName(String jColumnName) {
-        for (CodeDesc codeDesc : codeDescs) {
+        for (val codeDesc : codeDescs) {
             if (codeDesc.getColumnName().equalsIgnoreCase(jColumnName))
                 return true;
         }
@@ -72,22 +72,22 @@ public class CodeDescResultSetHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Object result = method.invoke(resultSet, args);
+        val result = method.invoke(resultSet, args);
 
         if (!O.in(method.getName(), "getString", "getObject")) return result;
 
-        String columnName = parseArgName(args[0]);
+        val columnName = parseArgName(args[0]);
         if (columnName == null) return result;
 
-        CodeDesc codeDesc = findCodeDesc(columnName);
+        val codeDesc = findCodeDesc(columnName);
         if (codeDesc == null) return result;
 
-        String code = resultSet.getString(codeIndex.get(codeDesc.getColumnName()));
+        val code = resultSet.getString(codeIndex.get(codeDesc.getColumnName()));
         return CodeDescs.map(currEqlRun, eqlConfig, sqlClassPath, codeDesc, code, tagSqlId);
     }
 
     private CodeDesc findCodeDesc(String columnName) {
-        for (CodeDesc codeDesc : codeDescs) {
+        for (val codeDesc : codeDescs) {
             if (S.equalsIgnoreCase(columnName, codeDesc.getColumnName())) {
                 return codeDesc;
             }

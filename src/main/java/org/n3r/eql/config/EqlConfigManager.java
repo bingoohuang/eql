@@ -42,12 +42,12 @@ public class EqlConfigManager {
         val eqlConn = createEqlConnection(eqlConfig, EqlConfigKeys.CONNECTION_IMPL);
         eqlConn.initialize(eqlConfig);
 
-        String tranType = eqlConfig.getStr(EqlConfigKeys.TRANSACTION_TYPE);
+        val tranType = eqlConfig.getStr(EqlConfigKeys.TRANSACTION_TYPE);
         return new EqlTranFactory(eqlConn, EqlConfigKeys.JTA.equalsIgnoreCase(tranType));
     }
 
     public static EqlConnection createEqlConnection(EqlConfig eqlConfig, String implKey) {
-        String eqlConfigClass = eqlConfig.getStr(implKey);
+        val eqlConfigClass = eqlConfig.getStr(implKey);
 
         if (S.isBlank(eqlConfigClass)) {
             String jndiName = eqlConfig.getStr(EqlConfigKeys.JNDI_NAME);

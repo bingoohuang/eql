@@ -31,7 +31,7 @@ public class EqlerToDbConverter implements ToDbConverter {
     }
 
     public void addConvertAnn(EqlConvertAnn<ToDbConvert> eca) {
-        Class<? extends ToDbConverter>[] classes = eca.convert.value();
+        val classes = eca.convert.value();
         List<ToDbConverter> subConverters = Lists.newArrayListWithCapacity(classes.length);
         for (val clazz : classes) {
             val toDbConverter = (ToDbConverter) Ob.createInstance(clazz);

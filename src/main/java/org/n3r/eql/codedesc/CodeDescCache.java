@@ -3,11 +3,11 @@ package org.n3r.eql.codedesc;
 import com.google.common.base.Optional;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.Miner;
-import org.n3r.diamond.client.Minerable;
 import org.n3r.eql.cache.EqlCacheKey;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.ex.EqlExecuteException;
@@ -15,11 +15,8 @@ import org.n3r.eql.impl.EqlUniqueSqlId;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
-import org.n3r.eql.util.Closes;
 import org.n3r.eql.util.EqlUtils;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.concurrent.Callable;
 
 public class CodeDescCache {
@@ -41,7 +38,7 @@ public class CodeDescCache {
         val uniqueSQLId = new EqlUniqueSqlId(sqlClassPath, codeDesc.getDescLabel());
 
         val cachedSqlIdVersion = cachEQLIdVersion.getIfPresent(uniqueSQLId);
-        String sqlIdVersion = getSqlIdCacheVersion(uniqueSQLId);
+        val sqlIdVersion = getSqlIdCacheVersion(uniqueSQLId);
 
         val subCache = getOrCreateSubCache(uniqueSQLId);
         val eqlCacheKey = new EqlCacheKey(uniqueSQLId, codeDesc.getParams(), null, null);
@@ -58,9 +55,9 @@ public class CodeDescCache {
     }
 
     private static String getSqlIdCacheVersion(EqlUniqueSqlId uniquEQLId) {
-        final String dataId = uniquEQLId.getSqlClassPath().replaceAll("/", ".");
-        Minerable minerable = new Miner().getMiner(EQL_CACHE, dataId);
-        String key = uniquEQLId.getSqlId() + ".cacheVersion";
+        val dataId = uniquEQLId.getSqlClassPath().replaceAll("/", ".");
+        val minerable = new Miner().getMiner(EQL_CACHE, dataId);
+        val key = uniquEQLId.getSqlId() + ".cacheVersion";
         return minerable.getString(key);
     }
 
@@ -109,39 +106,30 @@ public class CodeDescCache {
             if (eqlRuns.size() != 1)
                 throw new EqlExecuteException("only one select sql supported ");
 
-            EqlRun eqlRun = eqlRuns.get(0);
+            val eqlRun = eqlRuns.get(0);
             if (!eqlRun.isLastSelectSql())
                 throw new EqlExecuteException("only one select sql supported ");
 
-            PreparedStatement ps = null;
-            ResultSet rs = null;
-            try {
-                new EqlParamsBinder().prepareBindParams(eqlBlock.isIterateOption(), eqlRun);
+            new EqlParamsBinder().prepareBindParams(eqlBlock.isIterateOption(), eqlRun);
 
-                eqlRun.setConnection(currEqlRun.getConnection());
-                ps = EqlUtils.prepareSQL(sqlClassPath, eqlConfig, eqlRun,
-                        codeDesc.getDescLabel(), tagSqlId);
-                eqlRun.bindParams(ps, sqlClassPath);
-                rs = ps.executeQuery();
-                rs.setFetchSize(100);
+            eqlRun.setConnection(currEqlRun.getConnection());
+            @Cleanup val ps = EqlUtils.prepareSQL(sqlClassPath, eqlConfig, eqlRun,
+                    codeDesc.getDescLabel(), tagSqlId);
+            eqlRun.bindParams(ps, sqlClassPath);
+            @Cleanup val rs = ps.executeQuery();
+            rs.setFetchSize(100);
 
-                int columnCount = rs.getMetaData().getColumnCount();
-                if (columnCount < 2)
-                    throw new EqlExecuteException(
-                            "should at least two columns used as code and desc");
+            val columnCount = rs.getMetaData().getColumnCount();
+            if (columnCount < 2)
+                throw new EqlExecuteException(
+                        "should at least two columns used as code and desc");
 
-                DefaultCodeDescMapper mapper = new DefaultCodeDescMapper();
-                while (rs.next()) {
-                    mapper.addMapping(rs.getString(1), rs.getString(2));
-                }
-
-
-                return mapper;
-            } finally {
-                Closes.closeQuietly(rs, ps);
+            val mapper = new DefaultCodeDescMapper();
+            while (rs.next()) {
+                mapper.addMapping(rs.getString(1), rs.getString(2));
             }
 
-
+            return mapper;
         } catch (Exception ex) {
             ex.printStackTrace();
             // ignore

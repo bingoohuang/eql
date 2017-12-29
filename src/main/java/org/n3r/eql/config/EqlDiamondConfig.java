@@ -1,5 +1,6 @@
 package org.n3r.eql.config;
 
+import lombok.val;
 import org.n3r.diamond.client.DiamondListenerAdapter;
 import org.n3r.diamond.client.DiamondManager;
 import org.n3r.diamond.client.DiamondStone;
@@ -22,7 +23,7 @@ public class EqlDiamondConfig extends EqlPropertiesConfig
     @Override
     public void onLoad() {
         diamondManager = new DiamondManager(EQL_CONFIG_GROUP_NAME, connectionName);
-        final EqlConfigDecorator eqlConfig = new DefaultEqlConfigDecorator(this);
+        val eqlConfig = new DefaultEqlConfigDecorator(this);
         diamondListener = new DiamondListenerAdapter() {
             @Override
             public void accept(DiamondStone diamondStone) {
