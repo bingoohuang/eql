@@ -19,6 +19,10 @@ public class EqlContext {
         return getMap().get(name);
     }
 
+    public static Object remove(String name) {
+        return getMap().remove(name);
+    }
+
     public static Map<String, Object> getMap() {
         return threadLocalMap.get();
     }

@@ -15,6 +15,7 @@ import static org.n3r.eql.param.EqlParamsParser.SUB;
 @Data @Slf4j
 public class EqlParamPlaceholder {
     public enum InOut {IN, OUT, INOUT;}
+
     public enum Like {None, Like, LeftLike, RightLike;}
 
     private int outType = Types.VARCHAR;
@@ -27,7 +28,20 @@ public class EqlParamPlaceholder {
     private int seq;
     private boolean escape;
     private String escapeValue;
+
+    // The name to get value from EqlContext
     private String contextName;
+    // true: only get value from EqlContext,
+    // false: first get value from user input parameters, if it is null, then goto EqlContext.
+    private boolean contextOnly;
+
+    public boolean hasContextOnly() {
+        return contextName != null && contextOnly;
+    }
+
+    public boolean hasContextNormal() {
+        return contextName != null && !contextOnly;
+    }
 
     public void parseOption(PlaceHolderTemp holder, String evalSqlTemplate) {
         val splitter = Splitter.on(',').omitEmptyStrings().trimResults();
@@ -35,27 +49,31 @@ public class EqlParamPlaceholder {
         for (String optionPart : optionParts) {
             val upperPureOption = parsePureOption(optionPart);
             val upperSubOption = parseSubOption(optionPart);
-            if (S.equals("OUT", upperPureOption)) {
+            if ("OUT".equals(upperPureOption)) {
                 setInOut(InOut.OUT);
                 parseOutType(upperSubOption);
-            } else if (S.equals("INOUT", upperPureOption)) {
+            } else if ("INOUT".equals(upperPureOption)) {
                 setInOut(InOut.INOUT);
                 parseOutType(upperSubOption);
-            } else if (S.equals("LOB", upperPureOption)) {
+            } else if ("LOB".equals(upperPureOption)) {
                 setLob(true);
-            } else if (S.equals("LIKE", upperPureOption)) {
+            } else if ("LIKE".equals(upperPureOption)) {
                 setLike(Like.Like);
                 parseEscape(holder, evalSqlTemplate);
-            } else if (S.equals("LEFTLIKE", upperPureOption)) {
+            } else if ("LEFTLIKE".equals(upperPureOption)) {
                 setLike(Like.LeftLike);
                 parseEscape(holder, evalSqlTemplate);
-            } else if (S.equals("RIGHTLIKE", upperPureOption)) {
+            } else if ("RIGHTLIKE".equals(upperPureOption)) {
                 setLike(Like.RightLike);
                 parseEscape(holder, evalSqlTemplate);
-            } else if (S.equals("NUMBER", upperPureOption)) {
+            } else if ("NUMBER".equals(upperPureOption)) {
                 setNumberColumn(true);
-            } else if (S.equals("CONTEXT", upperPureOption)) {
+            } else if ("CONTEXTONLY".equals(upperPureOption)) {
                 setContextName(holder.placeHolder);
+                setContextOnly(true);
+            } else if ("CONTEXT".equals(upperPureOption)) {
+                setContextName(holder.placeHolder);
+                setContextOnly(false);
             } else {
                 log.warn("unknown option {}", upperPureOption);
             }

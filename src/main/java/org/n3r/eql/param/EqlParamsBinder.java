@@ -30,10 +30,27 @@ public class EqlParamsBinder {
         boundParams = new ArrayList<Object>();
 
         switch (eqlRun.getPlaceHolderType()) {
-            case UNSET:
+            case UNSET: // Only occurs when all parameters are optioned by :context or :contextOnly
+                for (int i = 0; i < eqlRun.getPlaceholderNum(); ++i) {
+                    val placeHolders = eqlRun.getPlaceHolders();
+                    val holder = placeHolders[i];
+
+                    Object param = null;
+                    if (holder.hasContextNormal()) {
+                        param = parseVarValue(holder);
+                    }
+                    if (param == null) {
+                        param = EqlContext.get(holder.getContextName());
+                    }
+
+                    setParam(i, param, ParamExtra.Normal);
+                }
+                break;
             case AUTO_SEQ:
-                for (int i = 0; i < eqlRun.getPlaceholderNum(); ++i)
-                    setParam(i, getParamByIndex(i, true), ParamExtra.Normal);
+                for (int i = 0; i < eqlRun.getPlaceholderNum(); ++i) {
+                    Object param = getParamByIndex(i, true);
+                    setParam(i, param, ParamExtra.Normal);
+                }
                 break;
             case MANU_SEQ:
                 for (int i = 0; i < eqlRun.getPlaceholderNum(); ++i)
@@ -76,9 +93,9 @@ public class EqlParamsBinder {
     @SneakyThrows
     private void setParamValue(EqlParamPlaceholder placeHolder, int index, Object value) {
         if (hasIterateOption) {
-            List<Object> values = (List<Object>) value;
-            Object[] boundParam = new Object[values.size()];
-            Object[] paramsValue = new Object[boundParam.length];
+            val values = (List<Object>) value;
+            val boundParam = new Object[values.size()];
+            val paramsValue = new Object[boundParam.length];
 
             for (int i = 0, ii = boundParam.length; i < ii; ++i) {
                 val paramValueDealer = new ParamValueDealer(placeHolder);
@@ -115,10 +132,23 @@ public class EqlParamsBinder {
 
     private Object findParamByName(int index) {
         val placeholder = eqlRun.getPlaceHolders()[index];
-        if (placeholder.getContextName() != null) {
+        if (placeholder.hasContextOnly()) {
             return EqlContext.get(placeholder.getContextName());
         }
 
+        Object varValue = parseVarValue(placeholder);
+        if (varValue != null) {
+            return varValue;
+        }
+
+        if (placeholder.hasContextNormal()) {
+            return EqlContext.get(placeholder.getContextName());
+        }
+
+        return null;
+    }
+
+    private Object parseVarValue(EqlParamPlaceholder placeholder) {
         val varName = placeholder.getPlaceholder();
         val evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
         val property = evaluator.eval(varName, eqlRun);
@@ -151,9 +181,9 @@ public class EqlParamsBinder {
             throw new EqlExecuteException("bad parameters when batch option is set");
 
         int offset = 0;
+        val placeholder = placeHolders[index];
         if (processContext) {
-            val placeholder = placeHolders[index];
-            if (placeholder.getContextName() != null) {
+            if (placeholder.hasContextOnly()) {
                 return EqlContext.get(placeholder.getContextName());
             }
 
@@ -180,7 +210,7 @@ public class EqlParamsBinder {
 
     private Object findParamBySeq(int index) {
         val placeholder = eqlRun.getPlaceHolders()[index];
-        if (placeholder.getContextName() != null) {
+        if (placeholder.hasContextOnly()) {
             return EqlContext.get(placeholder.getContextName());
         }
 
