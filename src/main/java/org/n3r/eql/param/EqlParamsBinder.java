@@ -48,7 +48,7 @@ public class EqlParamsBinder {
                 break;
             case AUTO_SEQ:
                 for (int i = 0; i < eqlRun.getPlaceholderNum(); ++i) {
-                    Object param = getParamByIndex(i, true);
+                    Object param = getParamByIndex(i);
                     setParam(i, param, ParamExtra.Normal);
                 }
                 break;
@@ -121,7 +121,7 @@ public class EqlParamsBinder {
     }
 
     private boolean registerOut(int index) {
-        EqlParamPlaceholder placeholder = eqlRun.getPlaceHolders()[index];
+        val placeholder = eqlRun.getPlaceHolders()[index];
         val inOut = placeholder.getInOut();
         if (eqlRun.getSqlType().isProcedure() && inOut != InOut.IN) {
             eqlRun.registerOutParameter(index + 1, placeholder.getOutType());
@@ -136,7 +136,7 @@ public class EqlParamsBinder {
             return EqlContext.get(placeholder.getContextName());
         }
 
-        Object varValue = parseVarValue(placeholder);
+        val varValue = parseVarValue(placeholder);
         if (varValue != null) {
             return varValue;
         }
@@ -157,13 +157,13 @@ public class EqlParamsBinder {
                 || hasIterateOption && !isAllNullInBatchOption(property))
             return property;
 
-        val propertyName = Names.underscoreNameToPropertyName(varName);
-        return Objects.equal(propertyName, varName) ? property : evaluator.eval(propertyName, eqlRun);
+        val propName = Names.underscoreNameToPropertyName(varName);
+        return Objects.equal(propName, varName)
+                ? property : evaluator.eval(propName, eqlRun);
     }
 
     private boolean isAllNullInBatchOption(Object property) {
-        val listProperties = (List<Object>) property;
-        for (val object : listProperties) {
+        for (val object : (List<Object>) property) {
             if (object != null) return false;
         }
 
@@ -171,7 +171,7 @@ public class EqlParamsBinder {
     }
 
 
-    private Object getParamByIndex(int index, boolean processContext) {
+    private Object getParamByIndex(int index) {
         val placeHolders = eqlRun.getPlaceHolders();
         if (index < placeHolders.length && eqlRun.getSqlType().isProcedure()
                 && placeHolders[index].getInOut() == InOut.OUT)
@@ -180,19 +180,33 @@ public class EqlParamsBinder {
         if (hasIterateOption)
             throw new EqlExecuteException("bad parameters when batch option is set");
 
-        int offset = 0;
         val placeholder = placeHolders[index];
-        if (processContext) {
-            if (placeholder.hasContextOnly()) {
-                return EqlContext.get(placeholder.getContextName());
-            }
-
-            offset = computeOffset(index);
+        if (placeholder.hasContextOnly()) {
+            return EqlContext.get(placeholder.getContextName());
         }
+
+        int offset = computeOffset(index);
 
         val params = eqlRun.getParams();
         if (params != null && index - offset < params.length)
             return params[index - offset];
+
+        throw new EqlExecuteException("[" + eqlRun.getSqlId() + "] lack parameters at runtime");
+    }
+
+    private Object getParamBySeq(EqlParamPlaceholder placeholder, int seq) {
+        val placeHolders = eqlRun.getPlaceHolders();
+        if (seq < placeHolders.length && eqlRun.getSqlType().isProcedure()
+                && placeholder.getInOut() == InOut.OUT)
+            return null;
+
+        if (hasIterateOption)
+            throw new EqlExecuteException("bad parameters when batch option is set");
+
+
+        val params = eqlRun.getParams();
+        if (params != null && seq < params.length)
+            return params[seq];
 
         throw new EqlExecuteException("[" + eqlRun.getSqlId() + "] lack parameters at runtime");
     }
@@ -214,6 +228,6 @@ public class EqlParamsBinder {
             return EqlContext.get(placeholder.getContextName());
         }
 
-        return getParamByIndex(placeholder.getSeq() - 1, false);
+        return getParamBySeq(placeholder, placeholder.getSeq() - 1);
     }
 }
