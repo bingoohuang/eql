@@ -2,6 +2,7 @@ package org.n3r.eql.param;
 
 import com.google.common.base.Splitter;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.n3r.eql.param.EqlParamsParser.PlaceHolderTemp;
 import org.n3r.eql.util.S;
@@ -11,10 +12,9 @@ import java.util.regex.Pattern;
 
 import static org.n3r.eql.param.EqlParamsParser.SUB;
 
-@Data
+@Data @Slf4j
 public class EqlParamPlaceholder {
     public enum InOut {IN, OUT, INOUT;}
-
     public enum Like {None, Like, LeftLike, RightLike;}
 
     private int outType = Types.VARCHAR;
@@ -27,13 +27,14 @@ public class EqlParamPlaceholder {
     private int seq;
     private boolean escape;
     private String escapeValue;
+    private String contextName;
 
     public void parseOption(PlaceHolderTemp holder, String evalSqlTemplate) {
         val splitter = Splitter.on(',').omitEmptyStrings().trimResults();
         val optionParts = splitter.split(S.upperCase(holder.getPlaceHolderOptions()));
         for (String optionPart : optionParts) {
-            String upperPureOption = parsePureOption(optionPart);
-            String upperSubOption = parseSubOption(optionPart);
+            val upperPureOption = parsePureOption(optionPart);
+            val upperSubOption = parseSubOption(optionPart);
             if (S.equals("OUT", upperPureOption)) {
                 setInOut(InOut.OUT);
                 parseOutType(upperSubOption);
@@ -53,13 +54,17 @@ public class EqlParamPlaceholder {
                 parseEscape(holder, evalSqlTemplate);
             } else if (S.equals("NUMBER", upperPureOption)) {
                 setNumberColumn(true);
+            } else if (S.equals("CONTEXT", upperPureOption)) {
+                setContextName(holder.placeHolder);
+            } else {
+                log.warn("unknown option {}", upperPureOption);
             }
         }
     }
 
     private void parseEscape(PlaceHolderTemp holder, String evalSqlTemplate) {
         val fromSub = S.wrap(holder.getQuestionSeq(), SUB);
-        int fromSubIndex = evalSqlTemplate.indexOf(fromSub) + fromSub.length();
+        val fromSubIndex = evalSqlTemplate.indexOf(fromSub) + fromSub.length();
 
         val escapePattern = Pattern.compile("\\s+ESCAPE\\s+(\\S+)",
                 Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
@@ -82,10 +87,10 @@ public class EqlParamPlaceholder {
     }
 
     private String parseSubOption(String optionPart) {
-        int leftBrace = optionPart.indexOf('(');
+        val leftBrace = optionPart.indexOf('(');
         if (leftBrace == -1) return null;
 
-        int rightBrace = optionPart.indexOf(')', leftBrace);
+        val rightBrace = optionPart.indexOf(')', leftBrace);
         if (rightBrace == -1)
             throw new RuntimeException("option " + optionPart + " hasn't right brace");
 
@@ -93,7 +98,7 @@ public class EqlParamPlaceholder {
     }
 
     private String parsePureOption(String optionPart) {
-        int leftBrace = optionPart.indexOf('(');
+        val leftBrace = optionPart.indexOf('(');
         if (leftBrace == -1) return optionPart;
 
         return S.trim(optionPart.substring(0, leftBrace));

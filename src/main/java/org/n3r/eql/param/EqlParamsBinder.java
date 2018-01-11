@@ -3,6 +3,7 @@ package org.n3r.eql.param;
 import com.google.common.base.Objects;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.n3r.eql.EqlContext;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.param.EqlParamPlaceholder.InOut;
@@ -10,6 +11,7 @@ import org.n3r.eql.util.Names;
 
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class EqlParamsBinder {
     private EqlRun eqlRun;
@@ -28,13 +30,14 @@ public class EqlParamsBinder {
         boundParams = new ArrayList<Object>();
 
         switch (eqlRun.getPlaceHolderType()) {
+            case UNSET:
             case AUTO_SEQ:
                 for (int i = 0; i < eqlRun.getPlaceholderNum(); ++i)
-                    setParam(i, getParamByIndex(i), ParamExtra.Normal);
+                    setParam(i, getParamByIndex(i, true), ParamExtra.Normal);
                 break;
             case MANU_SEQ:
                 for (int i = 0; i < eqlRun.getPlaceholderNum(); ++i)
-                    setParam(i, findParamBySeq(i + 1), ParamExtra.Normal);
+                    setParam(i, findParamBySeq(i), ParamExtra.Normal);
                 break;
             case VAR_NAME:
                 for (int i = 0; i < eqlRun.getPlaceholderNum(); ++i)
@@ -63,13 +66,10 @@ public class EqlParamsBinder {
 
     private void setParam(int index, Object value, ParamExtra extra) {
         val placeHolder = eqlRun.getPlaceHolder(index);
-        switch (extra) {
-            case Extra:
-                setParamValue(placeHolder, index, value);
-                break;
-            default:
-                setParamEx(placeHolder, index, value);
-                break;
+        if (extra == ParamExtra.Extra) {
+            setParamValue(placeHolder, index, value);
+        } else {
+            setParamEx(placeHolder, index, value);
         }
     }
 
@@ -114,23 +114,26 @@ public class EqlParamsBinder {
     }
 
     private Object findParamByName(int index) {
-        String varName = eqlRun.getPlaceHolders()[index].getPlaceholder();
+        val placeholder = eqlRun.getPlaceHolders()[index];
+        if (placeholder.getContextName() != null) {
+            return EqlContext.get(placeholder.getContextName());
+        }
 
+        val varName = placeholder.getPlaceholder();
         val evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
-
-        Object property = evaluator.eval(varName, eqlRun);
+        val property = evaluator.eval(varName, eqlRun);
 
         if (!hasIterateOption && property != null
                 || hasIterateOption && !isAllNullInBatchOption(property))
             return property;
 
-        String propertyName = Names.underscoreNameToPropertyName(varName);
+        val propertyName = Names.underscoreNameToPropertyName(varName);
         return Objects.equal(propertyName, varName) ? property : evaluator.eval(propertyName, eqlRun);
     }
 
     private boolean isAllNullInBatchOption(Object property) {
         val listProperties = (List<Object>) property;
-        for (Object object : listProperties) {
+        for (val object : listProperties) {
             if (object != null) return false;
         }
 
@@ -138,7 +141,7 @@ public class EqlParamsBinder {
     }
 
 
-    private Object getParamByIndex(int index) {
+    private Object getParamByIndex(int index, boolean processContext) {
         val placeHolders = eqlRun.getPlaceHolders();
         if (index < placeHolders.length && eqlRun.getSqlType().isProcedure()
                 && placeHolders[index].getInOut() == InOut.OUT)
@@ -147,14 +150,40 @@ public class EqlParamsBinder {
         if (hasIterateOption)
             throw new EqlExecuteException("bad parameters when batch option is set");
 
-        Object[] params = eqlRun.getParams();
-        if (params != null && index < params.length)
-            return params[index];
+        int offset = 0;
+        if (processContext) {
+            val placeholder = placeHolders[index];
+            if (placeholder.getContextName() != null) {
+                return EqlContext.get(placeholder.getContextName());
+            }
+
+            offset = computeOffset(index);
+        }
+
+        val params = eqlRun.getParams();
+        if (params != null && index - offset < params.length)
+            return params[index - offset];
 
         throw new EqlExecuteException("[" + eqlRun.getSqlId() + "] lack parameters at runtime");
     }
 
+    private int computeOffset(int index) {
+        int offset = 0;
+        for (int i = 0; i <= index; ++i) {
+            val ph = eqlRun.getPlaceHolders()[i];
+            if (ph.getContextName() != null) {
+                ++offset;
+            }
+        }
+        return offset;
+    }
+
     private Object findParamBySeq(int index) {
-        return getParamByIndex(eqlRun.getPlaceHolders()[index - 1].getSeq() - 1);
+        val placeholder = eqlRun.getPlaceHolders()[index];
+        if (placeholder.getContextName() != null) {
+            return EqlContext.get(placeholder.getContextName());
+        }
+
+        return getParamByIndex(placeholder.getSeq() - 1, false);
     }
 }
