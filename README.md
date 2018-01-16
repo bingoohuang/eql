@@ -1020,6 +1020,8 @@ public void returnInt() {
             .returnType(int.class).execute("select 1 where 2 > 3");
 }
 ```
+## IDEA plugin 
+[eql-plugin](https://github.com/Bpazy/eql-plugin)
 
 # docker
 ## MySQL
