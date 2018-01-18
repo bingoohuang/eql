@@ -91,6 +91,7 @@ public class EqlParamsBinder {
     }
 
     @SneakyThrows
+    @SuppressWarnings("unchecked")
     private void setParamValue(EqlParamPlaceholder placeHolder, int index, Object value) {
         if (hasIterateOption) {
             val values = (List<Object>) value;
@@ -162,6 +163,8 @@ public class EqlParamsBinder {
                 ? property : evaluator.eval(propName, eqlRun);
     }
 
+
+    @SuppressWarnings("unchecked")
     private boolean isAllNullInBatchOption(Object property) {
         for (val object : (List<Object>) property) {
             if (object != null) return false;

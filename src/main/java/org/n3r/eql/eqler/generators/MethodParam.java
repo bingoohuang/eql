@@ -29,6 +29,7 @@ public class MethodParam {
         setReturnType(findAnnotation(paramAnnotations, ReturnType.class));
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends Annotation> T findAnnotation(
             Annotation[] paramAnnotations, Class<T> annotationType) {
         for (Annotation paramAnnotation : paramAnnotations) {

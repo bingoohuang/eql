@@ -29,7 +29,7 @@ import static org.n3r.eql.util.Asms.p;
 import static org.n3r.eql.util.Asms.sig;
 import static org.objectweb.asm.Opcodes.*;
 
-public class MethodGenerator<T> {
+public class MethodGenerator<T> implements Generatable {
     public static final String EQL = p(Eql.class);
     private final Method method;
     private final MethodVisitor mv;

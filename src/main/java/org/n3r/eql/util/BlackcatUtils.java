@@ -3,11 +3,14 @@ package org.n3r.eql.util;
 import com.github.bingoohuang.blackcat.instrument.callback.Blackcat;
 import com.github.bingoohuang.blackcat.instrument.utils.Collections;
 import com.github.bingoohuang.westjson.WestJson;
+import lombok.experimental.UtilityClass;
 
 import java.util.Collection;
 
+@UtilityClass
+@SuppressWarnings("unchecked")
 public class BlackcatUtils {
-    public static boolean classExists(String className) {
+    public boolean classExists(String className) {
         try {
             Class.forName(className);
             return true;
@@ -16,10 +19,10 @@ public class BlackcatUtils {
         }
     }
 
-    public static final boolean HasBlackcat = classExists(
+    public final boolean HasBlackcat = classExists(
             "com.github.bingoohuang.blackcat.instrument.callback.Blackcat");
 
-    public static void trace(String sqlId, String printSql,
+    public void trace(String sqlId, String printSql,
                              String traceParams, String evalSql, Object execRet) {
         if (!HasBlackcat) return;
 
@@ -33,7 +36,7 @@ public class BlackcatUtils {
         );
     }
 
-    private static Object compressResult(Object execRet) {
+    private Object compressResult(Object execRet) {
         if (!(execRet instanceof Collection)) {
             return new WestJson().json(execRet, WestJson.UNQUOTED);
         }

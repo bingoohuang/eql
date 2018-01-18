@@ -1,11 +1,9 @@
 package org.n3r.eql.util;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import lombok.val;
 import org.n3r.eql.base.EqlToProperties;
 
-import java.beans.BeanInfo;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -16,6 +14,7 @@ import static org.n3r.eql.util.P.toDbConvert;
 /**
  * @author bingoohuang [bingoohuang@gmail.com] Created on 2017/2/13.
  */
+@SuppressWarnings("unchecked")
 public class MapInvocationHandler implements InvocationHandler {
     private final Map<String, Object> context;
     private final Object bean;
@@ -30,7 +29,7 @@ public class MapInvocationHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        boolean isGet = method.getName().equals("get");
+        val isGet = method.getName().equals("get");
         if (!isGet) { // 有其他方法调用时，退回到预先准备所有property的模式
             if (merged == null) merged = mergeProperties(context, bean);
             return method.invoke(merged, args);
@@ -94,17 +93,15 @@ public class MapInvocationHandler implements InvocationHandler {
 
     private static void mergeReadProperties(
             Object bean, Map<String, Object> map) {
-        BeanInfo info = O.getBeanInfo(bean.getClass());
+        val info = O.getBeanInfo(bean.getClass());
 
         for (val pDesc : info.getPropertyDescriptors()) {
-            Method method = pDesc.getReadMethod();
+            val method = pDesc.getReadMethod();
             if (method == null) continue;
 
-            String name = pDesc.getName();
-
-            Optional<Object> value = O.invokeMethod(bean, method);
+            val value = O.invokeMethod(bean, method);
             Object propertyValue = toDbConvert(method, value.orNull());
-            map.put(name, propertyValue);
+            map.put(pDesc.getName(), propertyValue);
         }
     }
 

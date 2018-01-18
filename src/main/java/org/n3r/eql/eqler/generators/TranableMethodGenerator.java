@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
 import static org.n3r.eql.util.Asms.p;
 import static org.objectweb.asm.Opcodes.*;
 
-public class TranableMethodGenerator<T> {
+public class TranableMethodGenerator<T>  implements Generatable{
     private final String methodName;
     private final String eqlClassName;
     private final EqlerConfig eqlerConfig;

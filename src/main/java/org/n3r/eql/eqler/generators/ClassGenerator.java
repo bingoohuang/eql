@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 
 import static org.objectweb.asm.Opcodes.*;
 
+@SuppressWarnings("unchecked")
 public class ClassGenerator<T> {
     private final Class<T> eqlerClass;
     private final String implName;
@@ -32,7 +33,8 @@ public class ClassGenerator<T> {
 
     private void diagnose(byte[] bytes) {
         val eqlerConfig = eqlerClass.getAnnotation(EqlerConfig.class);
-        if (eqlerConfig == null || !eqlerConfig.createClassFileForDiagnose()) return;
+        if (eqlerConfig == null || !eqlerConfig.createClassFileForDiagnose())
+            return;
 
         writeClassFile4Diagnose(bytes, eqlerClass.getSimpleName() + "Impl.class");
     }
@@ -52,13 +54,10 @@ public class ClassGenerator<T> {
         constructor();
 
         for (val method : eqlerClass.getMethods()) {
-            if (TranableMethodGenerator.isEqlTranableMethod(method)) {
-                val generator = new TranableMethodGenerator(classWriter, method, eqlerClass);
-                generator.generate();
-            } else {
-                val generator = new MethodGenerator(classWriter, method, eqlerClass);
-                generator.generate();
-            }
+            Generatable generator = TranableMethodGenerator.isEqlTranableMethod(method)
+                    ? new TranableMethodGenerator(classWriter, method, eqlerClass)
+                    : new MethodGenerator(classWriter, method, eqlerClass);
+            generator.generate();
         }
 
         return createBytes();

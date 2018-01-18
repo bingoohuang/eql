@@ -22,15 +22,21 @@ public class EqlResourceLoaderHelper {
         val loader = new CacheLoader<EqlUniqueSqlId, Optional<EqlBlock>>() {
             @Override
             public Optional<EqlBlock> load(EqlUniqueSqlId eqlUniqueSqlId) {
-                val optional = loadBlocks(fileCache, eqlUniqueSqlId);
-                if (!optional.isPresent()) {
-                    log.error("unable to find sqlid:{}", eqlUniqueSqlId);
-                }
-
-                return optional;
+                return loadEqlBlockOptional(eqlUniqueSqlId, fileCache);
             }
         };
         return CacheBuilder.newBuilder().build(loader);
+    }
+
+    private Optional<EqlBlock> loadEqlBlockOptional(
+            EqlUniqueSqlId eqlUniqueSqlId,
+            Cache<String, Optional<Map<String, EqlBlock>>> fileCache) {
+        val optional = loadBlocks(fileCache, eqlUniqueSqlId);
+        if (!optional.isPresent()) {
+            log.error("unable to find sqlid:{}", eqlUniqueSqlId);
+        }
+
+        return optional;
     }
 
     private Optional<EqlBlock> loadBlocks(
