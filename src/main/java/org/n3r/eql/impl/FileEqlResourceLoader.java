@@ -17,8 +17,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-import static org.n3r.eql.impl.EqlResourceLoaderHelper.updateFileCache;
-
 @Slf4j @NoArgsConstructor
 public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
     static Cache<String, Optional<Map<String, EqlBlock>>> fileCache;
@@ -33,10 +31,11 @@ public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
     public EqlBlock loadEqlBlock(String sqlClassPath, String sqlId) {
         load(this, sqlClassPath);
 
-        val eqlBlock = sqlCache.getUnchecked(new EqlUniqueSqlId(sqlClassPath, sqlId));
+        val eqlUniqueSqlId = new EqlUniqueSqlId(sqlClassPath, sqlId);
+        val eqlBlock = sqlCache.getUnchecked(eqlUniqueSqlId);
         if (eqlBlock.isPresent()) return eqlBlock.get();
 
-        throw new RuntimeException("unable to find sql id " + sqlId);
+        throw new RuntimeException("unable to find sql id " + eqlUniqueSqlId);
     }
 
     @Override
@@ -45,19 +44,19 @@ public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
     }
 
     @SneakyThrows
-    private Map<String, EqlBlock> load(final EqlResourceLoader eqlResourceLoader,
+    private Map<String, EqlBlock> load(final EqlResourceLoader eqlResLoader,
                                        final String sqlClassPath) {
         val valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
             @Override
-            public Optional<Map<String, EqlBlock>> call() throws Exception {
-                String sqlContent = C.classResourceToString(sqlClassPath);
+            public Optional<Map<String, EqlBlock>> call() {
+                val sqlContent = C.classResourceToString(sqlClassPath);
                 if (sqlContent == null) {
                     log.warn("classpath sql {} not found", sqlClassPath);
                     return Optional.absent();
                 }
 
-                return Optional.of(updateFileCache(sqlContent,
-                        eqlResourceLoader, sqlClassPath, eqlLazyLoad));
+                return Optional.of(EqlResourceLoaderHelper.updateFileCache(
+                        sqlContent, eqlResLoader, sqlClassPath, eqlLazyLoad));
             }
         };
 

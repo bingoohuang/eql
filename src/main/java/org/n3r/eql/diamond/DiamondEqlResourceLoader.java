@@ -22,9 +22,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-import static org.n3r.eql.impl.EqlResourceLoaderHelper.updateBlockCache;
-import static org.n3r.eql.impl.EqlResourceLoaderHelper.updateFileCache;
-
 @Slf4j
 public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
     static Cache<String, Optional<Map<String, EqlBlock>>> fileCache;
@@ -56,21 +53,23 @@ public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
     }
 
     @SneakyThrows
-    private Map<String, EqlBlock> load(
-            final EqlResourceLoader eqlResourceLoader,
-            final String sqlClassPath) {
+    private Map<String, EqlBlock> load(final EqlResourceLoader eqlResourceLoader,
+                                       final String sqlClassPath) {
         val dataId = sqlClassPath.replaceAll("/", ".");
+        val diamondListener = new DiamondListenerAdapter() {
+            @Override
+            public void accept(DiamondStone diamondStone) {
+                val eql = diamondStone.getContent();
+                EqlResourceLoaderHelper.updateBlockCache(eql,
+                        eqlResourceLoader, sqlClassPath, sqlCache, fileCache);
+            }
+        };
+
         val valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
             @Override
-            public Optional<Map<String, EqlBlock>> call() throws Exception {
+            public Optional<Map<String, EqlBlock>> call() {
                 val manager = new DiamondManager("EQL", dataId);
-                manager.addDiamondListener(new DiamondListenerAdapter() {
-                    @Override
-                    public void accept(DiamondStone diamondStone) {
-                        String eql = diamondStone.getContent();
-                        updateBlockCache(eql, eqlResourceLoader, sqlClassPath, sqlCache, fileCache);
-                    }
-                });
+                manager.addDiamondListener(diamondListener);
 
                 val sqlContent = manager.getDiamond();
                 if (sqlContent == null) {
@@ -78,8 +77,8 @@ public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
                     return Optional.absent();
                 }
 
-                return Optional.of(updateFileCache(sqlContent,
-                        eqlResourceLoader, sqlClassPath, eqlLazyLoad));
+                return Optional.of(EqlResourceLoaderHelper.updateFileCache(
+                        sqlContent, eqlResourceLoader, sqlClassPath, eqlLazyLoad));
             }
         };
 
