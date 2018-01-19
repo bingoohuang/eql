@@ -37,6 +37,7 @@ public interface DataSourceConfigurator {
 
     /**
      * 缩减连接池空闲连接.
+     * @return shrink message
      */
     String shrink();
 
