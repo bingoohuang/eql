@@ -1,5 +1,6 @@
 package org.n3r.eql.util;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
@@ -11,6 +12,8 @@ import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -46,7 +49,7 @@ public class EqlUtils {
         return connection.getMetaData().getURL();
     }
 
-    public static Map<String, Object> newExecContext(Object[] params, Object[] dynamics) {
+    public static Map<String, Object> newExecContext(Object[] originParams, Object[] dynamics) {
         val execContext = Maps.<String, Object>newHashMap();
         execContext.put("_time", new Timestamp(System.currentTimeMillis()));
         execContext.put("_date", new java.util.Date());
@@ -54,6 +57,9 @@ public class EqlUtils {
         execContext.put("_ip", HostAddress.getIp());
         execContext.put("_results", newArrayList());
         execContext.put("_lastResult", "");
+
+        Object[] params = convertParams(originParams);
+
         execContext.put("_params", params);
         if (params != null) {
             execContext.put("_paramsCount", params.length);
@@ -66,6 +72,25 @@ public class EqlUtils {
             execContext.put("_dynamicsCount", dynamics.length);
 
         return execContext;
+    }
+
+    private static Object[] convertParams(Object[] originParams) {
+        if (originParams == null) return null;
+
+        Object[] objects = new Object[originParams.length];
+        for (int i = 0; i < originParams.length; ++i) {
+            objects[i] = convertParam(originParams[i]);
+        }
+
+        return objects;
+    }
+
+    private static Object convertParam(Object originParam) {
+        if (originParam instanceof List) return originParam;
+        if (originParam instanceof Collection) {
+            return Lists.newArrayList((Collection)originParam);
+        }
+        return originParam;
     }
 
     public static String trimLastUnusedPart(String sql) {
