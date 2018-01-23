@@ -12,7 +12,6 @@ import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -87,8 +86,8 @@ public class EqlUtils {
 
     private static Object convertParam(Object originParam) {
         if (originParam instanceof List) return originParam;
-        if (originParam instanceof Collection) {
-            return Lists.newArrayList((Collection)originParam);
+        if (originParam instanceof Iterable) {
+            return Lists.newArrayList((Iterable) originParam);
         }
         return originParam;
     }
