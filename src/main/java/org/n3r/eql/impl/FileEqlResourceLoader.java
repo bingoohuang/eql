@@ -66,6 +66,4 @@ public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
             throw Throwables.getRootCause(e);
         }
     }
-
-
 }

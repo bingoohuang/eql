@@ -2,6 +2,7 @@ package org.n3r.eql.impl;
 
 import com.google.common.collect.Maps;
 import lombok.Getter;
+import lombok.val;
 import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.util.Pair;
 
@@ -22,10 +23,10 @@ public class DecodeMapper implements EqlRowMapper {
 
     @Override
     public Object mapRow(ResultSet rs, int rowNum, boolean isSingleColumn) throws SQLException {
-        String code = rs.getString(1);
-        String value = rs.getString(2);
+        val code = rs.getString(1);
+        val value = rs.getString(2);
 
-        Pair<String, String> pair = def.get(code);
+        val pair = def.get(code);
         map.put(pair._1, code);
         map.put(pair._2, value);
 

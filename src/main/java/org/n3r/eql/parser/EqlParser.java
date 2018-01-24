@@ -12,7 +12,6 @@ import org.n3r.eql.settings.EqlFileGlobalSettings;
 
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -48,7 +47,7 @@ public class EqlParser {
     }
 
     public Map<String, EqlBlock> parse(String eqlStr) {
-        Iterable<String> lines = Splitter.on('\n').trimResults().split(eqlStr);
+        val lines = Splitter.on('\n').trimResults().split(eqlStr);
 
         int lineNo = 0;
         for (String line : lines) {
@@ -58,16 +57,16 @@ public class EqlParser {
             if (line.length() == 0) continue;
 
             if (line.startsWith("--")) {
-                String cleanLine = ParserUtils.substr(line, "--".length());
+                val cleanLine = ParserUtils.substr(line, 2/*"--".length()*/);
                 if (importOtherSqlFile(cleanLine)) continue;
                 if (includeOtherSqlId(cleanLine)) continue;
                 if (globalSettings(cleanLine)) continue;
 
-                Matcher matcher = blockPattern.matcher(cleanLine);
+                val matcher = blockPattern.matcher(cleanLine);
                 if (matcher.matches()) { // new sql block found
                     parsePreviousBlock();
-                    String sqlId = matcher.group(1);
-                    String options = matcher.group(2);
+                    val sqlId = matcher.group(1);
+                    val options = matcher.group(2);
                     block = new EqlBlock(sqlClassPath, sqlId, options, lineNo);
                     addBlock(block);
                     continue;
@@ -86,10 +85,10 @@ public class EqlParser {
     static Pattern globalSettingsPattern = Pattern.compile("global\\s+settings\\s+(.+)");
 
     private boolean globalSettings(String cleanLine) {
-        Matcher matcher = globalSettingsPattern.matcher(cleanLine);
+        val matcher = globalSettingsPattern.matcher(cleanLine);
         if (!matcher.matches()) return false;
 
-        String globalSettings = matcher.group(1).trim();
+        val globalSettings = matcher.group(1).trim();
 
         EqlFileGlobalSettings.process(sqlClassPath, globalSettings);
 
@@ -99,20 +98,20 @@ public class EqlParser {
     static Pattern includePattern = Pattern.compile("(include|ref)\\s+([\\w\\.\\-\\d]+)");
 
     private boolean includeOtherSqlId(String cleanLine) {
-        Matcher matcher = includePattern.matcher(cleanLine);
+        val matcher = includePattern.matcher(cleanLine);
         if (!matcher.matches()) return false;
 
         if (block == null) return true;
 
-        String includeEqlId = matcher.group(2);
-        EqlBlock eqlBlock = blocks.get(includeEqlId);
+        val includeEqlId = matcher.group(2);
+        val eqlBlock = blocks.get(includeEqlId);
         if (eqlBlock == null) {
             log.error("include eql id {} not found in {}", includeEqlId, sqlClassPath);
             throw new RuntimeException(cleanLine + " not found");
         }
         sqlLines.addAll(eqlBlock.getSqlLines());
 
-        String ref = matcher.group(1);
+        val ref = matcher.group(1);
         if (!"ref".equals(ref)) sqlLines.add(";");
 
         return true;
@@ -121,13 +120,13 @@ public class EqlParser {
     static Pattern importPattern = Pattern.compile("import\\s+([/.\\w]+)(\\s+.*)?");
 
     private boolean importOtherSqlFile(String cleanLine) {
-        Matcher matcher = importPattern.matcher(cleanLine);
+        val matcher = importPattern.matcher(cleanLine);
         if (!matcher.matches()) return false;
 
         parsePreviousBlock();
 
-        String classPath = matcher.group(1).trim();
-        String patterns = ParserUtils.trim(matcher.group(2));
+        val classPath = matcher.group(1).trim();
+        val patterns = ParserUtils.trim(matcher.group(2));
 
         if (classPath.equals(sqlClassPath)) return true;
 
@@ -138,9 +137,9 @@ public class EqlParser {
         }
 
         Map<String, EqlBlock> temp = Maps.newHashMap();
-        Splitter splitter = Splitter.onPattern("\\s+").omitEmptyStrings().trimResults();
-        for (String pattern : splitter.split(patterns)) {
-            for (EqlBlock eqlBlock : importRes.values()) {
+        val splitter = Splitter.onPattern("\\s+").omitEmptyStrings().trimResults();
+        for (val pattern : splitter.split(patterns)) {
+            for (val eqlBlock : importRes.values()) {
                 if (wildCardMatch(eqlBlock.getSqlId(), pattern)) {
                     temp.put(eqlBlock.getSqlId(), eqlBlock);
                 }
@@ -153,11 +152,12 @@ public class EqlParser {
     }
 
     private void importSqlBlocks(String cleanLine, Map<String, EqlBlock> temp) {
-        for (EqlBlock eqlBlock : temp.values()) {
+        for (val eqlBlock : temp.values()) {
             if (blocks.containsKey(eqlBlock.getSqlId())) {
-                log.error("{} duplicated when {} in {}", eqlBlock.getSqlId(), cleanLine, sqlClassPath);
-                throw new RuntimeException(eqlBlock.getSqlId() + " duplicated when "
-                        + cleanLine + " in " + sqlClassPath);
+                log.error("{} duplicated when {} in {}",
+                        eqlBlock.getSqlId(), cleanLine, sqlClassPath);
+                throw new RuntimeException(eqlBlock.getSqlId()
+                        + " duplicated when " + cleanLine + " in " + sqlClassPath);
             }
 
             blocks.put(eqlBlock.getSqlId(), eqlBlock);
@@ -186,9 +186,9 @@ public class EqlParser {
     public static boolean wildCardMatch(String text, String pattern) {
         // Create the cards by splitting using a RegEx. If more speed
         // is desired, a simpler character based splitting can be done.
-        String[] cards = pattern.split("\\*");
+        val cards = pattern.split("\\*");
 
-        for (String card : cards) {
+        for (val card : cards) {
             int idx = text.indexOf(card);
             if (idx == -1) return false;
 
