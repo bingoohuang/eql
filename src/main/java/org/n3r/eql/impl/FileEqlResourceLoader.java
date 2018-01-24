@@ -19,19 +19,19 @@ import java.util.concurrent.ExecutionException;
 
 @Slf4j @NoArgsConstructor
 public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
-    static Cache<String, Optional<Map<String, EqlBlock>>> fileCache;
-    static LoadingCache<EqlUniqueSqlId, Optional<EqlBlock>> sqlCache;
-
-    static {
-        fileCache = CacheBuilder.newBuilder().build();
-        sqlCache = EqlResourceLoaderHelper.buildSqlCache(fileCache);
-    }
+    private static final Cache<String, Optional<Map<String, EqlBlock>>>
+            fileCache = CacheBuilder.newBuilder().build();
+    private static final LoadingCache<EqlUniqueSqlId, Optional<EqlBlock>>
+            sqlCache = EqlResourceLoaderHelper.buildSqlCache(fileCache);
 
     @Override
-    public EqlBlock loadEqlBlock(String sqlClassPath, String sqlId) {
-        load(this, sqlClassPath);
+    public EqlBlock loadEqlBlock(String classPath, String sqlId) {
+        val fileBlocks = load(this, classPath);
+        if (fileBlocks == null) {
+            throw new RuntimeException("unable to find sql file " + classPath);
+        }
 
-        val eqlUniqueSqlId = new EqlUniqueSqlId(sqlClassPath, sqlId);
+        val eqlUniqueSqlId = new EqlUniqueSqlId(classPath, sqlId);
         val eqlBlock = sqlCache.getUnchecked(eqlUniqueSqlId);
         if (eqlBlock.isPresent()) return eqlBlock.get();
 
@@ -44,7 +44,7 @@ public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
     }
 
     @SneakyThrows
-    private Map<String, EqlBlock> load(final EqlResourceLoader eqlResLoader,
+    private Map<String, EqlBlock> load(final EqlResourceLoader resLoader,
                                        final String sqlClassPath) {
         val valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
             @Override
@@ -56,7 +56,7 @@ public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
                 }
 
                 return Optional.of(EqlResourceLoaderHelper.updateFileCache(
-                        sqlContent, eqlResLoader, sqlClassPath, eqlLazyLoad));
+                        sqlContent, resLoader, sqlClassPath, eqlLazyLoad));
             }
         };
 
