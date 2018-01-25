@@ -21,31 +21,18 @@ public class EqlResourceLoaderHelper {
             final Cache<String, Optional<Map<String, EqlBlock>>> fileCache) {
         val loader = new CacheLoader<EqlUniqueSqlId, Optional<EqlBlock>>() {
             @Override
-            public Optional<EqlBlock> load(EqlUniqueSqlId eqlUniqueSqlId) throws Exception {
-                return loadEqlBlockOptional(eqlUniqueSqlId, fileCache);
+            public Optional<EqlBlock> load(EqlUniqueSqlId eqlUniqueSqlId) {
+                return loadBlocks(fileCache, eqlUniqueSqlId);
             }
         };
         return CacheBuilder.newBuilder().build(loader);
     }
 
-    private Optional<EqlBlock> loadEqlBlockOptional(
-            EqlUniqueSqlId eqlUniqueSqlId,
-            Cache<String, Optional<Map<String, EqlBlock>>> fileCache) {
-        val optional = loadBlocks(fileCache, eqlUniqueSqlId);
-        if (!optional.isPresent()) {
-            log.error("unable to find sqlid:{}", eqlUniqueSqlId);
-        }
-
-        return optional;
-    }
-
     private Optional<EqlBlock> loadBlocks(
             Cache<String, Optional<Map<String, EqlBlock>>> fileCache,
-            EqlUniqueSqlId eqlUniqueSqlId) {
-        val blocks = fileCache.getIfPresent(eqlUniqueSqlId.getSqlClassPath());
-        if (/*blocks == null || */!blocks.isPresent()) return Optional.absent();
-
-        val eqlBlock = blocks.get().get(eqlUniqueSqlId.getSqlId());
+            EqlUniqueSqlId sqlId) {
+        val blocks = fileCache.getIfPresent(sqlId.getSqlClassPath());
+        val eqlBlock = blocks.get().get(sqlId.getSqlId());
         if (eqlBlock == null) return Optional.absent();
 
         eqlBlock.tryParseSqls();
@@ -61,29 +48,29 @@ public class EqlResourceLoaderHelper {
         val oldBlocks = fileCache.getIfPresent(sqlClassPath);
         val oldSqlIds = oldBlocks.or(new HashMap<String, EqlBlock>()).keySet();
 
-        val eqlParser = new EqlParser(eqlResourceLoader, sqlClassPath);
-        val sqlBlocks = eqlParser.parse(sqlContent);
+        val parser = new EqlParser(eqlResourceLoader, sqlClassPath);
+        val blocks = parser.parse(sqlContent);
 
-        for (val sqlBlock : sqlBlocks.values()) {
-            val uniqueSqlId = sqlBlock.getUniqueSqlId();
-            sqlCache.put(uniqueSqlId, Optional.of(sqlBlock));
+        for (val block : blocks.values()) {
+            val uniqueSqlId = block.getUniqueSqlId();
+            sqlCache.put(uniqueSqlId, Optional.of(block));
             oldSqlIds.remove(uniqueSqlId.getSqlId());
         }
 
         for (val uniqueId : oldSqlIds) {
-            sqlCache.invalidate(new EqlUniqueSqlId(sqlClassPath, uniqueId));
+            sqlCache.invalidate(EqlUniqueSqlId.of(sqlClassPath, uniqueId));
         }
 
-        fileCache.put(sqlClassPath, Optional.of(sqlBlocks));
+        fileCache.put(sqlClassPath, Optional.of(blocks));
     }
 
     public Map<String, EqlBlock> updateFileCache(
             String sqlContent,
             EqlResourceLoader eqlResourceLoader,
             String sqlClassPath, boolean eqlLazyLoad) {
-        val eqlParser = new EqlParser(eqlResourceLoader, sqlClassPath);
+        val parser = new EqlParser(eqlResourceLoader, sqlClassPath);
         return eqlLazyLoad
-                ? eqlParser.delayParse(sqlContent)
-                : eqlParser.parse(sqlContent);
+                ? parser.delayParse(sqlContent)
+                : parser.parse(sqlContent);
     }
 }

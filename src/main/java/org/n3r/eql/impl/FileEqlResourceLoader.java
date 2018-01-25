@@ -26,8 +26,8 @@ public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
 
     @Override
     public EqlBlock loadEqlBlock(String classPath, String sqlId) {
-        val fileBlocks = load(this, classPath);
-        if (fileBlocks == null) {
+        val blocks = load(this, classPath); // insure file cache built
+        if (blocks == null) {
             throw new RuntimeException("unable to find sql file " + classPath);
         }
 
