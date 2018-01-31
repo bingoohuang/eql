@@ -39,6 +39,10 @@ public class MapInvocationHandler implements InvocationHandler {
             return merged.get(args[0]);
         }
 
+        if (isGet && bean instanceof Map) {
+            return ((Map)bean).get(args[0]);
+        }
+
         val propertyReader = new BeanPropertyReader(bean, (String) args[0]);
         if (propertyReader.existsProperty()) {
             return propertyReader.readProperty();

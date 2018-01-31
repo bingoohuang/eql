@@ -1,0 +1,34 @@
+--[getVisitDetailInfo]
+SELECT DAY
+-- if table == "glass_vod_statistics_program_flow"
+      ,IF(LICENSE_TYPE = 0,
+        '全部',
+        IF(LICENSE_TYPE = 1,
+            '银河',
+            IF(LICENSE_TYPE = 2,
+                '未来电视',
+                '百视通'))) AS LICENSE_NAME
+-- end
+    ,IF( PV IS NULL,0,PV) PV
+    ,IF( UV IS NULL ,0,UV) UV
+    ,IF( NEW_UV IS NULL ,0,NEW_UV) NEW_UV
+-- if table == "glass_vod_statistics_page_flow"
+      ,1
+-- else
+      ,IF( PLAY_NUM IS NULL ,0,PLAY_NUM) PLAY_NUM
+      ,IF( PLAY_SUCCESS IS NULL ,0,PLAY_SUCCESS) 'PLAY_SUCCESS'
+-- end
+-- if tollFlag == 1
+      ,IF( BUY_TIMES IS NULL ,0,BUY_TIMES) BUY_TIMES
+-- end
+FROM $table$
+WHERE str_to_date(#startTime#, '%Y-%m-%d')<=str_to_date(DAY, '%Y-%m-%d')
+and str_to_date(DAY, '%Y-%m-%d') <=str_to_date(#endTime#, '%Y-%m-%d')
+-- if table == "glass_vod_statistics_page_flow"
+    AND PAGE_URL = #selectedId#
+-- else if table == "glass_vod_statistics_category_flow"
+    AND CATEGORY_ID = #selectedId#
+-- else
+    AND PROGRAM_ID = #selectedId#
+-- end
+ORDER BY str_to_date(day, '%Y-%m-%d')
