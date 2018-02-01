@@ -1,5 +1,6 @@
 package org.n3r.eql.liulei;
 
+import com.github.bingoohuang.westid.WestId;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -12,7 +13,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.n3r.eql.Eql;
 import org.n3r.eql.eqler.EqlerFactory;
-import org.n3r.idworker.Id;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -32,7 +32,7 @@ MemberCardTest.testInsertMultipleRows  1s 379ms
 MemberCardTest.testRawMultipleRows        779ms
  */
 public class MemberCardTest {
-    final static long cardId = Id.next();
+    final static long cardId = WestId.next();
     final static List<MemberCard> memberCards = createMemberCards();
 
     @BeforeClass public static void beforeClass() {

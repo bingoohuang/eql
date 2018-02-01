@@ -60,9 +60,21 @@
         </dependency>
         <dependency>
             <groupId>com.github.bingoohuang</groupId>
+            <artifactId>westid</artifactId>
+            <version>0.0.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.bingoohuang</groupId>
             <artifactId>blackcat-instrument</artifactId>
             <version>0.0.13</version>
             <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.bingoohuang</groupId>
+                    <artifactId>idworker-client</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
