@@ -1,23 +1,21 @@
 package org.n3r.eql.eqler.spring;
 
+import lombok.Setter;
+import lombok.val;
 import org.n3r.eql.eqler.EqlerFactory;
-import org.n3r.eql.eqler.generators.ApplicationContextThreadLocal;
-import org.springframework.beans.BeansException;
+import org.n3r.eql.eqler.generators.ActiveProfilesThreadLocal;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 public class EqlerFactoryBean<T> implements FactoryBean<T>, ApplicationContextAware {
-    private Class<T> eqlerInterface;
-    private ApplicationContext applicationContext;
-
-    public void setEqlerInterface(Class<T> eqlerInterface) {
-        this.eqlerInterface = eqlerInterface;
-    }
+    @Setter private Class<T> eqlerInterface;
+    @Setter private ApplicationContext applicationContext;
 
     @Override
     public T getObject() {
-        ApplicationContextThreadLocal.set(applicationContext);
+        val activeProfiles = applicationContext.getEnvironment().getActiveProfiles();
+        ActiveProfilesThreadLocal.set(activeProfiles);
         return EqlerFactory.getEqler(eqlerInterface);
     }
 
@@ -29,10 +27,5 @@ public class EqlerFactoryBean<T> implements FactoryBean<T>, ApplicationContextAw
     @Override
     public boolean isSingleton() {
         return true;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 }

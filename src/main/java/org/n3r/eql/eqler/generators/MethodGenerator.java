@@ -19,7 +19,6 @@ import org.n3r.eql.util.S;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
-import org.springframework.context.ApplicationContext;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -305,13 +304,12 @@ public class MethodGenerator<T> implements Generatable {
     }
 
     private Set<String> parseActiveProfiles() {
-        val appContext = ApplicationContextThreadLocal.get();
-        if (appContext == null) {
+        val activeProfiles = ActiveProfilesThreadLocal.get();
+        if (activeProfiles == null) {
             return Sets.newHashSet();
         }
 
-        val profiles = appContext.getEnvironment().getActiveProfiles();
-        return Sets.newHashSet(profiles);
+        return Sets.newHashSet(activeProfiles);
     }
 
     private void addProfiledSqls(Set<String> activeProfiles,

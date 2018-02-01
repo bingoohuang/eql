@@ -42,14 +42,8 @@
         <dependency>
             <groupId>com.github.bingoohuang</groupId>
             <artifactId>westcache</artifactId>
-            <version>0.0.21</version>
+            <version>0.0.25</version>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.github.bingoohuang</groupId>
-            <artifactId>idworker-client</artifactId>
-            <version>0.0.7</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -89,26 +83,21 @@
             <optional>true</optional>
         </dependency>
         <!--<dependency>-->
-            <!--<groupId>org.apache.hive</groupId>-->
-            <!--<artifactId>hive-jdbc</artifactId>-->
-            <!--<version>0.11.0</version>-->
-            <!--<scope>test</scope>-->
-            <!--<exclusions>-->
-                <!--<exclusion>-->
-                    <!--<groupId>org.slf4j</groupId>-->
-                    <!--<artifactId>slf4j-log4j12</artifactId>-->
-                <!--</exclusion>-->
-                <!--<exclusion>-->
-                    <!--<groupId>asm</groupId>-->
-                    <!--<artifactId>asm</artifactId>-->
-                <!--</exclusion>-->
-            <!--</exclusions>-->
+        <!--<groupId>org.apache.hive</groupId>-->
+        <!--<artifactId>hive-jdbc</artifactId>-->
+        <!--<version>0.11.0</version>-->
+        <!--<scope>test</scope>-->
+        <!--<exclusions>-->
+        <!--<exclusion>-->
+        <!--<groupId>org.slf4j</groupId>-->
+        <!--<artifactId>slf4j-log4j12</artifactId>-->
+        <!--</exclusion>-->
+        <!--<exclusion>-->
+        <!--<groupId>asm</groupId>-->
+        <!--<artifactId>asm</artifactId>-->
+        <!--</exclusion>-->
+        <!--</exclusions>-->
         <!--</dependency>-->
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm</artifactId>
-            <version>5.0.3</version>
-        </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
