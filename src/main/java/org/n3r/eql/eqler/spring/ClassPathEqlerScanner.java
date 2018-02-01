@@ -1,5 +1,6 @@
 package org.n3r.eql.eqler.spring;
 
+import lombok.val;
 import org.n3r.eql.eqler.annotations.Eqler;
 import org.n3r.eql.eqler.annotations.EqlerConfig;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
@@ -50,8 +51,8 @@ public class ClassPathEqlerScanner extends ClassPathBeanDefinitionScanner {
         if (beanDefinitions.isEmpty()) {
             logger.warn("No eqler was found in '" + Arrays.toString(basePackages) + "' package. Please check your configuration.");
         } else {
-            for (BeanDefinitionHolder holder : beanDefinitions) {
-                GenericBeanDefinition definition = (GenericBeanDefinition) holder.getBeanDefinition();
+            for (val holder : beanDefinitions) {
+                val definition = (GenericBeanDefinition) holder.getBeanDefinition();
 
                 if (logger.isDebugEnabled()) {
                     logger.debug("Creating EqlerFactoryBean with name '" + holder.getBeanName()

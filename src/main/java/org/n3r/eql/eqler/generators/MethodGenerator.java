@@ -1,6 +1,8 @@
 package org.n3r.eql.eqler.generators;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import lombok.val;
 import org.n3r.eql.Eql;
 import org.n3r.eql.EqlPage;
@@ -20,9 +22,7 @@ import org.objectweb.asm.Type;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.n3r.eql.util.Asms.p;
@@ -58,24 +58,26 @@ public class MethodGenerator<T> implements Generatable {
         prepareNamedParams();
         prepareNamedDynamics();
 
+        val sqls = parseSqls(method);
+
         newEql();
         useTran();
         useBatch();
         useSqlFile();
         params();
         dynamics();
-        id();
+        id(sqls);
         returnType();
         limit();
         options();
-        execute();
+        execute(sqls);
         result();
 
         end();
     }
 
     private void useBatch() {
-        MethodParam eqlBatch = methodAllParam.getEqlBatch();
+        val eqlBatch = methodAllParam.getEqlBatch();
         if (eqlBatch == null) return;
 
         mv.visitVarInsn(ALOAD, eqlBatch.getParamIndex() + 1);
@@ -83,7 +85,7 @@ public class MethodGenerator<T> implements Generatable {
     }
 
     private void useTran() {
-        MethodParam eqlTran = methodAllParam.getEqlTran();
+        val eqlTran = methodAllParam.getEqlTran();
         if (eqlTran != null) {
             mv.visitVarInsn(ALOAD, eqlTran.getParamIndex() + 1);
             mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "useTran", sig(Eql.class, EqlTran.class), false);
@@ -101,8 +103,8 @@ public class MethodGenerator<T> implements Generatable {
         mv.visitVarInsn(ASTORE, methodAllParam.getAsmLocalVarNamedParamIndex());
 
         for (int i = 0; i < methodAllParam.getMethodParamsCount(); ++i) {
-            MethodParam methodParam = methodAllParam.getMethodParam(i);
-            Param param = methodParam.getParam();
+            val methodParam = methodAllParam.getMethodParam(i);
+            val param = methodParam.getParam();
             if (param == null) continue;
 
             mv.visitVarInsn(ALOAD, methodAllParam.getAsmLocalVarNamedParamIndex());
@@ -123,8 +125,8 @@ public class MethodGenerator<T> implements Generatable {
         mv.visitVarInsn(ASTORE, methodAllParam.getAsmLocalVarNamedDynamicIndex());
 
         for (int i = 0; i < methodAllParam.getMethodParamsCount(); ++i) {
-            MethodParam methodParam = methodAllParam.getMethodParam(i);
-            Dynamic dynamic = methodParam.getDynamic();
+            val methodParam = methodAllParam.getMethodParam(i);
+            val dynamic = methodParam.getDynamic();
             if (dynamic == null) continue;
             if (isBlank(dynamic.name())) continue;
 
@@ -181,7 +183,7 @@ public class MethodGenerator<T> implements Generatable {
     private void newEql() {
         mv.visitTypeInsn(NEW, eqlClassName);
         mv.visitInsn(DUP);
-        MethodParam eqlConfig = methodAllParam.getEqlConfig();
+        val eqlConfig = methodAllParam.getEqlConfig();
         if (eqlConfig == null) {
             mv.visitLdcInsn(eqlerConfig != null ? eqlerConfig.value() : "DEFAULT");
             mv.visitMethodInsn(INVOKESPECIAL, eqlClassName, "<init>",
@@ -242,7 +244,7 @@ public class MethodGenerator<T> implements Generatable {
     }
 
     private void options() {
-        SqlOptions sqlOptions = method.getAnnotation(SqlOptions.class);
+        val sqlOptions = method.getAnnotation(SqlOptions.class);
         if (sqlOptions == null) return;
 
         mv.visitLdcInsn(createOptions(sqlOptions));
@@ -261,13 +263,11 @@ public class MethodGenerator<T> implements Generatable {
         return optionsStr.toString();
     }
 
-    private void execute() {
-        Sql sqlAnn = method.getAnnotation(Sql.class);
-        if (sqlAnn == null) {
+    private void execute(String[] sqls) {
+        if (sqls.length == 0) {
             mv.visitInsn(ICONST_0);
             mv.visitTypeInsn(ANEWARRAY, "java/lang/String");
         } else {
-            String[] sqls = sqlAnn.value();
             mv.visitInsn(ICONST_0 + sqls.length);
             mv.visitTypeInsn(ANEWARRAY, "java/lang/String");
             for (int i = 0; i < sqls.length; ++i) {
@@ -282,10 +282,53 @@ public class MethodGenerator<T> implements Generatable {
                 sig(Object.class, String[].class), false);
     }
 
+    private String[] parseSqls(Method method) {
+        val sqlAnn = method.getAnnotation(Sql.class);
+        if (sqlAnn != null) {
+            return sqlAnn.value();
+        }
+
+        return addSpringProfiledSqls(method);
+    }
+
+    private String[] addSpringProfiledSqls(Method method) {
+        val appContext = ApplicationContextThreadLocal.get();
+        if (appContext == null) {
+            return new String[0];
+        }
+
+        val profiles = appContext.getEnvironment().getActiveProfiles();
+        val activeProfiles = Sets.newHashSet(profiles);
+
+        List<String> sqls = Lists.newArrayList();
+        val profiledSqls = method.getAnnotation(ProfiledSqls.class);
+        if (profiledSqls != null) {
+            for (val profileSql : profiledSqls.value()) {
+                addProfiledSqls(activeProfiles, sqls, profileSql);
+            }
+        }
+
+        val profiledSql = method.getAnnotation(ProfiledSql.class);
+        if (profiledSql != null) {
+            addProfiledSqls(activeProfiles, sqls, profiledSql);
+        }
+
+        return sqls.toArray(new String[sqls.size()]);
+    }
+
+    private void addProfiledSqls(Set<String> activeProfiles,
+                                 List<String> sqls, ProfiledSql profiledSql) {
+        if (activeProfiles.contains(profiledSql.profile())) {
+            for (val sql : profiledSql.sql()) {
+                sqls.add(sql);
+            }
+        }
+    }
+
     private void limit() {
         Class<?> returnType = method.getReturnType();
         if (Collection.class.isAssignableFrom(returnType)) {
-            MethodParam eqlPage = methodAllParam.getEqlPage();
+            val eqlPage = methodAllParam.getEqlPage();
             if (eqlPage != null) {
                 mv.visitVarInsn(ALOAD, eqlPage.getParamIndex() + 1);
                 mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "limit",
@@ -356,7 +399,7 @@ public class MethodGenerator<T> implements Generatable {
             val isCollectionGeneric = genericReturnType instanceof ParameterizedType
                     && Collection.class.isAssignableFrom(returnTypeClass);
             if (isCollectionGeneric) {
-                ParameterizedType parameterizedType = (ParameterizedType) genericReturnType;
+                val parameterizedType = (ParameterizedType) genericReturnType;
                 returnTypeClass = (Class) parameterizedType.getActualTypeArguments()[0];
             }
 
@@ -368,15 +411,14 @@ public class MethodGenerator<T> implements Generatable {
                 sig(Eql.class, Class.class), false);
     }
 
-    private void id() {
-        Sql sqlAnn = method.getAnnotation(Sql.class);
-        if (sqlAnn != null) {
+    private void id(String[] sqls) {
+        if (sqls.length > 0) {
             mv.visitLdcInsn(method.getName());
             mv.visitMethodInsn(INVOKEVIRTUAL, EQL, "tagSqlId",
                     sig(Eql.class, String.class), false);
         } else {
-            SqlId sqlId = method.getAnnotation(SqlId.class);
-            MethodParam paramEqlId = methodAllParam.getParamEqlId();
+            val sqlId = method.getAnnotation(SqlId.class);
+            val paramEqlId = methodAllParam.getParamEqlId();
             if (paramEqlId == null) {
                 mv.visitLdcInsn(sqlId == null ? method.getName() : sqlId.value());
             } else {

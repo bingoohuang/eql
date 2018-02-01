@@ -24,10 +24,8 @@ public class ClassGenerator<T> {
     }
 
     public Class<? extends T> generate() {
-        byte[] bytes = createEqlImplClassBytes();
-
+        val bytes = createEqlImplClassBytes();
         diagnose(bytes);
-
         return defineClass(bytes);
     }
 
@@ -36,7 +34,8 @@ public class ClassGenerator<T> {
         if (eqlerConfig == null || !eqlerConfig.createClassFileForDiagnose())
             return;
 
-        writeClassFile4Diagnose(bytes, eqlerClass.getSimpleName() + "Impl.class");
+        writeClassFile4Diagnose(bytes,
+                eqlerClass.getSimpleName() + "Impl.class");
     }
 
     @SneakyThrows

@@ -18,14 +18,12 @@ import java.util.List;
 
 
 public class EqlerScannerRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware {
-
     private ResourceLoader resourceLoader;
 
     /**
      * {@inheritDoc}
      */
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-
         val annoAttrs = AnnotationAttributes.fromMap(importingClassMetadata.getAnnotationAttributes(EqlerScan.class.getName()));
         val scanner = new ClassPathEqlerScanner(registry);
 
@@ -39,22 +37,22 @@ public class EqlerScannerRegistrar implements ImportBeanDefinitionRegistrar, Res
         }
 
         List<String> basePackages = new ArrayList<String>();
-        for (String pkg : annoAttrs.getStringArray("value")) {
+        for (val pkg : annoAttrs.getStringArray("value")) {
             if (StringUtils.hasText(pkg)) {
                 basePackages.add(pkg);
             }
         }
-        for (String pkg : annoAttrs.getStringArray("basePackages")) {
+        for (val pkg : annoAttrs.getStringArray("basePackages")) {
             if (StringUtils.hasText(pkg)) {
                 basePackages.add(pkg);
             }
         }
-        for (Class<?> clazz : annoAttrs.getClassArray("basePackageClasses")) {
+        for (val clazz : annoAttrs.getClassArray("basePackageClasses")) {
             basePackages.add(ClassUtils.getPackageName(clazz));
         }
 
         if (basePackages.isEmpty()) {
-            String className = importingClassMetadata.getClassName();
+            val className = importingClassMetadata.getClassName();
             basePackages.add(ClassUtils.getPackageName(className));
         }
 
@@ -68,5 +66,4 @@ public class EqlerScannerRegistrar implements ImportBeanDefinitionRegistrar, Res
     public void setResourceLoader(ResourceLoader resourceLoader) {
         this.resourceLoader = resourceLoader;
     }
-
 }

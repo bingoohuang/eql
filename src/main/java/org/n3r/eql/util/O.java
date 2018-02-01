@@ -245,7 +245,8 @@ public class O {
             log.debug("invoke method exception", e);
         }
 
-        throw new RuntimeException("unable to get property " + propertyName + " type of " + hostBean);
+        throw new RuntimeException("unable to get property "
+                + propertyName + " type of " + hostBean);
     }
 
 
@@ -255,7 +256,8 @@ public class O {
             Method m = getAccessibleMethod(hostBean, methodName);
             return m.invoke(hostBean);
         } catch (NoSuchMethodException e) {
-            log.debug("NoSuchMethodException invoke get method of property {} of {}", propertyName, hostBean);
+            log.debug("NoSuchMethodException invoke get method " +
+                    "of property {} of {}", propertyName, hostBean);
             // ignore
         } catch (Exception e) {
             log.debug("invoke method exception", e);
@@ -269,7 +271,8 @@ public class O {
             log.debug("invoke method exception", e);
         }
 
-        throw new RuntimeException("unable to get property value " + propertyName + " of bean " + hostBean);
+        throw new RuntimeException("unable to get property value "
+                + propertyName + " of bean " + hostBean);
     }
 
     private static boolean setProperty(

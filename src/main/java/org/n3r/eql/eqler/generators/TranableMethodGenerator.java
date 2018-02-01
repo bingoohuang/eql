@@ -1,5 +1,6 @@
 package org.n3r.eql.eqler.generators;
 
+import lombok.val;
 import org.n3r.eql.Eql;
 import org.n3r.eql.EqlTran;
 import org.n3r.eql.eqler.annotations.EqlerConfig;
@@ -24,7 +25,7 @@ public class TranableMethodGenerator<T>  implements Generatable{
         this.methodName = method.getName();
         this.cw = classWriter;
 
-        EqlerConfig eqlerConfig = eqlerClass.getAnnotation(EqlerConfig.class);
+        val eqlerConfig = eqlerClass.getAnnotation(EqlerConfig.class);
         this.eqlerConfig = eqlerConfig != null ?
                 eqlerConfig : eqlerClass.getAnnotation(EqlerConfig.class);
         this.eqlClassName = eqlerConfig != null ?
@@ -32,7 +33,7 @@ public class TranableMethodGenerator<T>  implements Generatable{
     }
 
     public void generate() {
-        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, "()V", null, null);
+        val mv = cw.visitMethod(ACC_PUBLIC, methodName, "()V", null, null);
         mv.visitCode();
 
         if ("start".equals(methodName)) {
@@ -53,7 +54,7 @@ public class TranableMethodGenerator<T>  implements Generatable{
                 "()Lorg/n3r/eql/EqlTran;", false);
         mv.visitVarInsn(ASTORE, 1);
         mv.visitVarInsn(ALOAD, 1);
-        Label l0 = new Label();
+        val l0 = new Label();
         mv.visitJumpInsn(IFNULL, l0);
         mv.visitMethodInsn(INVOKESTATIC, p(EqlTranThreadLocal.class), "clear", "()V", false);
         mv.visitVarInsn(ALOAD, 1);
@@ -67,7 +68,7 @@ public class TranableMethodGenerator<T>  implements Generatable{
                 "()Lorg/n3r/eql/EqlTran;", false);
         mv.visitVarInsn(ASTORE, 1);
         mv.visitVarInsn(ALOAD, 1);
-        Label l0 = new Label();
+        val l0 = new Label();
         mv.visitJumpInsn(IFNULL, l0);
         mv.visitVarInsn(ALOAD, 1);
         mv.visitMethodInsn(INVOKEINTERFACE, p(EqlTran.class), methodName, "()V", true);
@@ -90,7 +91,7 @@ public class TranableMethodGenerator<T>  implements Generatable{
                 "()Lorg/n3r/eql/EqlTran;", false);
         mv.visitVarInsn(ASTORE, 1);
         mv.visitVarInsn(ALOAD, 1);
-        Label l0 = new Label();
+        val l0 = new Label();
         mv.visitJumpInsn(IFNULL, l0);
         mv.visitInsn(RETURN);
         mv.visitLabel(l0);
@@ -106,7 +107,7 @@ public class TranableMethodGenerator<T>  implements Generatable{
 
     public static boolean isEqlTranableMethod(Method method) {
         if ("()V".equals(Type.getMethodDescriptor(method))) {
-            String name = method.getName();
+            val name = method.getName();
             return "start".equals(name) ||
                     "commit".equals(name) ||
                     "rollback".equals(name) ||

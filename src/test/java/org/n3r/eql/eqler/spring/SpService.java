@@ -8,8 +8,7 @@ import java.util.List;
 
 @Service
 public class SpService {
-    @Autowired
-    SpEqler spEqler;
+    @Autowired SpEqler spEqler;
 
     public int queryOne() {
         return spEqler.queryOne();
@@ -19,7 +18,7 @@ public class SpService {
         return spEqler.queryLower();
     }
 
-    public List<String> queryLowers() {
+    public List<ABean> queryLowers() {
         return spEqler.queryLowers(new EqlPage(0, 2));
     }
 }

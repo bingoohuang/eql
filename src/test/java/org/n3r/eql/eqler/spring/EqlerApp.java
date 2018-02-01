@@ -1,15 +1,29 @@
 package org.n3r.eql.eqler.spring;
 
-import org.springframework.context.ApplicationContext;
+import com.google.common.collect.Lists;
+import lombok.val;
+import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-public class EqlerApp {
-    public static void main(String[] args) {
-        ApplicationContext context = new AnnotationConfigApplicationContext(EqlerConfig.class);
-        SpService spEqler = context.getBean(SpService.class);
+import static com.google.common.truth.Truth.assertThat;
 
-        System.out.println(spEqler.queryOne());
-        System.out.println(spEqler.queryLower());
-        System.out.println(spEqler.queryLowers());
+public class EqlerApp {
+    @Test
+    public void test1() {
+        System.setProperty("spring.profiles.active", "prod");
+        val context = new AnnotationConfigApplicationContext(EqlerConfig.class);
+        val spService = context.getBean(SpService.class);
+
+        assertThat(spService.queryOne()).isEqualTo(1);
+        assertThat(spService.queryLower()).isEqualTo("o2m");
+        assertThat(spService.queryLowers()).isEqualTo(Lists.newArrayList(
+                new ABean("a"), new ABean("b")));
+
+        val eqler = context.getBean(SpEqler.class);
+
+
+        String profileName = eqler.queryProfileName();
+        assertThat(profileName).isEqualTo("prodprod");
+
     }
 }
