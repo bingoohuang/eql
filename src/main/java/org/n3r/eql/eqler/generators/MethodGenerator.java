@@ -19,6 +19,7 @@ import org.n3r.eql.util.S;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.springframework.context.ApplicationContext;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -283,46 +284,55 @@ public class MethodGenerator<T> implements Generatable {
     }
 
     private String[] parseSqls(Method method) {
-        val sqlAnn = method.getAnnotation(Sql.class);
-        if (sqlAnn != null) {
-            return sqlAnn.value();
-        }
-
-        return addSpringProfiledSqls(method);
-    }
-
-    private String[] addSpringProfiledSqls(Method method) {
-        val appContext = ApplicationContextThreadLocal.get();
-        if (appContext == null) {
-            return new String[0];
-        }
-
-        val profiles = appContext.getEnvironment().getActiveProfiles();
-        val activeProfiles = Sets.newHashSet(profiles);
-
         List<String> sqls = Lists.newArrayList();
-        val profiledSqls = method.getAnnotation(ProfiledSqls.class);
-        if (profiledSqls != null) {
-            for (val profileSql : profiledSqls.value()) {
-                addProfiledSqls(activeProfiles, sqls, profileSql);
-            }
-        }
+        val activeProfiles = parseActiveProfiles();
 
-        val profiledSql = method.getAnnotation(ProfiledSql.class);
-        if (profiledSql != null) {
-            addProfiledSqls(activeProfiles, sqls, profiledSql);
+        for (val annotation : method.getAnnotations()) {
+            if (annotation instanceof Sql) {
+                for (val sql : ((Sql) annotation).value()) {
+                    sqls.add(sql);
+                }
+            } else if (annotation instanceof ProfiledSql) {
+                addProfiledSqls(activeProfiles, sqls, (ProfiledSql) annotation);
+            } else if (annotation instanceof ProfiledSqls) {
+                for (val profileSql : ((ProfiledSqls) annotation).value()) {
+                    addProfiledSqls(activeProfiles, sqls, profileSql);
+                }
+            }
         }
 
         return sqls.toArray(new String[sqls.size()]);
     }
 
+    private Set<String> parseActiveProfiles() {
+        val appContext = ApplicationContextThreadLocal.get();
+        if (appContext == null) {
+            return Sets.newHashSet();
+        }
+
+        val profiles = appContext.getEnvironment().getActiveProfiles();
+        return Sets.newHashSet(profiles);
+    }
+
     private void addProfiledSqls(Set<String> activeProfiles,
                                  List<String> sqls, ProfiledSql profiledSql) {
-        if (activeProfiles.contains(profiledSql.profile())) {
+        if (containsInActiveProfiles(activeProfiles, profiledSql.profile())) {
             for (val sql : profiledSql.sql()) {
                 sqls.add(sql);
             }
         }
+    }
+
+    private boolean containsInActiveProfiles(Set<String> activeProfiles, String[] profile) {
+        if (profile.length == 0) {
+            return true;
+        }
+
+        for (val profileItem : profile) {
+            if (activeProfiles.contains(profileItem)) return true;
+        }
+
+        return false;
     }
 
     private void limit() {

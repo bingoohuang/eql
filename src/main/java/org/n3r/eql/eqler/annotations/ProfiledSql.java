@@ -6,6 +6,7 @@ import java.lang.annotation.*;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ProfiledSql {
-    String profile();
+    String[] profile() default {};
+
     String[] sql();
 }
