@@ -31,23 +31,23 @@ public class MapInvocationHandler implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         val isGet = method.getName().equals("get");
         if (!isGet) { // 有其他方法调用时，退回到预先准备所有property的模式
-            if (merged == null) merged = mergeProperties(context, bean);
+            if (merged == null) {
+                merged = mergeProperties(context, bean);
+            }
             return method.invoke(merged, args);
         }
 
+        Object arg0 = args[0];
         if (merged != null) { // 如果已经有退回的，则使用已退回模式
-            return merged.get(args[0]);
+            return merged.get(arg0);
         }
 
-        if (isGet && bean instanceof Map) {
-            return ((Map)bean).get(args[0]);
+        val propertyReader = new BeanPropertyReader(bean, (String) arg0);
+        if (propertyReader.isPropertyExisted()) {
+            return propertyReader.getPropertyValue();
         }
 
-        val propertyReader = new BeanPropertyReader(bean, (String) args[0]);
-        if (propertyReader.existsProperty()) {
-            return propertyReader.readProperty();
-        }
-        return context != null ? context.get(args[0]) : null;
+        return context != null ? context.get(arg0) : null;
     }
 
     public static Map<String, Object> proxy(Map<String, Object> context, Object bean) {

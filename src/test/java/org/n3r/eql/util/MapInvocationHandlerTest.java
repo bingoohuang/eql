@@ -19,4 +19,15 @@ public class MapInvocationHandlerTest {
         Object table = delayedBean.get("table");
         assertThat(table).isEqualTo("abcd");
     }
+
+    @Test
+    public void test2() {
+        HashMap<String, Object> map = Maps.newHashMap();
+        map.put("table1", "abcd");
+
+        HashMap<String, Object> context = Maps.newHashMap();
+        Map<String, Object> delayedBean = MapInvocationHandler.proxy(context, map);
+        Object table = delayedBean.get("table1");
+        assertThat(table).isEqualTo("abcd");
+    }
 }
