@@ -4,7 +4,7 @@
 
     <groupId>com.github.bingoohuang</groupId>
     <artifactId>eql</artifactId>
-    <version>0.0.97-SNAPSHOT</version>
+    <version>0.0.98-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>easy sql</name>
@@ -69,12 +69,6 @@
             <artifactId>blackcat-instrument</artifactId>
             <version>0.0.13</version>
             <optional>true</optional>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.github.bingoohuang</groupId>
-                    <artifactId>idworker-client</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
