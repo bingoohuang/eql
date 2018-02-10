@@ -10,6 +10,7 @@ import org.n3r.eql.map.EqlRun;
 
 import javax.sql.DataSource;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.List;
@@ -150,5 +151,26 @@ public class EqlUtils {
 
         throw new RuntimeException(collectionExpr + " in "
                 + eqlRun.getParamBean() + " is not an expression of a collection");
+    }
+
+
+
+    /*
+     * Determine if SQLException#getSQLState() of the catched SQLException
+     * starts with 23 which is a constraint violation as per the SQL specification.
+     * It can namely be caused by more factors than "just" a constraint violation.
+     * You should not amend every SQLException as a constraint violation.
+     * ORACLE:
+     * [2017-03-26 15:13:07] [23000][1] ORA-00001: 违反唯一约束条件 (SYSTEM.SYS_C007109)
+     * MySQL:
+     * [2017-03-26 15:17:27] [23000][1062] Duplicate entry '1' for key 'PRIMARY'
+     * H2:
+     * [2017-03-26 15:19:52] [23505][23505] Unique index or primary key violation:
+     * "PRIMARY KEY ON PUBLIC.TT(A)"; SQL statement:
+     *
+     */
+    public static boolean isConstraintViolation(Exception e) {
+        return e instanceof SQLException
+                && ((SQLException) e).getSQLState().startsWith("23");
     }
 }
