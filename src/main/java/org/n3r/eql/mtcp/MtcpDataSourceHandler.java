@@ -3,6 +3,7 @@ package org.n3r.eql.mtcp;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
+import com.google.common.base.MoreObjects;
 import com.google.common.cache.*;
 import com.google.common.io.Files;
 import lombok.SneakyThrows;
@@ -133,16 +134,21 @@ public class MtcpDataSourceHandler implements InvocationHandler {
     }
 
     private DataSource getTenantDataSource() {
-        val tenantId = MtcpContext.getTenantId();
+        val tenantId = getTenantId();
         checkNotNull(tenantId, "there is no tenant id set in current thread local");
 
         return mtcpCache.getUnchecked(tenantId).getDataSource();
     }
 
+    protected String getTenantId() {
+        return MoreObjects.firstNonNull(MtcpContext.getGroupTenantId(), MtcpContext.getTenantId());
+    }
+
     private DataSourceConfigurator createTenantDataSource(String tenantId) {
         val key = "dataSourceConfigurator.spec";
         var impl = eqlConfig.getStr(key);
-        if (S.isBlank(impl)) impl = "@org.n3r.eql.mtcp.impl.DruidDataSourceConfigurator";
+        if (S.isBlank(impl))
+            impl = "@org.n3r.eql.mtcp.impl.DruidDataSourceConfigurator";
 
         val dataSourceConfigurator = Mtcps.createObjectBySpec(impl, DataSourceConfigurator.class);
 

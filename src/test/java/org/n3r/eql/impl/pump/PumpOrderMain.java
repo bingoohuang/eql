@@ -95,7 +95,7 @@ Option                  Description
 
     private void parseArgs(String[] args) throws IOException {
         val parser = new OptionParser();
-        val helpOption = parser.accepts("help", "show help").forHelp();
+        parser.accepts("help", "show help");
         val batchSizeOption = parser.accepts("batchSize", "几个批次")
                 .withOptionalArg().ofType(Integer.class).defaultsTo(10);
         val batchNumOption = parser.accepts("batchNum", "每个批次数量")
@@ -106,7 +106,7 @@ Option                  Description
                 .withOptionalArg().ofType(String.class).defaultsTo("192.168.99.100:13306");
 
         val options = parser.parse(args);
-        if (options.has(helpOption)) {
+        if (options.has("help")) {
             parser.printHelpOn(System.out);
             System.exit(0);
         }

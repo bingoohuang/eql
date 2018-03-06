@@ -1,6 +1,5 @@
 package org.n3r.eql;
 
-import com.google.common.base.Throwables;
 import lombok.SneakyThrows;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -8,6 +7,7 @@ import org.n3r.eql.util.Closes;
 
 import java.sql.Timestamp;
 
+import static com.google.common.base.Throwables.throwIfUnchecked;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -56,7 +56,8 @@ public class TransactionTest {
             tran.rollback();
         } catch (Exception ex) {
             tran.rollback();
-            Throwables.propagate(ex);
+            throwIfUnchecked(ex);
+            throw new RuntimeException(ex);
         } finally {
             Closes.closeQuietly(tran);
         }
