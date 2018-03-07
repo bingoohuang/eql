@@ -13,7 +13,7 @@ public class SelectFirstNullTest {
 
     @Test
     public void test() {
-        String xyz = new Eql("h2").selectFirst("xxx").returnType(String.class).execute();
+        String xyz = new Eql("h2").selectFirst("xxx").params(123).returnType(String.class).execute();
         assertThat(xyz).isNull();
     }
 }

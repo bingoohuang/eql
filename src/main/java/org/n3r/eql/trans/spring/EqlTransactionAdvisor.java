@@ -18,8 +18,7 @@ public class EqlTransactionAdvisor extends AbstractPointcutAdvisor {
         }
     };
 
-    @Autowired
-    EqlTransactionInterceptor interceptor;
+    @Autowired EqlTransactionInterceptor interceptor;
 
     @Override
     public Pointcut getPointcut() {
