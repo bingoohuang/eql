@@ -1,5 +1,6 @@
 package org.n3r.eql.mtcp;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.n3r.eql.Eql;
 
@@ -17,7 +18,7 @@ public class MtcpContextTest {
         assertThat(MtcpContext.getTenantId(), is(nullValue()));
     }
 
-    @Test
+    @Test @Ignore
     public void testDruidMtcp() {
         MtcpContext.setTenantId("test-group-dep1");
         MyMtcpEnvironment.threadLocal.set("test-group-dep1");
