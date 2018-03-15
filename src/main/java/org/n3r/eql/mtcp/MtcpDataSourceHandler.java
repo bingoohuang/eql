@@ -134,14 +134,10 @@ public class MtcpDataSourceHandler implements InvocationHandler {
     }
 
     private DataSource getTenantDataSource() {
-        val tenantId = getTenantId();
+        val tenantId = MtcpContext.getTenantId();
         checkNotNull(tenantId, "there is no tenant id set in current thread local");
 
         return mtcpCache.getUnchecked(tenantId).getDataSource();
-    }
-
-    protected String getTenantId() {
-        return MoreObjects.firstNonNull(MtcpContext.getGroupTenantId(), MtcpContext.getTenantId());
     }
 
     private DataSourceConfigurator createTenantDataSource(String tenantId) {
