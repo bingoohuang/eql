@@ -54,7 +54,7 @@ public class EqlBaseBeanMapper {
 
     protected boolean setColumnValue(
             final RsAware rs, Object mappedObject,
-            final int index, String columnName) throws SQLException {
+            final int index, String columnName) {
         val lowerCaseName = columnName.replaceAll(" ", "").toLowerCase();
         val noneUnderstore = lowerCaseName.replaceAll("_", "");
 

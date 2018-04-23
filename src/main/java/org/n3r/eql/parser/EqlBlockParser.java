@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 public class EqlBlockParser {
     private DynamicLanguageDriver dynamicLanguageDriver;
     private final boolean sqlParseDelay;
-    private List<Sql> sqls = Lists.<Sql>newArrayList();
+    private List<Sql> sqls = Lists.newArrayList();
 
     public EqlBlockParser(DynamicLanguageDriver dynamicLanguageDriver, boolean sqlParseDelay) {
         this.dynamicLanguageDriver = dynamicLanguageDriver;
@@ -20,7 +20,7 @@ public class EqlBlockParser {
     }
 
     public void parse(EqlBlock block, List<String> sqlLines) {
-        List<String> oneSqlLines = Lists.<String>newArrayList();
+        List<String> oneSqlLines = Lists.newArrayList();
 
         // split to multiple sql
         for (String sqlLine : sqlLines) {
@@ -49,7 +49,7 @@ public class EqlBlockParser {
     }
 
     private boolean isAllComments(List<String> oneSqlLines) {
-        List<String> linesWoLineComments = Lists.<String>newArrayList();
+        List<String> linesWoLineComments = Lists.newArrayList();
 
         for (String line : oneSqlLines) {
             if (line.startsWith("--")) continue;

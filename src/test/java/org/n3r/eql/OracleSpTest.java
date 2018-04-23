@@ -47,7 +47,7 @@ public class OracleSpTest {
     }
 
     @Test
-    public void procedure2() throws SQLException {
+    public void procedure2() {
         new Eqll().update("createSpEql2").execute();
         List<String> bc = new Eqll()
                 .procedure("callSpEql2").params("hjb")
@@ -68,7 +68,7 @@ public class OracleSpTest {
     }
 
     @Test
-    public void procedure3() throws SQLException {
+    public void procedure3() {
         new Eqll().update("createSpEql2").execute();
         Map<String, String> bc = new Eqll()
                 .procedure("callSpEql3").params("hjb")
@@ -84,7 +84,7 @@ public class OracleSpTest {
     }
 
     @Test
-    public void procedure4() throws SQLException {
+    public void procedure4() {
         new Eqll().update("createSpEql2").execute();
         Ab ab = new Eqll()
                 .procedure("callSpEql4").params("hjb")
@@ -95,7 +95,7 @@ public class OracleSpTest {
 
 
     @Test
-    public void procedureNoOut() throws SQLException {
+    public void procedureNoOut() {
         new Eqll().update("createSpNoOut").execute();
         Eql eql = new Eqll()
                 .params("hjb")
@@ -107,7 +107,7 @@ public class OracleSpTest {
     }
 
     @Test
-    public void procedureAllOut() throws SQLException {
+    public void procedureAllOut() {
         new Eqll().update("createSpEql12").execute();
         List<String> rets = new Eqll().procedure("callSpEql12").execute();
 
@@ -116,7 +116,7 @@ public class OracleSpTest {
     }
 
     @Test
-    public void procedureInOut() throws SQLException {
+    public void procedureInOut() {
         new Eqll().update("createSpEqlInOut").execute();
         List<String> rets = new Eqll().params("A", "B").procedure("callSpEqlInOut")
                 .execute();
@@ -126,7 +126,7 @@ public class OracleSpTest {
     }
 
     @Test
-    public void createSpEqlNULL() throws SQLException {
+    public void createSpEqlNULL() {
         new Eqll().update("createSpEqlNULL").execute();
         List<String> rets = new Eqll()
                 .procedure("callSpEqlNULL")
@@ -138,7 +138,7 @@ public class OracleSpTest {
     }
 
     @Test
-    public void returning() throws SQLException {
+    public void returning() {
         new Eqll().update("prepareTable4MyProcedure").execute();
         String ret = new Eqll().procedure("myprocedure")
                 .execute();
@@ -147,7 +147,7 @@ public class OracleSpTest {
     }
 
     @Test
-    public void returning2() throws SQLException {
+    public void returning2() {
         new Eqll().update("prepareTable4MyProcedure").execute();
         List<String> ret = new Eqll().params(10).procedure("myprocedure2")
                 .execute();
@@ -156,7 +156,7 @@ public class OracleSpTest {
     }
 
     @Test
-    public void callPLSQL() throws SQLException {
+    public void callPLSQL() {
         new Eqll().update("prepareTable4MyProcedure").execute();
         /*  String ret = */
         new Eqll().params(10).procedure("callPLSQL")

@@ -10,7 +10,7 @@ import java.util.Map;
 public class LitaTest {
 
     @Test
-    public void lita() throws SQLException {
+    public void lita() {
         new Eql().id("LITA").execute();
     }
 

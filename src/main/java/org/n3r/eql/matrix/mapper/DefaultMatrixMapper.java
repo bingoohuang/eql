@@ -11,7 +11,7 @@ import java.util.List;
 
 public class DefaultMatrixMapper implements MatrixMapper {
     private String defaultValue;
-    private List<MapCase> mapCases = Lists.<MapCase>newArrayList();
+    private List<MapCase> mapCases = Lists.newArrayList();
     private int gotoAnotherRule = -1;
 
     @Override

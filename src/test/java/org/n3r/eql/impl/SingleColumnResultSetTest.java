@@ -56,9 +56,7 @@ public class SingleColumnResultSetTest {
 
             StrIdBean strIdBean = (StrIdBean) o;
 
-            if (id != null ? !id.equals(strIdBean.id) : strIdBean.id != null) return false;
-
-            return true;
+            return id != null ? id.equals(strIdBean.id) : strIdBean.id == null;
         }
 
         @Override
@@ -92,9 +90,7 @@ public class SingleColumnResultSetTest {
 
             IntIdBean intIdBean = (IntIdBean) o;
 
-            if (id != intIdBean.id) return false;
-
-            return true;
+            return id == intIdBean.id;
         }
 
         @Override

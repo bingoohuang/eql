@@ -625,7 +625,7 @@ public class MySqlSensitiveFieldsParserTest {
 
 
     @Test
-    public void testQuery6() throws Exception {
+    public void testQuery6() {
         String sql = "SELECT TO_CHAR(O.ORDER_ID) ORDER_ID,\n" +
                 "       O.ORDER_NO,\n" +
                 "       TO_CHAR(O.ORDER_TIME, 'YYYY/MM/DD HH24:MI') AS ORDER_TIME,\n" +
@@ -714,7 +714,7 @@ public class MySqlSensitiveFieldsParserTest {
     }
 
     @Test
-    public void testQuery7() throws Exception {
+    public void testQuery7() {
         String sql = "SELECT TO_CHAR(A.ORDER_ID) ORDER_ID,              A.ORDER_NO,              TO_CHAR(A.ORDER_TIME, 'YYYY-MM-DD HH24:MI') ORDER_TIME,\n" +
                 "               A.CUST_REMARK,                             A.INVOCE_TITLE,          A.PAY_STATE,    \n" +
                 "               A.PAY_TYPE PAY_TYPE_CODE,                  BD.CONTACT_NAME,         BD.CONTACT_PHONE,\n" +
@@ -1248,7 +1248,7 @@ public class MySqlSensitiveFieldsParserTest {
             "WHERE ROWNUM <= 5";
 
     @Test
-    public void testPsptNoSql() throws Exception {
+    public void testPsptNoSql() {
         val visitor = MySqlSensitiveFieldsParser.parseSql(psptNoSql,
                 Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO"));
 
@@ -1300,7 +1300,7 @@ public class MySqlSensitiveFieldsParserTest {
             "         M.MENU_ID ASC";
 
     @Test
-    public void testMenuSql() throws Exception {
+    public void testMenuSql() {
         val visitor = MySqlSensitiveFieldsParser.parseSql(menuSql, Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO"));
 
         assertNull(visitor);
@@ -1330,7 +1330,7 @@ public class MySqlSensitiveFieldsParserTest {
             "        AND ROWNUM < 2";
 
     @Test
-    public void testAlias() throws Exception {
+    public void testAlias() {
         val visitor = MySqlSensitiveFieldsParser.parseSql(aliasSql, Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
 
 
@@ -1365,7 +1365,7 @@ public class MySqlSensitiveFieldsParserTest {
             "   AND ROWNUM < 2";
 
     @Test
-    public void testAlias2() throws Exception {
+    public void testAlias2() {
         val visitor = MySqlSensitiveFieldsParser.parseSql(aliasSql2, Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
 
 

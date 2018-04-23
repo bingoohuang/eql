@@ -13,7 +13,7 @@ public class EqlCallableResultBeanMapper extends EqlBaseBeanMapper implements Eq
     }
 
     @Override
-    public Object mapResult(EqlRun eqlRun, CallableStatement cs) throws SQLException {
+    public Object mapResult(EqlRun eqlRun, CallableStatement cs) {
         Object mappedObject = Reflect.on(this.mappedClass).create().get();
         val callableRs = new CallableRs(cs);
 

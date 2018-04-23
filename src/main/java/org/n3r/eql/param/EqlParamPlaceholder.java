@@ -14,9 +14,9 @@ import static org.n3r.eql.param.EqlParamsParser.SUB;
 
 @Data @Slf4j
 public class EqlParamPlaceholder {
-    public enum InOut {IN, OUT, INOUT;}
+    public enum InOut {IN, OUT, INOUT}
 
-    public enum Like {None, Like, LeftLike, RightLike;}
+    public enum Like {None, Like, LeftLike, RightLike}
 
     private int outType = Types.VARCHAR;
     private boolean lob;

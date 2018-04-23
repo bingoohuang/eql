@@ -80,7 +80,7 @@ public class EqlerScannerConfigurer implements BeanDefinitionRegistryPostProcess
     }
 
 
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         notNull(this.basePackage, "Property 'basePackage' is required");
     }
 

@@ -29,11 +29,11 @@ import java.util.List;
 import java.util.Map;
 
 public class EqlBlock {
-    @Getter Map<String, String> options = Maps.newHashMap();
+    @Getter Map<String, String> options;
     @Getter Class<?> returnType;
     @Getter String split;
 
-    @Getter @Setter List<Sql> sqls = Lists.<Sql>newArrayList();
+    @Getter @Setter List<Sql> sqls = Lists.newArrayList();
     @Getter @Setter Collection<String> sqlLines;
     @Getter EqlUniqueSqlId uniqueSqlId;
     private EqlCacheProvider cacheProvider;
@@ -96,7 +96,7 @@ public class EqlBlock {
             Object[] params, Object[] dynamics) {
         Object paramBean = O.createSingleBean(params);
 
-        List<EqlRun> eqlRuns = Lists.<EqlRun>newArrayList();
+        List<EqlRun> eqlRuns = Lists.newArrayList();
         EqlRun lastSelectSql = null;
         for (Sql sql : sqls) {
             EqlRun eqlRun = newEqlRun(tagSqlId, eqlConfig,
@@ -130,7 +130,7 @@ public class EqlBlock {
     private void parseDirectSqlBlock(EqlConfigDecorator eqlConfig, String[] sqls) {
         val langDriver = eqlConfig.getSqlResourceLoader().getDynamicLanguageDriver();
         val blockParser = new EqlBlockParser(langDriver, false);
-        List<String> sqlLines = Lists.<String>newArrayList();
+        List<String> sqlLines = Lists.newArrayList();
         char sqlSplit = split.charAt(0);
         Splitter sqlSplitter = Splitter.on(sqlSplit).trimResults().omitEmptyStrings();
         Splitter lineSplitter = Splitter.onPattern("[\n\n]").omitEmptyStrings();

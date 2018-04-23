@@ -189,7 +189,7 @@ public class Reflect {
      * @see #field(String)
      */
     public <T> T get(String name) throws ReflectException {
-        return field(name).<T>get();
+        return field(name).get();
     }
 
     /**
@@ -458,7 +458,7 @@ public class Reflect {
         final InvocationHandler handler = new InvocationHandler() {
             @SuppressWarnings("null")
             @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            public Object invoke(Object proxy, Method method, Object[] args) {
                 String name = method.getName();
 
                 // Actual method name matches always come first

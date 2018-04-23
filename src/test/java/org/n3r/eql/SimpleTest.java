@@ -14,7 +14,7 @@ import static org.junit.Assert.assertThat;
 
 public class SimpleTest {
     @Test
-    public void test1() throws IOException {
+    public void test1() {
         String str = new Eql().selectFirst("test1").execute();
         assertThat(str, is("1"));
 
@@ -147,9 +147,7 @@ public class SimpleTest {
             if (e != bean.e) return false;
             if (b != null ? !b.equals(bean.b) : bean.b != null) return false;
             if (c != null ? !c.equals(bean.c) : bean.c != null) return false;
-            if (d != null ? !d.equals(bean.d) : bean.d != null) return false;
-
-            return true;
+            return d != null ? d.equals(bean.d) : bean.d == null;
         }
 
         @Override
@@ -187,9 +185,7 @@ public class SimpleTest {
             if (e != bean.e) return false;
             if (b != null ? !b.equals(bean.b) : bean.b != null) return false;
             if (c != null ? !c.equals(bean.c) : bean.c != null) return false;
-            if (d != null ? !d.equals(bean.d) : bean.d != null) return false;
-
-            return true;
+            return d != null ? d.equals(bean.d) : bean.d == null;
         }
 
         @Override

@@ -14,16 +14,6 @@ public class S {
         return stringValue.replaceAll("'", "''");
     }
 
-    public static String cleanQuote(String option) {
-        if (option == null) return "";
-
-        String ret = option;
-        if (option.startsWith("\"")) ret = ret.substring(1);
-        if (option.endsWith("\"")) ret = ret.substring(0, ret.length() - 1);
-
-        return ret;
-    }
-
     public static boolean isNotEmpty(String s) {
         return s != null && s.length() > 0;
     }
@@ -128,7 +118,7 @@ public class S {
     }
 
     public static boolean containsIgnoreCase(String string, String value) {
-        return string == null ? false : string.toUpperCase().contains(value.toUpperCase());
+        return string != null && string.toUpperCase().contains(value.toUpperCase());
     }
 
     public static int indexOfBlank(CharSequence cs) {
@@ -189,20 +179,6 @@ public class S {
 
     public static String wrap(Object s, char wrapChar) {
         return "" + wrapChar + s + wrapChar;
-    }
-
-    public static String sub(String str, int start) {
-        if (str == null) {
-            return null;
-        }
-
-        // handle negatives, which means last n characters
-        if (start < 0)
-            start = str.length() + start; // remember start is negative
-        if (start < 0) start = 0;
-        if (start > str.length()) return "";
-
-        return str.substring(start);
     }
 
     public static String unQuote(String s1, String quote) {

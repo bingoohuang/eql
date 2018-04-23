@@ -82,19 +82,19 @@ public class UnpooledDataSource implements DataSource {
         return doGetConnection(username, password);
     }
 
-    public void setLoginTimeout(int loginTimeout) throws SQLException {
+    public void setLoginTimeout(int loginTimeout) {
         DriverManager.setLoginTimeout(loginTimeout);
     }
 
-    public int getLoginTimeout() throws SQLException {
+    public int getLoginTimeout() {
         return DriverManager.getLoginTimeout();
     }
 
-    public void setLogWriter(PrintWriter logWriter) throws SQLException {
+    public void setLogWriter(PrintWriter logWriter) {
         DriverManager.setLogWriter(logWriter);
     }
 
-    public PrintWriter getLogWriter() throws SQLException {
+    public PrintWriter getLogWriter() {
         return DriverManager.getLogWriter();
     }
 
@@ -185,7 +185,7 @@ public class UnpooledDataSource implements DataSource {
         throw new SQLException(getClass().getName() + " is not a wrapper.");
     }
 
-    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+    public boolean isWrapperFor(Class<?> iface) {
         return false;
     }
 

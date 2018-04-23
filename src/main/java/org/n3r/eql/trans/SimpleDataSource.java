@@ -212,32 +212,32 @@ public class SimpleDataSource implements DataSource {
     /**
      * @see javax.sql.DataSource#setLoginTimeout(int)
      */
-    public void setLoginTimeout(int loginTimeout) throws SQLException {
+    public void setLoginTimeout(int loginTimeout) {
         DriverManager.setLoginTimeout(loginTimeout);
     }
 
     /**
      * @see javax.sql.DataSource#getLoginTimeout()
      */
-    public int getLoginTimeout() throws SQLException {
+    public int getLoginTimeout() {
         return DriverManager.getLoginTimeout();
     }
 
-    public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
+    public java.util.logging.Logger getParentLogger() {
         return null;
     }
 
     /**
      * @see javax.sql.DataSource#setLogWriter(java.io.PrintWriter)
      */
-    public void setLogWriter(PrintWriter logWriter) throws SQLException {
+    public void setLogWriter(PrintWriter logWriter) {
         DriverManager.setLogWriter(logWriter);
     }
 
     /**
      * @see javax.sql.DataSource#getLogWriter()
      */
-    public PrintWriter getLogWriter() throws SQLException {
+    public PrintWriter getLogWriter() {
         return DriverManager.getLogWriter();
     }
 
@@ -738,17 +738,17 @@ public class SimpleDataSource implements DataSource {
         }
     }
 
-    protected void finalize() throws Throwable {
+    protected void finalize() {
         forceCloseAll();
     }
 
     @Override
-    public <T> T unwrap(Class<T> iface) throws SQLException {
+    public <T> T unwrap(Class<T> iface) {
         return null;
     }
 
     @Override
-    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+    public boolean isWrapperFor(Class<?> iface) {
         return false;
     }
 

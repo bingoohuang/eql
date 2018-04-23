@@ -72,7 +72,7 @@ public class CodeDescCache {
             final String tagSqlId) {
         return subCache.get(eqlCacheKey, new Callable<Optional<DefaultCodeDescMapper>>() {
             @Override
-            public Optional<DefaultCodeDescMapper> call() throws Exception {
+            public Optional<DefaultCodeDescMapper> call() {
                 val mapper = createCodeDescMapper(eqlBlock, currEqlRun, eqlConfig, codeDesc,
                         eqlCacheKey.getUniqueSQLId().getSqlClassPath(), tagSqlId);
                 return Optional.fromNullable(mapper);
@@ -85,7 +85,7 @@ public class CodeDescCache {
     getOrCreateSubCache(final EqlUniqueSqlId uniqueSQLId) {
         return cacheDict.get(uniqueSQLId, new Callable<Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>>>() {
             @Override
-            public Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>> call() throws Exception {
+            public Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>> call() {
                 String sqlIdVersion = getSqlIdCacheVersion(uniqueSQLId);
                 cachEQLIdVersion.put(uniqueSQLId, Optional.fromNullable(sqlIdVersion));
                 return CacheBuilder.newBuilder().build();

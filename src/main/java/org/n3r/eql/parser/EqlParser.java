@@ -171,7 +171,7 @@ public class EqlParser {
         }
 
         blocks.put(eqlBlock.getSqlId(), eqlBlock);
-        sqlLines = Lists.<String>newArrayList();
+        sqlLines = Lists.newArrayList();
     }
 
     private void parsePreviousBlock() {

@@ -55,9 +55,7 @@ public class KeyValue {
         KeyValue keyValue = (KeyValue) o;
 
         if (key != null ? !key.equals(keyValue.key) : keyValue.key != null) return false;
-        if (value != null ? !value.equals(keyValue.value) : keyValue.value != null) return false;
-
-        return true;
+        return value != null ? value.equals(keyValue.value) : keyValue.value == null;
     }
 
     @Override

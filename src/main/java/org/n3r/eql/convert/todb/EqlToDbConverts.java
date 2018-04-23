@@ -19,7 +19,7 @@ public class EqlToDbConverts {
     static LoadingCache<AccessibleObject, Optional<EqlerToDbConverter>> toDbConverterCache =
             CacheBuilder.newBuilder().build(new CacheLoader<AccessibleObject, Optional<EqlerToDbConverter>>() {
                 @Override
-                public Optional<EqlerToDbConverter> load(AccessibleObject accessibleObject) throws Exception {
+                public Optional<EqlerToDbConverter> load(AccessibleObject accessibleObject) {
                     List<EqlConvertAnn<ToDbConvert>> ecas = Lists.newArrayList();
                     EqlConverts.searchEqlConvertAnns(accessibleObject, ecas, ToDbConvert.class);
                     if (ecas.isEmpty()) return Optional.absent();

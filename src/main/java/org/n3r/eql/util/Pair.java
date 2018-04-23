@@ -26,9 +26,7 @@ public class Pair<K, V> {
         Pair pair = (Pair) o;
 
         if (_1 != null ? !_1.equals(pair._1) : pair._1 != null) return false;
-        if (_2 != null ? !_2.equals(pair._2) : pair._2 != null) return false;
-
-        return true;
+        return _2 != null ? _2.equals(pair._2) : pair._2 == null;
     }
 
     @Override

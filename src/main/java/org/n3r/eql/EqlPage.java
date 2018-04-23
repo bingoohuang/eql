@@ -70,9 +70,7 @@ public class EqlPage {
         EqlPage eqlPage = (EqlPage) o;
 
         if (pageRows != eqlPage.pageRows) return false;
-        if (startIndex != eqlPage.startIndex) return false;
-
-        return true;
+        return startIndex == eqlPage.startIndex;
     }
 
     @Override

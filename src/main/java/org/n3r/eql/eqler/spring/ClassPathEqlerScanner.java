@@ -31,7 +31,7 @@ public class ClassPathEqlerScanner extends ClassPathBeanDefinitionScanner {
     public void registerFilters() {
         addExcludeFilter(new TypeFilter() {
             @Override
-            public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory) throws IOException {
+            public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory) {
                 return !metadataReader.getClassMetadata().isInterface();
             }
         });

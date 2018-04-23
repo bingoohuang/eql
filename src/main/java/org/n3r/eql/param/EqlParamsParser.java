@@ -134,7 +134,7 @@ public class EqlParamsParser {
         val unescape = new StringBuilder(sql.length());
         int lastPos = 0;
         for (int pos = sql.indexOf('\\', lastPos); pos >= 0 && lastPos < sql.length(); ) {
-            unescape.append(sql.substring(lastPos, pos)).append(sql.charAt(pos + 1));
+            unescape.append(sql, lastPos, pos).append(sql.charAt(pos + 1));
             lastPos = pos + 2;
             if (lastPos < sql.length()) pos = sql.indexOf('\\', lastPos);
         }

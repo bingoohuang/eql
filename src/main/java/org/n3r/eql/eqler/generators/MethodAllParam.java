@@ -18,7 +18,7 @@ import java.util.List;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class MethodAllParam {
-    private List<MethodParam> methodParams = Lists.<MethodParam>newArrayList();
+    private List<MethodParam> methodParams = Lists.newArrayList();
     @Getter private int seqParamsCount;
     @Getter private int seqDynamicsCount;
     @Getter private int namedParamsCount;

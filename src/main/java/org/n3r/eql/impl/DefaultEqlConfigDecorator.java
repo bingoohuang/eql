@@ -80,9 +80,7 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
 
         DefaultEqlConfigDecorator that = (DefaultEqlConfigDecorator) o;
 
-        if (!eqlConfig.equals(that.eqlConfig)) return false;
-
-        return true;
+        return eqlConfig.equals(that.eqlConfig);
     }
 
     @Override

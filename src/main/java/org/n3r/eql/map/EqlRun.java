@@ -30,7 +30,7 @@ public class EqlRun implements Cloneable {
     @Setter List<Object> boundParams;
     @Getter @Setter Connection connection;
     @Getter String evalSql;
-    @Setter String evalSqlTemplate;
+    @Getter @Setter String evalSqlTemplate;
     @Setter @Getter EqlDynamic evalEqlDynamic;
     @Setter @Getter boolean iterateOption;
     @Setter @Getter String tagSqlId;
@@ -119,10 +119,6 @@ public class EqlRun implements Cloneable {
         return bounds.toString();
     }
 
-    public String getEvalSqlTemplate() {
-        return evalSqlTemplate;
-    }
-
     private String parseEvalSql(int batchIndex) {
         val eval = new StringBuilder();
         int startPos = 0;
@@ -136,7 +132,7 @@ public class EqlRun implements Cloneable {
             int pos = evalSqlTemplate.indexOf(placeholder, startPos);
             if (pos < 0) break;
 
-            eval.append(evalSqlTemplate.substring(startPos, pos));
+            eval.append(evalSqlTemplate, startPos, pos);
 
             if (index < size) {
                 Object boundParam = boundParams.get(index);
@@ -216,9 +212,10 @@ public class EqlRun implements Cloneable {
     public void setPlaceHolders(EqlParamPlaceholder[] placeHolders) {
         this.placeHolders = placeHolders;
         outCount = 0;
-        for (EqlParamPlaceholder placeHolder : placeHolders)
+        for (val placeHolder : placeHolders) {
             if (placeHolder.getInOut() != EqlParamPlaceholder.InOut.IN)
                 ++outCount;
+        }
     }
 
     public EqlParamPlaceholder getPlaceHolder(int index) {

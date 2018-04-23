@@ -23,8 +23,8 @@ public class DynamicParser {
         this.dynamicSql = new EqlDynamic();
 
         Matcher matcher = DYNAMIC_PATTERN.matcher(rawSql);
-        List<String> placeHolders = Lists.<String>newArrayList();
-        List<String> sqlPieces = Lists.<String>newArrayList();
+        List<String> placeHolders = Lists.newArrayList();
+        List<String> sqlPieces = Lists.newArrayList();
         int startPos = 0;
         while (matcher.find()) {
             String placeHolder = matcher.group(1).trim();

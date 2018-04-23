@@ -61,7 +61,7 @@ public class CacheTest {
     }
 
     @Test
-    public void test4() throws InterruptedException {
+    public void test4() {
         MockDiamondServer.setConfigInfo("EQL.CACHE", "org.n3r.eql.CacheTest.eql", "test4.cacheVersion=100");
         String str1 = new Eql().limit(1).execute();
         String str2 = new Eql().limit(1).execute();

@@ -36,7 +36,7 @@ public class EqlMatrixConnection implements EqlConnection {
 
         dataSourceCache = CacheBuilder.newBuilder().build(new CacheLoader<String, DruidDataSource>() {
             @Override
-            public DruidDataSource load(final String database) throws Exception {
+            public DruidDataSource load(final String database) {
                 return O.populate(new DruidDataSource(), params, new PropertyValueFilter() {
                     @Override
                     public String filter(String propertyValue) {
@@ -50,7 +50,7 @@ public class EqlMatrixConnection implements EqlConnection {
     LoadingCache<Pair<EqlConfig, String>, MatrixSqlParseResult> cache = CacheBuilder.newBuilder().build(
             new CacheLoader<Pair<EqlConfig, String>, MatrixSqlParseResult>() {
                 @Override
-                public MatrixSqlParseResult load(Pair<EqlConfig, String> key) throws Exception {
+                public MatrixSqlParseResult load(Pair<EqlConfig, String> key) {
                     return new MatrixSqlParser().parse(key._1, key._2);
                 }
             });
@@ -101,7 +101,7 @@ public class EqlMatrixConnection implements EqlConnection {
                 parsed.append(param.substring(startPos));
                 break;
             } else if (leftBracePos > 0) {
-                parsed.append(param.substring(startPos, leftBracePos));
+                parsed.append(param, startPos, leftBracePos);
             }
 
             int rightBracePos = param.indexOf('}', leftBracePos);

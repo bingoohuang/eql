@@ -55,9 +55,7 @@ public class EqlPropertiesConfig implements EqlConfig {
 
         val that = (EqlPropertiesConfig) o;
 
-        if (!properties.equals(that.properties)) return false;
-
-        return true;
+        return properties.equals(that.properties);
     }
 
     @Override

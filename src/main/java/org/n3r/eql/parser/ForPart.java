@@ -67,7 +67,7 @@ public class ForPart implements EqlPart {
 
         Matcher matcher = pattern.matcher(sql);
         while (matcher.find()) {
-            str.append(sql.substring(startIndex, matcher.start()));
+            str.append(sql, startIndex, matcher.start());
             startIndex = matcher.end();
             String expr = matcher.group(1);
 

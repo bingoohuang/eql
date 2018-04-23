@@ -183,7 +183,7 @@ public class SpecParser {
         return aChar;
     }
 
-    private static enum SpecState {SpecOpen, SpecName, ParamOpen, ParamValue, SpecClose}
+    private enum SpecState {SpecOpen, SpecName, ParamOpen, ParamValue, SpecClose}
 
-    private static enum ParamQuoteState {None, Left, Right}
+    private enum ParamQuoteState {None, Left, Right}
 }

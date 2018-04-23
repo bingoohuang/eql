@@ -31,7 +31,7 @@ public class EqlConfigManager {
             })
             .build(new CacheLoader<EqlConfigDecorator, EqlTranFactory>() {
                 @Override
-                public EqlTranFactory load(EqlConfigDecorator eqlConfig) throws Exception {
+                public EqlTranFactory load(EqlConfigDecorator eqlConfig) {
                     eqlConfig.onLoad();
 
                     return createEqlTranFactory(eqlConfig);

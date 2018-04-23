@@ -35,7 +35,7 @@ public class EqlBatch {
 
     public EqlBatch(int maxBatches) {
         this.maxBatches = maxBatches;
-        batchedPs = Lists.<PreparedStatement>newArrayList();
+        batchedPs = Lists.newArrayList();
         batchedMap = Maps.newHashMap();
     }
 

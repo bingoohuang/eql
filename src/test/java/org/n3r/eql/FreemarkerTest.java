@@ -61,13 +61,13 @@ public class FreemarkerTest {
     }
 
     @Test
-    public void testIn() throws Exception {
+    public void testIn() {
         InBean inBean = new InBean();
         new Eqll().id("testIn").params(inBean).execute();
     }
 
     @Test
-    public void testInsertAll() throws Exception {
+    public void testInsertAll() {
         InBean inBean = new InBean();
         new Eqll().id("testInsertAll").params(inBean).execute();
     }

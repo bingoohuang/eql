@@ -112,7 +112,7 @@ public class EqlCacheSettings {
         try {
             return eqlCacheModels.get(cacheModelKey, new Callable<EqlCacheProvider>() {
                 @Override
-                public EqlCacheProvider call() throws Exception {
+                public EqlCacheProvider call() {
                     return processCacheModel(sqlClassPath, setting, false);
                 }
             });

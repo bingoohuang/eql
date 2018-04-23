@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 public class SwitchParser implements PartParser {
     private final String condition;
-    private List<IfCondition> cases = Lists.<IfCondition>newArrayList();
+    private List<IfCondition> cases = Lists.newArrayList();
 
     private String lastCondExpr;
     private MultiPart multiPart = new MultiPart();

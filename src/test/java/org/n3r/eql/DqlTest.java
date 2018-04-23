@@ -11,7 +11,7 @@ import static org.junit.Assert.assertThat;
 
 public class DqlTest {
     @Test
-    public void test() throws InterruptedException {
+    public void test() {
         MockDiamondServer.setUpMockServer();
         MockDiamondServer.setConfigInfo("EqlConfig", "DEFAULT",
                 "# 数据库连接信息\n" +

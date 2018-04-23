@@ -120,7 +120,7 @@ public class MtcpDataSourceHandler implements InvocationHandler {
                 })
                 .build(new CacheLoader<String, DataSourceConfigurator>() {
                     @Override
-                    public DataSourceConfigurator load(String tenantId) throws Exception {
+                    public DataSourceConfigurator load(String tenantId) {
                         return createTenantDataSource(tenantId);
                     }
                 });

@@ -65,7 +65,7 @@ public class DefaultDynamicLanguageDriver implements DynamicLanguageDriver {
     }
 
     private List<String> rearrangeLinesForInlineComments(List<String> lines) {
-        List<String> convertedLines = Lists.<String>newArrayList();
+        List<String> convertedLines = Lists.newArrayList();
 
         StringBuilder mergedLine = new StringBuilder();
         for (String line : lines) {
@@ -98,7 +98,7 @@ public class DefaultDynamicLanguageDriver implements DynamicLanguageDriver {
     }
 
     private List<String> rearrangeLinesForLineCommentsAndOthers(List<String> oneSqlLines) {
-        List<String> convertedLines = Lists.<String>newArrayList();
+        List<String> convertedLines = Lists.newArrayList();
 
         StringBuilder mergedLine = new StringBuilder();
         for (String line : oneSqlLines) {
