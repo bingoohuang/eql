@@ -28,10 +28,10 @@ public class EqlDruidConnection extends AbstractEqlConnection {
 
         dataSource = O.populate(new DruidDataSource(), params);
         dataSource.setInitVariants(true);
-        mtcpEnvironmentAware = createMtcpEnvirionmentAware(params);
+        mtcpEnvironmentAware = createMtcpEnvironmentAware(params);
     }
 
-    private MtcpEnvironmentAware createMtcpEnvirionmentAware(Map<String, String> params) {
+    private MtcpEnvironmentAware createMtcpEnvironmentAware(Map<String, String> params) {
         val implSepc = params.get("mtcpEnvironmentAwareClass.spec");
         if (StringUtils.isEmpty(implSepc)) return null;
 
@@ -44,13 +44,13 @@ public class EqlDruidConnection extends AbstractEqlConnection {
     public Connection getConnection(String dbName) {
         val connection = dataSource.getConnection();
 
-        attachMtcpEnvirionment(connection);
+        attachMtcpEnvironment(connection);
 
         return connection;
     }
 
     @SneakyThrows
-    private void attachMtcpEnvirionment(DruidPooledConnection connection) {
+    private void attachMtcpEnvironment(DruidPooledConnection connection) {
         if (mtcpEnvironmentAware == null) return;
 
         String tenantId = mtcpEnvironmentAware.getTenantId();
