@@ -19,10 +19,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class EqlRun implements Cloneable {
     public List<Pair<Integer, Object>> realParams = Lists.newArrayList();
@@ -92,7 +92,7 @@ public class EqlRun implements Cloneable {
 
     private void createEvalSql(int index, String sqlClassPath, EqlConfigDecorator eqlConfig,
                                String tagSqlId, String msg) {
-        boolean hasBoundParams = boundParams != null && boundParams.size() > 0;
+        val hasBoundParams = boundParams != null && boundParams.size() > 0;
 
         if (hasBoundParams) {
             val log = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "params");
@@ -112,8 +112,8 @@ public class EqlRun implements Cloneable {
     }
 
     private String batchParamsString(List<Object> boundParams, int index) {
-        ArrayList<Object> bounds = new ArrayList<Object>();
-        for (Object object : boundParams) {
+        List<Object> bounds = Lists.newArrayList();
+        for (val object : boundParams) {
             bounds.add(((Object[]) object)[index]);
         }
         return bounds.toString();
@@ -128,7 +128,7 @@ public class EqlRun implements Cloneable {
 
         val simpleDateFormat = new SimpleDateFormat("yyyy-MM-DD HH:mm:ss");
         while (startPos < evalSqlLength) {
-            String placeholder = S.wrap(++index, EqlParamsParser.SUB);
+            val placeholder = S.wrap(++index, EqlParamsParser.SUB);
             int pos = evalSqlTemplate.indexOf(placeholder, startPos);
             if (pos < 0) break;
 
@@ -199,9 +199,21 @@ public class EqlRun implements Cloneable {
         return dynamics == null || dynamics.length == 0 ? null : dynamics[0];
     }
 
+
+    static Pattern WHERE_PATTERN = Pattern.compile("\\bwhere\\b", Pattern.CASE_INSENSITIVE);
     public void setRunSql(String runSql) {
         this.runSql = runSql;
         printSql = runSql.replaceAll("\\r?\\n", " ");
+
+        checkNoWhereUpdate(runSql);
+    }
+
+    private void checkNoWhereUpdate(String runSql) {
+        if (!sqlType.isUpdateDeleteStmt()) return;
+        if (WHERE_PATTERN.matcher(runSql).find()) return;
+        if (eqlBlock.getOptions().containsKey("NoWhere")) return;
+
+        throw new RuntimeException("where clause is required when there is no NoWhere option with the sql " + runSql);
     }
 
     public String getSqlId() {

@@ -260,6 +260,8 @@ public class MethodGenerator<T> implements Generatable {
         String split = sqlOptions.split();
         if (S.isNotEmpty(split)) optionsStr.append(" split=").append(split);
 
+        optionsStr.append(' ').append(sqlOptions.value());
+
         return optionsStr.toString();
     }
 

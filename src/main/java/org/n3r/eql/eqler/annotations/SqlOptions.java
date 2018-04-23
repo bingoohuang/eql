@@ -16,4 +16,6 @@ public @interface SqlOptions {
     OnErr onErr() default OnErr.Unset;
 
     String split() default "";
+
+    String value() default "";
 }
