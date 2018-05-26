@@ -46,18 +46,15 @@ public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
     @SneakyThrows
     private Map<String, EqlBlock> load(final EqlResourceLoader resLoader,
                                        final String sqlClassPath) {
-        val valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
-            @Override
-            public Optional<Map<String, EqlBlock>> call() {
-                val sqlContent = C.classResourceToString(sqlClassPath);
-                if (sqlContent == null) {
-                    log.warn("classpath sql {} not found", sqlClassPath);
-                    return Optional.absent();
-                }
-
-                return Optional.of(EqlResourceLoaderHelper.updateFileCache(
-                        sqlContent, resLoader, sqlClassPath, eqlLazyLoad));
+        Callable<Optional<Map<String, EqlBlock>>> valueLoader = () -> {
+            val sqlContent = C.classResourceToString(sqlClassPath);
+            if (sqlContent == null) {
+                log.warn("classpath sql {} not found", sqlClassPath);
+                return Optional.absent();
             }
+
+            return Optional.of(EqlResourceLoaderHelper.updateFileCache(
+                    sqlContent, resLoader, sqlClassPath, eqlLazyLoad));
         };
 
         try {

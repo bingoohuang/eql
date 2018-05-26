@@ -17,8 +17,6 @@ import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.EqlUtils;
 
-import java.util.concurrent.Callable;
-
 public class CodeDescCache {
     public static final String EQL_CACHE = "EQL.CACHE.DESC";
     static Cache<EqlUniqueSqlId, Optional<String>> cachEQLIdVersion
@@ -70,26 +68,20 @@ public class CodeDescCache {
             Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>> subCache,
             final EqlCacheKey eqlCacheKey,
             final String tagSqlId) {
-        return subCache.get(eqlCacheKey, new Callable<Optional<DefaultCodeDescMapper>>() {
-            @Override
-            public Optional<DefaultCodeDescMapper> call() {
-                val mapper = createCodeDescMapper(eqlBlock, currEqlRun, eqlConfig, codeDesc,
-                        eqlCacheKey.getUniqueSQLId().getSqlClassPath(), tagSqlId);
-                return Optional.fromNullable(mapper);
-            }
+        return subCache.get(eqlCacheKey, () -> {
+            val mapper = createCodeDescMapper(eqlBlock, currEqlRun, eqlConfig, codeDesc,
+                    eqlCacheKey.getUniqueSQLId().getSqlClassPath(), tagSqlId);
+            return Optional.fromNullable(mapper);
         });
     }
 
     @SneakyThrows
     private static Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>>
     getOrCreateSubCache(final EqlUniqueSqlId uniqueSQLId) {
-        return cacheDict.get(uniqueSQLId, new Callable<Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>>>() {
-            @Override
-            public Cache<EqlCacheKey, Optional<DefaultCodeDescMapper>> call() {
-                String sqlIdVersion = getSqlIdCacheVersion(uniqueSQLId);
-                cachEQLIdVersion.put(uniqueSQLId, Optional.fromNullable(sqlIdVersion));
-                return CacheBuilder.newBuilder().build();
-            }
+        return cacheDict.get(uniqueSQLId, () -> {
+            String sqlIdVersion = getSqlIdCacheVersion(uniqueSQLId);
+            cachEQLIdVersion.put(uniqueSQLId, Optional.fromNullable(sqlIdVersion));
+            return CacheBuilder.newBuilder().build();
         });
     }
 

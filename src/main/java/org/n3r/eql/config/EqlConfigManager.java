@@ -17,16 +17,13 @@ public class EqlConfigManager {
     private static LoadingCache<EqlConfigDecorator, EqlTranFactory>
             eqlTranFactoryCache = CacheBuilder.newBuilder()
             .expireAfterAccess(10, TimeUnit.MINUTES)
-            .removalListener(new RemovalListener<EqlConfigDecorator, EqlTranFactory>() {
-                @Override
-                public void onRemoval(RemovalNotification<EqlConfigDecorator, EqlTranFactory> notification) {
-                    notification.getKey().onRemoval();
+            .removalListener((RemovalListener<EqlConfigDecorator, EqlTranFactory>) notification -> {
+                notification.getKey().onRemoval();
 
-                    try {
-                        notification.getValue().destory();
-                    } catch (Exception e) {
-                        // ignore exception
-                    }
+                try {
+                    notification.getValue().destory();
+                } catch (Exception e) {
+                    // ignore exception
                 }
             })
             .build(new CacheLoader<EqlConfigDecorator, EqlTranFactory>() {

@@ -16,7 +16,6 @@ import org.n3r.eql.util.Rs;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 

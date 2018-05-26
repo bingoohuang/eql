@@ -12,7 +12,7 @@ public class EqlMapMapper implements EqlRowMapper {
 
     @Override
     public Object mapRow(ResultSet rs, int rowNum, boolean isSingleColumn) throws SQLException {
-        Map<String, Object> row = new HashMap<String, Object>();
+        Map<String, Object> row = new HashMap<>();
         val metaData = rs.getMetaData();
         for (int i = 1; i <= metaData.getColumnCount(); ++i) {
             String column = Rs.lookupColumnName(metaData, i);

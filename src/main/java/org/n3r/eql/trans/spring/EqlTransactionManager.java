@@ -13,7 +13,7 @@ public class EqlTransactionManager {
     static ThreadLocal<Map<Pair<EqlConfig, String>, EqlTran>> eqlTranLocal;
 
     static {
-        eqlTranLocal = new ThreadLocal<Map<Pair<EqlConfig, String>, EqlTran>>();
+        eqlTranLocal = new ThreadLocal<>();
     }
 
     public static EqlTran getTran(EqlConfig eqlConfig) {
@@ -52,9 +52,9 @@ public class EqlTransactionManager {
 
     public static void start() {
         val map = eqlTranLocal.get();
-        if (map != null) throw new RuntimeException("already started");
+        if (map != null) return; //throw new RuntimeException("already started");
 
-        eqlTranLocal.set(new HashMap<Pair<EqlConfig, String>, EqlTran>());
+        eqlTranLocal.set(new HashMap<>());
     }
 
     public static void end() {

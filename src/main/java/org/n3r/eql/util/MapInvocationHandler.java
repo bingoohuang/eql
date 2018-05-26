@@ -1,6 +1,7 @@
 package org.n3r.eql.util;
 
 import com.google.common.collect.Maps;
+import lombok.SneakyThrows;
 import lombok.val;
 import org.n3r.eql.base.EqlToProperties;
 
@@ -82,21 +83,18 @@ public class MapInvocationHandler implements InvocationHandler {
         mergeDeclaredFields(bean, map);
     }
 
+    @SneakyThrows
     private static void mergeDeclaredFields(Object bean, Map<String, Object> map) {
         for (val field : bean.getClass().getDeclaredFields()) {
-            try {
-                field.setAccessible(true);
-                Object value = field.get(bean);
-                value = toDbConvert(field, value);
-                map.put(field.getName(), value);
-            } catch (Exception e) {
-                // ignore
-            }
+            field.setAccessible(true);
+            Object value = field.get(bean);
+            value = toDbConvert(field, value);
+            map.put(field.getName(), value);
+
         }
     }
 
-    private static void mergeReadProperties(
-            Object bean, Map<String, Object> map) {
+    private static void mergeReadProperties(Object bean, Map<String, Object> map) {
         val info = O.getBeanInfo(bean.getClass());
 
         for (val pDesc : info.getPropertyDescriptors()) {

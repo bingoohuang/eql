@@ -18,7 +18,7 @@ public class EqlerToDbConverter implements ToDbConverter {
     List<ToDbConverter> converters;
 
     public EqlerToDbConverter() {
-        this(null, Lists.<ToDbConverter>newArrayList());
+        this(null, Lists.newArrayList());
     }
 
     @Override public Object convert(Annotation ann, Object src) {

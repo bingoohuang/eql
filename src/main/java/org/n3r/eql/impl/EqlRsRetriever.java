@@ -55,7 +55,7 @@ public class EqlRsRetriever {
         }
 
         val rowMapper = getRowMapper(rs.getMetaData());
-        val o = rowBeanCreate(rowMapper, singleColumn, rs, 1);
+        val o = rowBeanCreate(rowMapper, false, rs, 1);
         return mapResult(o, rowMapper);
     }
 

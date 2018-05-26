@@ -46,7 +46,7 @@ public class EqlResourceLoaderHelper {
             Cache<EqlUniqueSqlId, Optional<EqlBlock>> sqlCache,
             Cache<String, Optional<Map<String, EqlBlock>>> fileCache) {
         val oldBlocks = fileCache.getIfPresent(sqlClassPath);
-        val oldSqlIds = oldBlocks.or(new HashMap<String, EqlBlock>()).keySet();
+        val oldSqlIds = oldBlocks.or(new HashMap<>()).keySet();
 
         val parser = new EqlParser(eqlResourceLoader, sqlClassPath);
         val blocks = parser.parse(sqlContent);

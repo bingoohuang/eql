@@ -42,13 +42,10 @@ public class DiamondGuavaCacheProvider implements EqlCacheProvider {
         val uniqueSQLId = cacheKey.getUniqueSQLId();
         try {
             val subCache = cache.get(uniqueSQLId,
-                    new Callable<Cache<EqlCacheKey, Optional<Object>>>() {
-                        @Override
-                        public Cache<EqlCacheKey, Optional<Object>> call() {
-                            val sqlIdVersion = getSqlIdCacheVersion(uniqueSQLId);
-                            cachEQLIdVersion.put(uniqueSQLId, Optional.fromNullable(sqlIdVersion));
-                            return CacheBuilder.newBuilder().build();
-                        }
+                    () -> {
+                        val sqlIdVersion = getSqlIdCacheVersion(uniqueSQLId);
+                        cachEQLIdVersion.put(uniqueSQLId, Optional.fromNullable(sqlIdVersion));
+                        return CacheBuilder.newBuilder().build();
                     });
 
             subCache.put(cacheKey, Optional.fromNullable(result));

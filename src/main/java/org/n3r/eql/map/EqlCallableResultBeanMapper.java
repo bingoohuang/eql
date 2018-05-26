@@ -5,7 +5,6 @@ import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.param.EqlParamPlaceholder;
 
 import java.sql.CallableStatement;
-import java.sql.SQLException;
 
 public class EqlCallableResultBeanMapper extends EqlBaseBeanMapper implements EqlCallableReturnMapper {
     public EqlCallableResultBeanMapper(Class<?> mappedClass) {

@@ -11,7 +11,6 @@ import org.n3r.eql.spec.ParamsAppliable;
 import org.n3r.eql.spec.SpecParser;
 import org.n3r.eql.util.KeyValue;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
@@ -110,12 +109,7 @@ public class EqlCacheSettings {
             EqlCacheModelKey cacheModelKey,
             final KeyValue setting) {
         try {
-            return eqlCacheModels.get(cacheModelKey, new Callable<EqlCacheProvider>() {
-                @Override
-                public EqlCacheProvider call() {
-                    return processCacheModel(sqlClassPath, setting, false);
-                }
-            });
+            return eqlCacheModels.get(cacheModelKey, () -> processCacheModel(sqlClassPath, setting, false));
         } catch (ExecutionException e) {
             log.warn("create default cache model error", e.getCause());
         }

@@ -8,9 +8,8 @@ import com.google.common.cache.LoadingCache;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.n3r.diamond.client.DiamondListenerAdapter;
+import org.n3r.diamond.client.DiamondListener;
 import org.n3r.diamond.client.DiamondManager;
-import org.n3r.diamond.client.DiamondStone;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.impl.AbstractEqlResourceLoader;
 import org.n3r.eql.impl.EqlResourceLoaderHelper;
@@ -56,30 +55,24 @@ public class DiamondEqlResourceLoader extends AbstractEqlResourceLoader {
     private Map<String, EqlBlock> load(final EqlResourceLoader eqlResourceLoader,
                                        final String sqlClassPath) {
         val dataId = sqlClassPath.replaceAll("/", ".");
-        val diamondListener = new DiamondListenerAdapter() {
-            @Override
-            public void accept(DiamondStone diamondStone) {
-                val eql = diamondStone.getContent();
-                EqlResourceLoaderHelper.updateBlockCache(eql,
-                        eqlResourceLoader, sqlClassPath, sqlCache, fileCache);
-            }
+        DiamondListener diamondListener = diamondStone -> {
+            val eql = diamondStone.getContent();
+            EqlResourceLoaderHelper.updateBlockCache(eql,
+                    eqlResourceLoader, sqlClassPath, sqlCache, fileCache);
         };
 
-        val valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
-            @Override
-            public Optional<Map<String, EqlBlock>> call() {
-                val manager = new DiamondManager("EQL", dataId);
-                manager.addDiamondListener(diamondListener);
+        Callable<Optional<Map<String, EqlBlock>>> valueLoader = () -> {
+            val manager = new DiamondManager("EQL", dataId);
+            manager.addDiamondListener(diamondListener);
 
-                val sqlContent = manager.getDiamond();
-                if (sqlContent == null) {
-                    log.warn("classpath sql {} not found", dataId);
-                    return Optional.absent();
-                }
-
-                return Optional.of(EqlResourceLoaderHelper.updateFileCache(
-                        sqlContent, eqlResourceLoader, sqlClassPath, eqlLazyLoad));
+            val sqlContent = manager.getDiamond();
+            if (sqlContent == null) {
+                log.warn("classpath sql {} not found", dataId);
+                return Optional.absent();
             }
+
+            return Optional.of(EqlResourceLoaderHelper.updateFileCache(
+                    sqlContent, eqlResourceLoader, sqlClassPath, eqlLazyLoad));
         };
 
         try {

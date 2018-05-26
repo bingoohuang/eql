@@ -11,8 +11,6 @@ import org.n3r.eql.eqler.generators.ClassGenerator;
 import org.n3r.eql.ex.EqlConfigException;
 import org.n3r.eql.util.C;
 
-import java.util.concurrent.Callable;
-
 @UtilityClass
 @SuppressWarnings("unchecked")
 public class EqlerFactory {
@@ -21,11 +19,7 @@ public class EqlerFactory {
     @SneakyThrows
     public <T> T getEqler(final Class<T> eqlerClass) {
         ensureClassIsAnInterface(eqlerClass);
-        return (T) eqlerCache.get(eqlerClass, new Callable<Object>() {
-            @Override public Object call() {
-                return loadEqler(eqlerClass);
-            }
-        });
+        return (T) eqlerCache.get(eqlerClass, () -> loadEqler(eqlerClass));
     }
 
     private Object loadEqler(Class eqlerClass) {
