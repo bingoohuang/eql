@@ -83,10 +83,8 @@ public class EqlBlock {
             Map<String, Object> executionContext,
             Object[] params, Object[] dynamics, String[] directSqls) {
         return directSqls.length == 0
-                ? createEqlRunsByEqls(tagSqlId, eqlConfig,
-                executionContext, params, dynamics)
-                : createEqlRunsByDirectSqls(tagSqlId, eqlConfig,
-                executionContext, params, dynamics, directSqls);
+                ? createEqlRunsByEqls(tagSqlId, eqlConfig, executionContext, params, dynamics)
+                : createEqlRunsByDirectSqls(tagSqlId, eqlConfig, executionContext, params, dynamics, directSqls);
     }
 
     public List<EqlRun> createEqlRunsByEqls(
@@ -133,7 +131,7 @@ public class EqlBlock {
         List<String> sqlLines = Lists.newArrayList();
         char sqlSplit = split.charAt(0);
         Splitter sqlSplitter = Splitter.on(sqlSplit).trimResults().omitEmptyStrings();
-        Splitter lineSplitter = Splitter.onPattern("[\n\n]").omitEmptyStrings();
+        Splitter lineSplitter = Splitter.onPattern("[\r\n]").omitEmptyStrings();
         for (String sqlStr : sqls) {
             for (String sql : sqlSplitter.split(sqlStr)) {
                 for (String line : lineSplitter.split(sql)) {

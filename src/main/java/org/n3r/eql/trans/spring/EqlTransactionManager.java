@@ -8,13 +8,11 @@ import org.n3r.eql.util.Pair;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class EqlTransactionManager {
-    static ThreadLocal<Map<Pair<EqlConfig, String>, EqlTran>> eqlTranLocal;
-
-    static {
-        eqlTranLocal = new ThreadLocal<>();
-    }
+    static ThreadLocal<Map<Pair<EqlConfig, String>, EqlTran>> eqlTranLocal = new ThreadLocal<>();
+    static ThreadLocal<AtomicInteger> nested = new ThreadLocal<>();
 
     public static EqlTran getTran(EqlConfig eqlConfig) {
         val pair = Pair.of(eqlConfig, MtcpContext.getTenantId());
@@ -39,18 +37,29 @@ public class EqlTransactionManager {
     }
 
     public static void commit() {
+        if (nested.get().get() > 1) return; // 忽略嵌套事务
+
         for (val eqlTran : eqlTranLocal.get().values()) {
             eqlTran.commit();
         }
     }
 
     public static void rollback() {
+        if (nested.get().get() > 1) return; // 忽略嵌套事务
+
         for (val eqlTran : eqlTranLocal.get().values()) {
             eqlTran.rollback();
         }
     }
 
     public static void start() {
+        AtomicInteger nests = nested.get();
+        if (nests == null) {
+            nested.set(new AtomicInteger(0));
+        }
+
+        nested.get().incrementAndGet();    // 记录嵌套事务
+
         val map = eqlTranLocal.get();
         if (map != null) return; //throw new RuntimeException("already started");
 
@@ -58,10 +67,13 @@ public class EqlTransactionManager {
     }
 
     public static void end() {
+        if (nested.get().decrementAndGet() > 0) return;
+
         for (val eqlTran : eqlTranLocal.get().values()) {
             eqlTran.close();
         }
 
         eqlTranLocal.remove();
+        nested.remove();
     }
 }
