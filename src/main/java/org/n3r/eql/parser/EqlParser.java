@@ -22,22 +22,29 @@ public class EqlParser {
     static Pattern blockPattern = Pattern.compile("\\[\\s*([\\w\\.\\-\\d]+)\\b(.*)\\]");
 
     private Map<String, EqlBlock> blocks = Maps.newHashMap();
-    private String sqlClassPath;
     private List<String> sqlLines = null;
-    private DynamicLanguageDriver dynamicLanguageDriver;
 
     private EqlBlock block = null;
-    private EqlResourceLoader eqlResourceLoader;
+
+    private final EqlResourceLoader eqlResourceLoader;
+    private final String sqlClassPath;
+    private final DynamicLanguageDriver dynamicLanguageDriver;
+
     private boolean sqlParseDelay;
 
     public EqlParser(EqlResourceLoader eqlResourceLoader, String sqlClassPath) {
         this.eqlResourceLoader = eqlResourceLoader;
         this.sqlClassPath = sqlClassPath;
-        if (eqlResourceLoader != null)
-            dynamicLanguageDriver = eqlResourceLoader.getDynamicLanguageDriver();
+        this.dynamicLanguageDriver = createDynamicLanguageDriver(eqlResourceLoader);
+    }
 
-        if (dynamicLanguageDriver == null)
-            dynamicLanguageDriver = new DefaultDynamicLanguageDriver();
+    private DynamicLanguageDriver createDynamicLanguageDriver(EqlResourceLoader eqlResourceLoader) {
+        DynamicLanguageDriver driver = null;
+
+        if (eqlResourceLoader != null) driver = eqlResourceLoader.getDynamicLanguageDriver();
+        if (driver == null) driver = new DefaultDynamicLanguageDriver();
+
+        return driver;
     }
 
     // delay sql parse
@@ -153,14 +160,13 @@ public class EqlParser {
 
     private void importSqlBlocks(String cleanLine, Map<String, EqlBlock> temp) {
         for (val eqlBlock : temp.values()) {
-            if (blocks.containsKey(eqlBlock.getSqlId())) {
-                log.error("{} duplicated when {} in {}",
-                        eqlBlock.getSqlId(), cleanLine, sqlClassPath);
-                throw new RuntimeException(eqlBlock.getSqlId()
-                        + " duplicated when " + cleanLine + " in " + sqlClassPath);
+            String sqlId = eqlBlock.getSqlId();
+            if (blocks.containsKey(sqlId)) {
+                log.error("{} duplicated when {} in {}", sqlId, cleanLine, sqlClassPath);
+                throw new RuntimeException(sqlId + " duplicated when " + cleanLine + " in " + sqlClassPath);
             }
 
-            blocks.put(eqlBlock.getSqlId(), eqlBlock);
+            blocks.put(sqlId, eqlBlock);
         }
     }
 

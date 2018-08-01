@@ -4,7 +4,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.val;
@@ -181,16 +180,13 @@ public class EqlBlock {
         return uniqueSqlId.getSqlId();
     }
 
-    public Optional<Object> getCachedResult(
-            Object[] params, Object[] dynamics, EqlPage page) {
+    public Optional<Object> getCachedResult(Object[] params, Object[] dynamics, EqlPage page) {
         if (cacheProvider == null) return null;
 
-        EqlCacheKey cacheKey = new EqlCacheKey(uniqueSqlId, params, dynamics, page);
-        val cache = cacheProvider.getCache(cacheKey);
+        val cache = cacheProvider.getCache(new EqlCacheKey(uniqueSqlId, params, dynamics, page));
         if (cache != null && page != null) {
             val totalRowSqlId = uniqueSqlId.newTotalRowSqlId();
-            cacheKey = new EqlCacheKey(totalRowSqlId, params, dynamics, page);
-            val totalNumber = cacheProvider.getCache(cacheKey);
+            val totalNumber = cacheProvider.getCache(new EqlCacheKey(totalRowSqlId, params, dynamics, page));
             if (totalNumber.isPresent())
                 page.setTotalRows((Integer) totalNumber.get());
         }
@@ -202,15 +198,11 @@ public class EqlBlock {
         if (cacheProvider == null) return;
         if (!currRun.isLastSelectSql()) return;
 
-        EqlCacheKey cacheKey = new EqlCacheKey(uniqueSqlId,
-                currRun.getParams(), currRun.getDynamics(), page);
-        cacheProvider.setCache(cacheKey, currRun.getResult());
+        cacheProvider.setCache(new EqlCacheKey(uniqueSqlId, currRun.getParams(), currRun.getDynamics(), page), currRun.getResult());
 
         if (page != null) {
             val totalRowSqlId = uniqueSqlId.newTotalRowSqlId();
-            cacheKey = new EqlCacheKey(totalRowSqlId,
-                    currRun.getParams(), currRun.getDynamics(), page);
-            cacheProvider.setCache(cacheKey, page.getTotalRows());
+            cacheProvider.setCache(new EqlCacheKey(totalRowSqlId, currRun.getParams(), currRun.getDynamics(), page), page.getTotalRows());
         }
     }
 }

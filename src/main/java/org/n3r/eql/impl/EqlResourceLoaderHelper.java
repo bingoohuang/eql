@@ -19,13 +19,12 @@ import java.util.Map;
 public class EqlResourceLoaderHelper {
     public LoadingCache<EqlUniqueSqlId, Optional<EqlBlock>> buildSqlCache(
             final Cache<String, Optional<Map<String, EqlBlock>>> fileCache) {
-        val loader = new CacheLoader<EqlUniqueSqlId, Optional<EqlBlock>>() {
+        return CacheBuilder.newBuilder().build(new CacheLoader<EqlUniqueSqlId, Optional<EqlBlock>>() {
             @Override
             public Optional<EqlBlock> load(EqlUniqueSqlId eqlUniqueSqlId) {
                 return loadBlocks(fileCache, eqlUniqueSqlId);
             }
-        };
-        return CacheBuilder.newBuilder().build(loader);
+        });
     }
 
     private Optional<EqlBlock> loadBlocks(
@@ -69,8 +68,6 @@ public class EqlResourceLoaderHelper {
             EqlResourceLoader eqlResourceLoader,
             String sqlClassPath, boolean eqlLazyLoad) {
         val parser = new EqlParser(eqlResourceLoader, sqlClassPath);
-        return eqlLazyLoad
-                ? parser.delayParse(sqlContent)
-                : parser.parse(sqlContent);
+        return eqlLazyLoad ? parser.delayParse(sqlContent) : parser.parse(sqlContent);
     }
 }
