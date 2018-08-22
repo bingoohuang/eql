@@ -5,6 +5,8 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 import org.n3r.eql.base.AfterPropertiesSet;
 import org.n3r.eql.joor.Reflect;
 import org.n3r.eql.map.*;
@@ -191,9 +193,18 @@ public class EqlRsRetriever {
                 return rs.getTimestamp(1);
             }
 
-            if (EqlRun.HasJodaDateTime && returnType == DateTime.class
-                    && value instanceof Date) {
-                return new DateTime(value);
+            if (EqlRun.HasJodaDateTime) {
+                if (returnType == DateTime.class && value instanceof Date) {
+                    return new DateTime(value);
+                }
+
+                if (returnType == LocalDate.class && value instanceof Date) {
+                    return new LocalDate(value);
+                }
+
+                if (returnType == LocalTime.class && value instanceof Date) {
+                    return new LocalTime(value);
+                }
             }
 
             return new EqlBeanRowMapper(returnType)

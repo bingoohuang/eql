@@ -7,6 +7,8 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.EqlParamsParser;
@@ -14,10 +16,7 @@ import org.n3r.eql.param.PlaceholderType;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.*;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -60,6 +59,19 @@ public class EqlRun implements Cloneable {
             if (parameterValue instanceof DateTime) {
                 val dateTime = (DateTime) parameterValue;
                 ps.setObject(parameterIndex, new Timestamp(dateTime.getMillis()));
+                return;
+            }
+            if (parameterValue instanceof LocalDate) {
+                val jodaDate = (LocalDate) parameterValue;
+                ps.setObject(parameterIndex, java.sql.Date.valueOf(
+                        java.time.LocalDate.of(jodaDate.getYear(),jodaDate.getMonthOfYear(),jodaDate.getDayOfMonth())));
+                return;
+            }
+            if (parameterValue instanceof LocalTime) {
+                val jodaTime = (LocalTime) parameterValue;
+                ps.setObject(parameterIndex, Time.valueOf(
+                        java.time.LocalTime.of(
+                                jodaTime.getHourOfDay(), jodaTime.getMinuteOfHour(), jodaTime.getSecondOfMinute(), jodaTime.getMillisOfSecond())));
                 return;
             }
         }
