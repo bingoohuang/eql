@@ -2,16 +2,11 @@ package org.n3r.eql.util;
 
 import lombok.SneakyThrows;
 import lombok.val;
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalTime;
-import org.n3r.eql.map.EqlRun;
+import org.n3r.eql.map.MapperFactoryCache;
 import org.n3r.eql.map.ResultSetRs;
 import org.n3r.eql.map.RsAware;
 
-import java.math.BigDecimal;
 import java.sql.*;
-import java.util.Calendar;
 
 public class Rs {
     @SneakyThrows
@@ -53,7 +48,7 @@ public class Rs {
             return getResultSetValue(rs, index);
         }
 
-        Object value = null;
+        Object value;
         boolean wasNullCheck = false;
 
         // Explicitly extract typed value, as far as possible.
@@ -97,37 +92,13 @@ public class Rs {
         } else if (Date.class.equals(requiredType)) {
             value = rs.getTimestamp(index);
             if (value != null && !rs.wasNull()) value = new Date(((Timestamp) value).getTime());
-        } else if (Time.class.equals(requiredType)) {
-            value = rs.getTime(index);
-        } else if (Timestamp.class.equals(requiredType)
-                || java.util.Date.class.equals(requiredType)) {
-            value = rs
-                    .getTimestamp(index);
-        } else if (BigDecimal.class.equals(requiredType)) {
-            value = rs.getBigDecimal(index);
-        } else if (Blob.class.equals(requiredType)) {
-            value = rs.getBlob(index);
-        } else if (Clob.class.equals(requiredType)) {
-            value = rs.getClob(index);
-        } else if (EqlRun.HasJodaDateTime && requiredType == DateTime.class) {
-            Timestamp ts = rs.getTimestamp(index);
-            value = ts == null ? null : new DateTime(ts.getTime());
-        } else if (EqlRun.HasJodaDateTime && requiredType == LocalDate.class) {
-            Date date = rs.getDate(index);
-            if (date != null) {
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTime(date);
-                value = new LocalDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-            }
-        } else if (EqlRun.HasJodaDateTime && requiredType == LocalTime.class) {
-            Time time = rs.getTime(index);
-            if (time != null) {
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTime(time);
-                value = new LocalTime(calendar.get(Calendar.HOUR), calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND), calendar.get(Calendar.MILLISECOND));
-            }
         } else { // Some unknown type desired -> rely on getObject.
-            value = getResultSetValue(rs, index);
+            val mapper = MapperFactoryCache.getFromDbMapper(requiredType);
+            if (mapper.isPresent()) {
+                value = mapper.get().map(rs, index);
+            } else {
+                value = getResultSetValue(rs, index);
+            }
         }
 
         // Perform was-null check if demanded (for results that the

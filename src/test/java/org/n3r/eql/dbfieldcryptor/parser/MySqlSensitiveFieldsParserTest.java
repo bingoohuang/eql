@@ -3,7 +3,7 @@ package org.n3r.eql.dbfieldcryptor.parser;
 import com.alibaba.druid.sql.dialect.mysql.parser.MySqlStatementParser;
 import com.alibaba.druid.sql.parser.SQLStatementParser;
 import com.google.common.collect.Sets;
-import lombok.experimental.var;
+import lombok.var;
 import lombok.val;
 import org.junit.Assert;
 import org.junit.Test;

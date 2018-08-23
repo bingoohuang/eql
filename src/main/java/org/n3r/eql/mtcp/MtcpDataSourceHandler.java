@@ -3,12 +3,14 @@ package org.n3r.eql.mtcp;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
-import com.google.common.base.MoreObjects;
-import com.google.common.cache.*;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
 import com.google.common.io.Files;
 import lombok.SneakyThrows;
-import lombok.experimental.var;
 import lombok.val;
+import lombok.var;
 import org.apache.commons.codec.Charsets;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.mtcp.utils.Mtcps;
@@ -45,27 +47,15 @@ public class MtcpDataSourceHandler implements InvocationHandler {
         mtcpCache = createMtcpCache(eqlConfig);
         scheduler = Executors.newSingleThreadScheduledExecutor();
 
-        scheduler.scheduleWithFixedDelay(new Runnable() {
-            @Override
-            public void run() {
-                mtcpCache.cleanUp();
-            }
-        }, 10, 10, TimeUnit.MINUTES);
-
-        scheduler.scheduleWithFixedDelay(new Runnable() {
-            @Override public void run() {
-                shrink();
-            }
-        }, 10, 10, TimeUnit.SECONDS);
+        scheduler.scheduleWithFixedDelay(() ->
+                mtcpCache.cleanUp(), 10, 10, TimeUnit.MINUTES);
+        scheduler.scheduleWithFixedDelay(() ->
+                shrink(), 10, 10, TimeUnit.SECONDS);
 
         metricsRegistry = new MetricRegistry();
 
-        metricsRegistry.register(name(MtcpDataSourceHandler.class.getSimpleName(), "cacheCount"), new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-                return mtcpCache.size();
-            }
-        });
+        metricsRegistry.register(name(MtcpDataSourceHandler.class.getSimpleName(), "cacheCount"),
+                (Gauge<Long>) () -> mtcpCache.size());
 
         // TODO: Metric Reported should be configurated from outside.
 //        ConsoleReporter reporter = ConsoleReporter.forRegistry(metricsRegistry).build();
@@ -110,13 +100,10 @@ public class MtcpDataSourceHandler implements InvocationHandler {
         checkNotNull(mtcpCacheSpec, "%s should not be empty!", key);
 
         return CacheBuilder.from(mtcpCacheSpec)
-                .removalListener(new RemovalListener<String, DataSourceConfigurator>() {
-                    @Override
-                    public void onRemoval(RemovalNotification<String, DataSourceConfigurator> notification) {
-                        val tenantId = notification.getKey();
-                        val dataSourceConfigurator = notification.getValue();
-                        dataSourceConfigurator.destroy(tenantId, metricsRegistry);
-                    }
+                .removalListener((RemovalListener<String, DataSourceConfigurator>) notification -> {
+                    val tenantId = notification.getKey();
+                    val dataSourceConfigurator = notification.getValue();
+                    dataSourceConfigurator.destroy(tenantId, metricsRegistry);
                 })
                 .build(new CacheLoader<String, DataSourceConfigurator>() {
                     @Override

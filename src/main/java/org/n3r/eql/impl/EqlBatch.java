@@ -3,7 +3,7 @@ package org.n3r.eql.impl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.SneakyThrows;
-import lombok.experimental.var;
+import lombok.var;
 import lombok.val;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
