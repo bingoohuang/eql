@@ -29,6 +29,12 @@ public class EqlParamPlaceholder {
     private boolean escape;
     private String escapeValue;
 
+    private String defaultValue;
+
+    public boolean hasDefaultValue() {
+        return S.isNotEmpty(defaultValue);
+    }
+
     // The name to get value from EqlContext
     private String contextName;
     // true: only get value from EqlContext,
@@ -74,6 +80,8 @@ public class EqlParamPlaceholder {
             } else if ("CONTEXT".equals(upperPureOption)) {
                 setContextName(holder.placeHolder);
                 setContextOnly(false);
+            } else if (upperPureOption.startsWith("!")) {
+                setDefaultValue(S.trimToEmpty(upperPureOption.substring(1)));
             } else {
                 log.warn("unknown option {}", upperPureOption);
             }

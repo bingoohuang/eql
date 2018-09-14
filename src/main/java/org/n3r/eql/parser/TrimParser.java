@@ -1,10 +1,11 @@
 package org.n3r.eql.parser;
 
+import lombok.val;
+import org.n3r.eql.util.Pair;
 import org.n3r.eql.util.PairsParser;
 
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 
 public class TrimParser implements PartParser {
     private final String prefix;
@@ -37,24 +38,16 @@ public class TrimParser implements PartParser {
         for (int ii = mergedLines.size(); i < ii; ++i) {
             String line = mergedLines.get(i);
 
-            String clearLine;
-            if (line.startsWith("--")) {
-                clearLine = ParserUtils.substr(line, "--".length());
-            } else {
-                Matcher matcher = ParserUtils.inlineComment.matcher(line);
-                if (matcher.matches()) {
-                    clearLine = matcher.group(1).trim();
-                } else {
-                    multiPart.addPart(new LiteralPart(line));
-                    continue;
-                }
-            }
+            val clearLineRet = cleanLine(line, multiPart);
+            if (clearLineRet._2 != null) continue;
+
+            val clearLine = clearLineRet._1;
 
             if ("end".equalsIgnoreCase(clearLine)) {
                 return i + 1;
             }
 
-            PartParser partParser = PartParserFactory.tryParse(clearLine);
+            val partParser = PartParserFactory.tryParse(clearLine);
             if (partParser != null) {
                 i = partParser.parse(mergedLines, i + 1) - 1;
 
@@ -63,5 +56,20 @@ public class TrimParser implements PartParser {
         }
 
         return i;
+    }
+
+    public static Pair<String, LiteralPart> cleanLine(String line, MultiPart multiPart) {
+        if (line.startsWith("--")) {
+            return Pair.of(ParserUtils.substr(line, "--".length()), null);
+        }
+
+        val matcher = ParserUtils.inlineComment.matcher(line);
+        if (matcher.matches()) {
+            return Pair.of(matcher.group(1).trim(), null);
+        }
+
+        LiteralPart part = new LiteralPart(line);
+        multiPart.addPart(part);
+        return Pair.of(null, part);
     }
 }

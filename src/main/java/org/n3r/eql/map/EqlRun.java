@@ -9,6 +9,7 @@ import lombok.val;
 import org.n3r.eql.config.EqlConfigDecorator;
 import org.n3r.eql.param.EqlParamPlaceholder;
 import org.n3r.eql.param.EqlParamsParser;
+import org.n3r.eql.param.InternalValueable;
 import org.n3r.eql.param.PlaceholderType;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.*;
@@ -58,6 +59,12 @@ public class EqlRun implements Cloneable {
             val mapper = MapperFactoryCache.getToDbMapper(value.getClass());
             if (mapper.isPresent()) {
                 value = mapper.get().map(value);
+            } else if (value.getClass().isEnum()) {
+                if (value instanceof InternalValueable) {
+                    value = ((InternalValueable) value).internalValue();
+                } else {
+                    value = "" + value;
+                }
             }
         }
 

@@ -133,17 +133,24 @@ public class EqlParamsBinder {
 
     private Object findParamByName(int index) {
         val placeholder = eqlRun.getPlaceHolders()[index];
+
         if (placeholder.hasContextOnly()) {
-            return EqlContext.get(placeholder.getContextName());
+            val value = EqlContext.get(placeholder.getContextName());
+            if (value != null) return value;
+        } else {
+            val varValue = parseVarValue(placeholder);
+            if (varValue != null) {
+                return varValue;
+            }
+
+            if (placeholder.hasContextNormal()) {
+                val value = EqlContext.get(placeholder.getContextName());
+                if (value != null) return value;
+            }
         }
 
-        val varValue = parseVarValue(placeholder);
-        if (varValue != null) {
-            return varValue;
-        }
-
-        if (placeholder.hasContextNormal()) {
-            return EqlContext.get(placeholder.getContextName());
+        if (placeholder.hasDefaultValue()) {
+            return placeholder.getDefaultValue();
         }
 
         return null;
@@ -210,6 +217,10 @@ public class EqlParamsBinder {
         val params = eqlRun.getParams();
         if (params != null && seq < params.length)
             return params[seq];
+
+        if (placeholder.hasDefaultValue()) {
+            return placeholder.getDefaultValue();
+        }
 
         throw new EqlExecuteException("[" + eqlRun.getSqlId() + "] lack parameters at runtime");
     }

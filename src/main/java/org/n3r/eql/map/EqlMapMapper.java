@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class EqlMapMapper implements EqlRowMapper {
-
     @Override
     public Object mapRow(ResultSet rs, int rowNum, boolean isSingleColumn) throws SQLException {
         Map<String, Object> row = new HashMap<>();

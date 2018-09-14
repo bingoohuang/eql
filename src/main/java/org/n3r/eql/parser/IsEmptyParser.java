@@ -1,7 +1,8 @@
 package org.n3r.eql.parser;
 
+import lombok.val;
+
 import java.util.List;
-import java.util.regex.Matcher;
 
 public class IsEmptyParser implements PartParser {
     protected final String expr;
@@ -25,19 +26,13 @@ public class IsEmptyParser implements PartParser {
         for (int ii = mergedLines.size(); i < ii; ++i) {
             String line = mergedLines.get(i);
 
-            String clearLine;
-            if (line.startsWith("--")) {
-                clearLine = ParserUtils.substr(line, "--".length());
-            } else {
-                Matcher matcher = ParserUtils.inlineComment.matcher(line);
-                if (matcher.matches()) {
-                    clearLine = matcher.group(1).trim();
-                } else {
-                    lastPart = new LiteralPart(line);
-                    current.addPart(lastPart);
-                    continue;
-                }
+            val clearLineRet = TrimParser.cleanLine(line, current);
+            if (clearLineRet._2 != null) {
+                lastPart = clearLineRet._2;
+                continue;
             }
+
+            val clearLine = clearLineRet._1;
 
             if ("end".equalsIgnoreCase(clearLine)) {
                 return i + 1;

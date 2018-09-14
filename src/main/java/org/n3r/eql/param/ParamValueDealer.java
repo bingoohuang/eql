@@ -20,7 +20,12 @@ public class ParamValueDealer {
         boundParam = value;
         paramValue = value;
 
-        if (value == null) return; // nothing to do
+        if (value == null) {
+            if (placeHolder != null && placeHolder.hasDefaultValue()) {
+                boundParam = placeHolder.getDefaultValue();
+            }
+            return;
+        }
 
         if (value instanceof Date) {
             Timestamp date = new Timestamp(((Date) value).getTime());
@@ -33,6 +38,8 @@ public class ParamValueDealer {
             if (value instanceof InternalValueable) {
                 paramValue = ((InternalValueable) value).internalValue();
                 boundParam = paramValue;
+            } else {
+                boundParam = "" + value;
             }
             return;
         }

@@ -2,11 +2,14 @@ package org.n3r.eql.parser;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import lombok.val;
 import org.n3r.eql.util.S;
 
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.n3r.eql.parser.TrimParser.cleanLine;
 
 public class IfParser implements PartParser {
     private String lastCondExpr;
@@ -32,18 +35,10 @@ public class IfParser implements PartParser {
         for (int ii = mergedLines.size(); i < ii; ++i) {
             String line = mergedLines.get(i);
 
-            String clearLine;
-            if (line.startsWith("--")) {
-                clearLine = ParserUtils.substr(line, "--".length());
-            } else {
-                Matcher matcher = ParserUtils.inlineComment.matcher(line);
-                if (matcher.matches()) {
-                    clearLine = matcher.group(1).trim();
-                } else {
-                    multiPart.addPart(new LiteralPart(line));
-                    continue;
-                }
-            }
+            val clearLineRet = cleanLine(line, multiPart);
+            if (clearLineRet._2 != null) continue;
+
+            val clearLine = clearLineRet._1;
 
             if ("end".equalsIgnoreCase(clearLine)) {
                 newCondition();

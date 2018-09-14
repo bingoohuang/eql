@@ -1,5 +1,6 @@
 package org.n3r.eql.pojo;
 
+import lombok.Data;
 import org.junit.Test;
 import org.n3r.eql.Eql;
 import org.n3r.eql.param.InternalValueable;
@@ -12,6 +13,7 @@ import static org.junit.Assert.assertThat;
 // INSERT INTO students VALUES ('john', 'COPY CASE');
 // SELECT * FROM students;
 public class EnumMappingTest {
+
     @Test
     public void test1() {
         Custom value = new Eql("mysql").returnType(Custom.class).limit(1)
@@ -71,6 +73,7 @@ public class EnumMappingTest {
         male, female
     }
 
+    @Data
     public static class Custom {
         Sex sex;
         int age;

@@ -1,11 +1,11 @@
 package org.n3r.eql.parser;
 
 
+import lombok.val;
 import org.n3r.eql.util.PairsParser;
 
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 
 public class ForParser implements PartParser {
     private String item = "item";
@@ -41,18 +41,10 @@ public class ForParser implements PartParser {
         for (int ii = mergedLines.size(); i < ii; ++i) {
             String line = mergedLines.get(i);
 
-            String clearLine;
-            if (line.startsWith("--")) {
-                clearLine = ParserUtils.substr(line, "--".length());
-            } else {
-                Matcher matcher = ParserUtils.inlineComment.matcher(line);
-                if (matcher.matches()) {
-                    clearLine = matcher.group(1).trim();
-                } else {
-                    part.addPart(new LiteralPart(line));
-                    continue;
-                }
-            }
+            val clearLineRet = TrimParser.cleanLine(line, part);
+            if (clearLineRet._2 != null) continue;
+
+            val clearLine = clearLineRet._1;
 
             if ("end".equalsIgnoreCase(clearLine)) return i + 1;
 
