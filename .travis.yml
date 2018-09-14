@@ -3,21 +3,6 @@ services:
 before_install:
 - docker pull mysql:5.6
 - docker run -p 13306:3306 --name mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql:5.6
-# - docker inspect oracle
-# - docker ps -a
-- echo "Wait to allow mysql to be initialized"
-- travis_wait sleep 10
-- docker top mysql
-- travis_wait sleep 10
-- docker top mysql
-- travis_wait sleep 10
-- docker top mysql
-- travis_wait sleep 10
-- docker top mysql
-- travis_wait sleep 10
-- docker top mysql
-- travis_wait sleep 10
-- docker top mysql
 - docker pull wnameless/oracle-xe-11g
 - docker run --name oracle -d -p 127.0.0.1:49161:1521 -e ORACLE_ALLOW_REMOTE=true wnameless/oracle-xe-11g
 # - docker inspect oracle
@@ -35,6 +20,7 @@ before_install:
 - docker top oracle
 - travis_wait sleep 10
 - docker top oracle
+- docker exec -it mysql mysql -u root -p'my-secret-pw' -s -e "create database dba;create database dbb;create database dbc;"
 language: java
 install: mvn install -DskipTests -Dgpg.skip
 jdk:
