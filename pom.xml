@@ -10,6 +10,16 @@
     <name>easy sql</name>
     <description>a simple wrapper framework for jdbc to seperate sql and java code</description>
     <url>http://github.com/bingoohuang/eql</url>
+
+    <repositories>
+        <repository>
+            <id>otn-maven-repo</id>
+            <name>Maven repo with artifacts from Oracle Technology Network for private usage</name>
+            <url>https://subversion.assembla.com/svn/otn-maven-repo/m2/</url>
+        </repository>
+    </repositories>
+
+
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -190,12 +200,19 @@
             <version>6.1.6.jre8-preview</version>
             <scope>test</scope>
         </dependency>
+
+        <!--Unfortunately due the binary license there is no public repository with the Oracle Driver JAR.
+Will try to download it from otn-maven-repo
+Download latest jar from http://www.oracle.com/technology/software/tech/java/sqlj_jdbc/index.html.
+mvn install:install-file -Dfile=ojdbc5.jar -DgroupId=com.oracle -DartifactId=ojdbc5 -Dversion=11.2.0.3.0 -Dpackaging=jar -DgeneratePom=true
+-->
         <dependency>
             <groupId>com.oracle</groupId>
-            <artifactId>ojdbc6</artifactId>
-            <version>11.2.0.4.0</version>
+            <artifactId>ojdbc5</artifactId>
+            <version>11.2.0.3.0</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
