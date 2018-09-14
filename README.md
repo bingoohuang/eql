@@ -1026,9 +1026,15 @@ public void returnInt() {
 # docker
 ## MySQL
 
-1. `docker pull mysql`
-2. `docker run -p 13306:3306 --name mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql`
-3. run client: `docker run -it --rm mysql mysql -h192.168.99.100 -uroot -P13306 -pmy-secret-pw`
+1. `docker pull mysql:5.6`
+2. `docker run -p 13306:3306 --name mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql:5.6`
+3. `mysql -uroot -pmy-secret-pw  -h127.0.0.1 -P13306` 或者进入容器 `docker exec -it mysql bash`， 执行`mysql -uroot -pmy-secret-pw`
+4. ```sql
+create database dba;
+create database dbb;
+create database dbc;
+
+```
 
 ## ORACLE
 1. `docker pull wnameless/oracle-xe-11g`
@@ -1054,7 +1060,7 @@ Support custom DB Initialization
 # OGNL 相关知识
 eql默认使用OGNL表达式来做动态条件SQL的判断，OGNL表达式可以参见[ognl language guide](https://commons.apache.org/proper/commons-ognl/language-guide.html).
 ## 注意项
-`'a'` 表示字符a，要表示字符串a，需要使用双引号`"a"`;
+`'a'` 表示单个字符a，要表示字符串a，需要使用双引号`"a"`;
 `'ab'`和`"ab""` 都可以表示字符串ab。
 
 ## OGNL has the following kinds of constants:

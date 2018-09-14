@@ -13,7 +13,7 @@ public class JdbcTest {
     public void test1() {
         Class.forName("com.mysql.jdbc.Driver");
         @Cleanup val connection = DriverManager.getConnection(
-                "jdbc:mysql://localhost:13306/diamond?useUnicode=true&&characterEncoding=UTF-8" +
+                "jdbc:mysql://localhost:13306/dba?useUnicode=true&&characterEncoding=UTF-8" +
                         "&connectTimeout=3000&socketTimeout=3000&autoReconnect=true",
                 "diamond", "diamond");
         connection.setAutoCommit(false);

@@ -3,6 +3,7 @@ package org.n3r.eql;
 import com.google.common.collect.Maps;
 import org.joda.time.DateTime;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.runner.Runner;
@@ -33,15 +34,14 @@ public class BenchmarkTest {
         assertThat(obj).isNotNull();
     }
 
-
-    @Test
+    @Test @Ignore
     public void bench() throws RunnerException {
         Options opt = new OptionsBuilder()
                 .include(BenchmarkTest.class.getSimpleName())
                 .forks(0)
-                .warmupIterations(10)
-                .measurementIterations(10)
-                .threads(20)
+                .warmupIterations(1)
+                .measurementIterations(2)
+                .threads(2)
                 .build();
 
         new Runner(opt).run();
