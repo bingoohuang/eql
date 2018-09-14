@@ -10,16 +10,6 @@ before_install:
 - echo "Wait to allow Oracle to be initialized"
 - travis_wait sleep 10
 - docker top oracle
-- travis_wait sleep 10
-- docker top oracle
-- travis_wait sleep 10
-- docker top oracle
-- travis_wait sleep 10
-- docker top oracle
-- travis_wait sleep 10
-- docker top oracle
-- travis_wait sleep 10
-- docker top oracle
 - docker exec -it mysql mysql -u root -p'my-secret-pw' -s -e "create database dba;create database dbb;create database dbc;"
 language: java
 install: mvn install -DskipTests -Dgpg.skip
