@@ -86,7 +86,7 @@ public class EqlRsRetriever {
         // TODO: to use asm other than reflection
         val mappingResult = findEqlMappingResultMethod(rowMapper.getClass());
         return mappingResult == null ? result
-                : O.invokeMethod(rowMapper, mappingResult).orNull();
+                : O.invokeMethod(rowMapper, mappingResult).orElse(null);
     }
 
     private static Method findEqlMappingResultMethod(

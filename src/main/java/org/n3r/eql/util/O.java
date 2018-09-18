@@ -1,7 +1,6 @@
 package org.n3r.eql.util;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
@@ -19,6 +18,7 @@ import java.lang.reflect.*;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j @SuppressWarnings("unchecked")
 public class O {
@@ -134,14 +134,19 @@ public class O {
         return param;
     }
 
-    public static boolean setProperty(
-            Object object, PropertyDescriptor pd, Object value) {
+    public static boolean setProperty(Object object, PropertyDescriptor pd, Object value) {
         Method setter = pd.getWriteMethod();
         if (setter == null) return false;
 
+        Object valToSet = value;
+        Class<?> propertyType = pd.getPropertyType();
+        if (value != null && propertyType.isEnum()) {
+            valToSet = Enum.valueOf((Class<Enum>) propertyType, value.toString());
+        }
+
         try {
             setAccessibleTrue(setter);
-            setter.invoke(object, value);
+            setter.invoke(object, valToSet);
             return true;
         } catch (Exception e) {
             log.warn("set value by error {}", e.getMessage());
@@ -153,7 +158,7 @@ public class O {
     @SneakyThrows
     public static Optional<Object> invokeMethod(Object bean, Method method) {
         try {
-            return Optional.fromNullable(method.invoke(bean));
+            return Optional.ofNullable(method.invoke(bean));
         } catch (InvocationTargetException e) {
             throw e.getCause() != null ? e.getCause() : e;
         }

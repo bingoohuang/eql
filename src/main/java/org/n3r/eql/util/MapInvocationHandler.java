@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.n3r.eql.util.P.toDbConvert;
 
@@ -101,8 +102,8 @@ public class MapInvocationHandler implements InvocationHandler {
             val method = pDesc.getReadMethod();
             if (method == null) continue;
 
-            val value = O.invokeMethod(bean, method);
-            Object propertyValue = toDbConvert(method, value.orNull());
+            Optional<Object> value = O.invokeMethod(bean, method);
+            Object propertyValue = toDbConvert(method, value.orElse(null));
             map.put(pDesc.getName(), propertyValue);
         }
     }

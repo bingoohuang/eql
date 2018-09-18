@@ -1,5 +1,7 @@
 package org.n3r.eql.impl2;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.val;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -21,8 +23,8 @@ public class EnumTest {
         new Eql("h2")
                 .params(100, EnumMappingTest.Sex.male)
                 .execute(
-                "insert into T_EnumTest(id, name)" +
-                "values (##, ##)");
+                        "insert into T_EnumTest(id, name)" +
+                                "values (##, ##)");
 
         val name = new Eql("h2").params(100)
                 .returnType(String.class)
@@ -44,6 +46,27 @@ public class EnumTest {
                 .limit(1)
                 .execute("select id as age, name as sex from T_EnumTest where id = ##");
         assertThat(cu).isEqualTo(custom);
+
+
+        State state = new Eql("h2").params(200)
+                .returnType(State.class)
+                .limit(1)
+                .execute("select id as age, name as sex from T_EnumTest where id = ##");
+
+        State stateExpected = new State();
+        stateExpected.setAge(200);
+        stateExpected.setSex(EnumMappingTest.Sex.female);
+        assertThat(state).isEqualTo(stateExpected);
     }
 
+    @Data
+    public static class Base {
+        EnumMappingTest.Sex sex;
+        int age;
+    }
+
+    @Data @EqualsAndHashCode(callSuper = true)
+    public static class State extends Base {
+        int age;
+    }
 }
