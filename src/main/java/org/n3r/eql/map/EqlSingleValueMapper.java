@@ -8,7 +8,7 @@ import java.sql.SQLException;
 public class EqlSingleValueMapper implements EqlRowMapper {
 
     @Override
-    public Object mapRow(ResultSet rs, int rowNum, boolean isSingleColumn) throws SQLException {
+    public Object mapRow(ResultSet rs, int rowNum, boolean isSingleColumn) {
         return Rs.getResultSetValue(rs, 1);
     }
 

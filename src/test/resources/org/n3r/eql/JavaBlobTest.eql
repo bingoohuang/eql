@@ -13,5 +13,5 @@ SELECT BOB FROM EQL_BLOB
 -- [selectBlobAsResult returnType=org.n3r.eql.JavaBlobTest$AsResult]
 SELECT 1 as seq, BOB as remark FROM EQL_BLOB
 
--- [updateBlob]
+-- [updateBlob NoWhere]
 UPDATE EQL_BLOB SET BOB = #:LOB#

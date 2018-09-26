@@ -1,5 +1,6 @@
 package org.n3r.eql.pojo;
 
+import lombok.Data;
 import org.junit.Test;
 import org.n3r.eql.Eql;
 import org.n3r.eql.param.InternalValueable;
@@ -12,6 +13,7 @@ import static org.junit.Assert.assertThat;
 // INSERT INTO students VALUES ('john', 'COPY CASE');
 // SELECT * FROM students;
 public class EnumMappingTest {
+
     @Test
     public void test1() {
         Custom value = new Eql("mysql").returnType(Custom.class).limit(1)
@@ -68,16 +70,17 @@ public class EnumMappingTest {
     }
 
     public enum Sex {
-        male,female
+        male, female
     }
 
+    @Data
     public static class Custom {
         Sex sex;
         int age;
     }
 
     public enum Sex2 implements InternalValueable<String> {
-        male("1"),female("0");
+        male("1"), female("0");
         private final String value;
 
         Sex2(String value) {
@@ -90,8 +93,8 @@ public class EnumMappingTest {
         }
 
         public static Sex2 valueOff(String value) {
-            for(Sex2 v : values())
-                if(v.internalValue().equalsIgnoreCase(value)) return v;
+            for (Sex2 v : values())
+                if (v.internalValue().equalsIgnoreCase(value)) return v;
             throw new IllegalArgumentException();
         }
     }

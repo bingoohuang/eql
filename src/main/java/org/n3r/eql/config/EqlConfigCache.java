@@ -11,7 +11,7 @@ public class EqlConfigCache {
     static LoadingCache<String, EqlConfig> eqlConfigLocal
             = CacheBuilder.newBuilder().build(new CacheLoader<String, EqlConfig>() {
         @Override
-        public EqlConfig load(String key) throws Exception {
+        public EqlConfig load(String key) {
             EqlConfig eqlConfig = EqlPropertiesConfigFactory.parseEqlProperties(key);
             return new DefaultEqlConfigDecorator(eqlConfig);
         }

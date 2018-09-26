@@ -5,6 +5,8 @@ import com.google.common.base.Splitter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
@@ -15,29 +17,26 @@ import org.n3r.eql.trans.EqlConnection;
 import org.n3r.eql.util.O;
 import org.n3r.eql.util.Pair;
 import org.n3r.eql.util.PropertyValueFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
+@Slf4j
 public class EqlMatrixConnection implements EqlConnection {
     public static final String DEFAULT = "default";
     LoadingCache<String, DruidDataSource> dataSourceCache;
-    static Logger logger = LoggerFactory.getLogger(EqlMatrixConnection.class);
     private String url;
 
 
     @Override
     public void initialize(EqlConfig eqlConfig) {
         this.url = eqlConfig.getStr("url");
-        final Map<String, String> params = eqlConfig.params();
+        val params = eqlConfig.params();
 
         dataSourceCache = CacheBuilder.newBuilder().build(new CacheLoader<String, DruidDataSource>() {
             @Override
-            public DruidDataSource load(final String database) throws Exception {
+            public DruidDataSource load(final String database) {
                 return O.populate(new DruidDataSource(), params, new PropertyValueFilter() {
                     @Override
                     public String filter(String propertyValue) {
@@ -51,7 +50,7 @@ public class EqlMatrixConnection implements EqlConnection {
     LoadingCache<Pair<EqlConfig, String>, MatrixSqlParseResult> cache = CacheBuilder.newBuilder().build(
             new CacheLoader<Pair<EqlConfig, String>, MatrixSqlParseResult>() {
                 @Override
-                public MatrixSqlParseResult load(Pair<EqlConfig, String> key) throws Exception {
+                public MatrixSqlParseResult load(Pair<EqlConfig, String> key) {
                     return new MatrixSqlParser().parse(key._1, key._2);
                 }
             });
@@ -64,7 +63,7 @@ public class EqlMatrixConnection implements EqlConnection {
 
     @Override
     public String getDbName(EqlConfig eqlConfig, EqlRun eqlRun) {
-        MatrixSqlParseResult result = cache.getUnchecked(Pair.of(eqlConfig, eqlRun.getRunSql()));
+        val result = cache.getUnchecked(Pair.of(eqlConfig, eqlRun.getRunSql()));
 
         if (result instanceof MatrixSqlParseNoResult) return DEFAULT;
 
@@ -79,8 +78,8 @@ public class EqlMatrixConnection implements EqlConnection {
         else localDbName = dbNameTL.get() != null ? dbNameTL.get() : DEFAULT;
 
         try {
-            DruidDataSource dataSource = dataSourceCache.getUnchecked(localDbName);
-            logger.debug("use database [{}]", localDbName);
+            val dataSource = dataSourceCache.getUnchecked(localDbName);
+            log.debug("use database [{}]", localDbName);
             return dataSource.getConnection();
 
         } catch (SQLException e) {
@@ -93,7 +92,7 @@ public class EqlMatrixConnection implements EqlConnection {
 
         StringBuilder parsed = new StringBuilder();
 
-        Splitter.MapSplitter splitter = Splitter.on(',').trimResults()
+        val splitter = Splitter.on(',').trimResults()
                 .omitEmptyStrings().withKeyValueSeparator("->");
         int startPos = 0;
         while (startPos < param.length()) {
@@ -102,12 +101,12 @@ public class EqlMatrixConnection implements EqlConnection {
                 parsed.append(param.substring(startPos));
                 break;
             } else if (leftBracePos > 0) {
-                parsed.append(param.substring(startPos, leftBracePos));
+                parsed.append(param, startPos, leftBracePos);
             }
 
             int rightBracePos = param.indexOf('}', leftBracePos);
             if (rightBracePos < 0) {
-                logger.warn("invalid parameter format: " + param);
+                log.warn("invalid parameter format: " + param);
                 return param;
             }
 
@@ -116,7 +115,7 @@ public class EqlMatrixConnection implements EqlConnection {
             String specified = data.get(database);
             if (specified == null) specified = data.get(DEFAULT);
             if (specified == null) {
-                logger.warn("invalid parameter mapping format: " + param);
+                log.warn("invalid parameter mapping format: " + param);
                 return param;
             }
             parsed.append(specified);
@@ -128,10 +127,10 @@ public class EqlMatrixConnection implements EqlConnection {
 
     @Override
     public void destroy() {
-        ConcurrentMap<String, DruidDataSource> map = dataSourceCache.asMap();
+        val map = dataSourceCache.asMap();
 
         for (String databaseName : map.keySet()) {
-            DruidDataSource druidDataSource = map.get(databaseName);
+            val druidDataSource = map.get(databaseName);
             try {
                 druidDataSource.close();
             } catch (Exception e) {

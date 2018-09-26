@@ -41,13 +41,13 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
     private void parseExpressionEvaluator(EqlConfig eqlConfig) {
         String evaluator = eqlConfig.getStr(EqlConfigKeys.EXPRESSION_EVALUATOR);
         expressionEvaluator = S.isBlank(evaluator) ? new OgnlEvaluator()
-                : Reflect.on(evaluator).create().<ExpressionEvaluator>get();
+                : Reflect.on(evaluator).create().get();
     }
 
     private void parseResourceLoader(EqlConfig eqlConfig) {
         String loader = eqlConfig.getStr(EqlConfigKeys.SQL_RESOURCE_LOADER);
         eqlResourceLoader = S.isBlank(loader) ? new FileEqlResourceLoader()
-                : Reflect.on(loader).create().<EqlResourceLoader>get();
+                : Reflect.on(loader).create().get();
         eqlResourceLoader.setDynamicLanguageDriver(parseDynamicLanguageDriver(eqlConfig));
         eqlResourceLoader.setEqlLazyLoad(parseLazyLoad(eqlConfig));
     }
@@ -55,7 +55,7 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
     private DynamicLanguageDriver parseDynamicLanguageDriver(EqlConfig eqlConfig) {
         String driver = eqlConfig.getStr(EqlConfigKeys.DYNAMIC_LANGUAGE_DRIVER);
         return S.isBlank(driver) ? new DefaultDynamicLanguageDriver()
-                : Reflect.on(driver).create().<DynamicLanguageDriver>get();
+                : Reflect.on(driver).create().get();
     }
 
     @Override
@@ -80,9 +80,7 @@ public class DefaultEqlConfigDecorator implements EqlConfigDecorator {
 
         DefaultEqlConfigDecorator that = (DefaultEqlConfigDecorator) o;
 
-        if (!eqlConfig.equals(that.eqlConfig)) return false;
-
-        return true;
+        return eqlConfig.equals(that.eqlConfig);
     }
 
     @Override

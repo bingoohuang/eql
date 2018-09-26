@@ -3,6 +3,8 @@ package org.n3r.eql.dbfieldcryptor.parser;
 import com.alibaba.druid.sql.dialect.mysql.parser.MySqlStatementParser;
 import com.alibaba.druid.sql.parser.SQLStatementParser;
 import com.google.common.collect.Sets;
+import lombok.var;
+import lombok.val;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -18,10 +20,10 @@ public class MySqlSensitiveFieldsParserTest {
 
     @Test
     public void replaceSql1() {
-        MySqlSensitiveFieldsParser parser = MySqlSensitiveFieldsParser.parseSql(replaceSql1,
+        val parser = MySqlSensitiveFieldsParser.parseSql(replaceSql1,
                 securetFieldsReplaceSql1);
 
-        Assert.assertEquals(Sets.newHashSet(1,2), parser.getSecureBindIndices());
+        Assert.assertEquals(Sets.newHashSet(1, 2), parser.getSecureBindIndices());
     }
 
     String replaceSql2 = "REPLACE INTO table_name " +
@@ -31,12 +33,11 @@ public class MySqlSensitiveFieldsParserTest {
 
     @Test
     public void replaceSql2() {
-        MySqlSensitiveFieldsParser parser = MySqlSensitiveFieldsParser.parseSql(replaceSql2,
+        val parser = MySqlSensitiveFieldsParser.parseSql(replaceSql2,
                 securetFieldsReplaceSql2);
 
         Assert.assertEquals(Sets.newHashSet(1), parser.getSecureBindIndices());
     }
-
 
 
     String sql = "INSERT\n" +
@@ -132,7 +133,7 @@ public class MySqlSensitiveFieldsParserTest {
 
     @Test
     public void testInsertSelect() {
-        MySqlSensitiveFieldsParser parser = MySqlSensitiveFieldsParser.parseSql(sql,
+        val parser = MySqlSensitiveFieldsParser.parseSql(sql,
                 securetFields);
 
         Assert.assertEquals(Sets.newHashSet(1, 35), parser.getSecureBindIndices());
@@ -295,7 +296,7 @@ public class MySqlSensitiveFieldsParserTest {
 
     @Test
     public void testSelect() {
-        MySqlSensitiveFieldsParser parser = MySqlSensitiveFieldsParser.parseSql(selectSql,
+        val parser = MySqlSensitiveFieldsParser.parseSql(selectSql,
                 securetFields);
         Assert.assertEquals(Sets.newHashSet(2, 35, 41), parser.getSecureResultIndices());
     }
@@ -325,7 +326,7 @@ public class MySqlSensitiveFieldsParserTest {
 
     @Test
     public void testUnion() {
-        MySqlSensitiveFieldsParser parser = MySqlSensitiveFieldsParser.parseSql(unionSql,
+        val parser = MySqlSensitiveFieldsParser.parseSql(unionSql,
                 Sets.newHashSet("TD_G_ATTR.ATTR_CODE", "TD_B_COMMPARA.PARAM_NAME"));
         Assert.assertEquals(Sets.newHashSet(1, 2), parser.getSecureResultIndices());
     }
@@ -334,7 +335,7 @@ public class MySqlSensitiveFieldsParserTest {
 
     @Test
     public void testFunctionSql() {
-        MySqlSensitiveFieldsParser parser = MySqlSensitiveFieldsParser.parseSql(fnSql,
+        val parser = MySqlSensitiveFieldsParser.parseSql(fnSql,
                 Sets.newHashSet("F_SYS_GETGOODSEQID.1"));
         Assert.assertEquals(Sets.newHashSet(1), parser.getSecureBindIndices());
     }
@@ -393,7 +394,7 @@ public class MySqlSensitiveFieldsParserTest {
 
     @Test
     public void testPagEQL() {
-        MySqlSensitiveFieldsParser parser = MySqlSensitiveFieldsParser.parseSql(pagEQL,
+        val parser = MySqlSensitiveFieldsParser.parseSql(pagEQL,
                 Sets.newHashSet("TD_P_BROADBAND.CITY_CODE"));
         Assert.assertEquals(Sets.newHashSet(3), parser.getSecureResultIndices());
     }
@@ -479,7 +480,7 @@ public class MySqlSensitiveFieldsParserTest {
 
     @Test
     public void testUpdateSetQuery() {
-        MySqlSensitiveFieldsParser parser = MySqlSensitiveFieldsParser.parseSql(updateSetQuery,
+        val parser = MySqlSensitiveFieldsParser.parseSql(updateSetQuery,
                 Sets.newHashSet("TF_R_PHNBR_IDLE.NICE_RULE", "TF_R_PHCODE_IDLE.SERIAL_NUMBER"));
         Assert.assertEquals(Sets.newHashSet(1, 5), parser.getSecureBindIndices());
     }
@@ -489,7 +490,7 @@ public class MySqlSensitiveFieldsParserTest {
         String sql = "select d, f, a, b, c from table1 where c = ? and a = ? and b = ?";
 
         final Set<String> securetFieldsConfig = Sets.newHashSet("TABLE1.A", "TABLE1.B");
-        MySqlSensitiveFieldsParser visitorAdapter = MySqlSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
+        val visitorAdapter = MySqlSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(3, 4));
@@ -498,11 +499,11 @@ public class MySqlSensitiveFieldsParserTest {
 
         sql = "select d, f, a, b, c from table1 where c = ? || ',' || ? and a = ? and b = ?";
 
-        visitorAdapter = MySqlSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
+        val visitorAdapter2 = MySqlSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
-        securetResultIndice = visitorAdapter.getSecureResultIndices();
+        securetResultIndice = visitorAdapter2.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(3, 4));
-        securetBindIndice = visitorAdapter.getSecureBindIndices();
+        securetBindIndice = visitorAdapter2.getSecureBindIndices();
         assertEquals(securetBindIndice, Sets.newHashSet(3, 4));
     }
 
@@ -512,8 +513,7 @@ public class MySqlSensitiveFieldsParserTest {
         String sql = "select t.a, t.b, t.c from table1 t where t.a = ?";
 
         final Set<String> securetFieldsConfig = Sets.newHashSet("TABLE1.A", "TABLE1.B");
-        MySqlSensitiveFieldsParser visitorAdapter = MySqlSensitiveFieldsParser
-                .parseSql(sql, securetFieldsConfig);
+        val visitorAdapter = MySqlSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(1, 2));
@@ -526,8 +526,7 @@ public class MySqlSensitiveFieldsParserTest {
         String sql = "select t1.a, t1.b, t2.c from table1 t1, table2 t2 where t1.id = ? and t1.id = t2.id and t2.d = ?";
         final Set<String> fields = Sets.newHashSet("TABLE1.A", "TABLE1.B", "TABLE2.D");
 
-        MySqlSensitiveFieldsParser visitorAdapter = MySqlSensitiveFieldsParser
-                .parseSql(sql, fields);
+        val visitorAdapter = MySqlSensitiveFieldsParser.parseSql(sql, fields);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(1, 2));
@@ -547,11 +546,10 @@ public class MySqlSensitiveFieldsParserTest {
                 "  FROM   TF_B_ORDER_NETIN T\n" +
                 " WHERE   T.ORDER_ID = ?";
 
-        final Set<String> securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO",
+        val securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO",
                 "TF_B_ORDER_NETIN.CUST_NAME");
 
-        MySqlSensitiveFieldsParser visitorAdapter = MySqlSensitiveFieldsParser
-                .parseSql(sql, securetFieldsConfig);
+        val visitorAdapter = MySqlSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(1, 4));
@@ -614,10 +612,9 @@ public class MySqlSensitiveFieldsParserTest {
                 "           AND O.ORDER_ID = ?\n" +
                 "           AND S.STAFF_ID = ? ";
 
-        final Set<String> securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO",
-                "TF_B_ORDER_NETIN.CUST_NAME");
+        val securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO", "TF_B_ORDER_NETIN.CUST_NAME");
 
-        MySqlSensitiveFieldsParser visitorAdapter = MySqlSensitiveFieldsParser
+        val visitorAdapter = MySqlSensitiveFieldsParser
                 .parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
@@ -628,7 +625,7 @@ public class MySqlSensitiveFieldsParserTest {
 
 
     @Test
-    public void testQuery6() throws Exception {
+    public void testQuery6() {
         String sql = "SELECT TO_CHAR(O.ORDER_ID) ORDER_ID,\n" +
                 "       O.ORDER_NO,\n" +
                 "       TO_CHAR(O.ORDER_TIME, 'YYYY/MM/DD HH24:MI') AS ORDER_TIME,\n" +
@@ -705,11 +702,10 @@ public class MySqlSensitiveFieldsParserTest {
                 "  AND O.ORDER_NO = ?\n" +
                 "  AND NE.PSPT_NO= ?\n" +
                 "ORDER BY O.ORDER_ID";
-        final Set<String> securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO",
+        val securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO",
                 "TF_B_ORDER_NETIN.CUST_NAME");
 
-        MySqlSensitiveFieldsParser visitorAdapter = MySqlSensitiveFieldsParser
-                .parseSql(sql, securetFieldsConfig);
+        val visitorAdapter = MySqlSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet());
@@ -718,7 +714,7 @@ public class MySqlSensitiveFieldsParserTest {
     }
 
     @Test
-    public void testQuery7() throws Exception {
+    public void testQuery7() {
         String sql = "SELECT TO_CHAR(A.ORDER_ID) ORDER_ID,              A.ORDER_NO,              TO_CHAR(A.ORDER_TIME, 'YYYY-MM-DD HH24:MI') ORDER_TIME,\n" +
                 "               A.CUST_REMARK,                             A.INVOCE_TITLE,          A.PAY_STATE,    \n" +
                 "               A.PAY_TYPE PAY_TYPE_CODE,                  BD.CONTACT_NAME,         BD.CONTACT_PHONE,\n" +
@@ -770,10 +766,9 @@ public class MySqlSensitiveFieldsParserTest {
                 "           AND A.PARTITION_ID = PRODU.PARTITION_ID(+)\n" +
                 "           AND BD.ORDER_ID = S.ORDER_ID(+)\n" +
                 "           AND BD.PSPT_TYPE_CODE = C.PARA_CODE1(+)";
-        final Set<String> securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_BROADBAND.PSPT_NO");
+        val securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_BROADBAND.PSPT_NO");
 
-        MySqlSensitiveFieldsParser visitorAdapter = MySqlSensitiveFieldsParser
-                .parseSql(sql, securetFieldsConfig);
+        val visitorAdapter = MySqlSensitiveFieldsParser.parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(14));
@@ -838,10 +833,8 @@ public class MySqlSensitiveFieldsParserTest {
 
     @Test
     public void testOrderSelect() {
-        final Set<String> securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_BROADBAND.PSPT_NO");
-
-        MySqlSensitiveFieldsParser visitorAdapter = MySqlSensitiveFieldsParser
-                .parseSql(orderSql, securetFieldsConfig);
+        val securetFieldsConfig = Sets.newHashSet("TF_B_ORDER_BROADBAND.PSPT_NO");
+        val visitorAdapter = MySqlSensitiveFieldsParser.parseSql(orderSql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
         assertEquals(securetResultIndice, Sets.newHashSet(14));
@@ -869,8 +862,8 @@ public class MySqlSensitiveFieldsParserTest {
     @Test
     public void testInsert1() {
         String sql = "insert into table1(a, b, c) values(?, ?, ?)";
-        final Set<String> securetFieldsConfig = Sets.newHashSet("TABLE1.A", "TABLE1.B");
-        MySqlSensitiveFieldsParser visitorAdapter = MySqlSensitiveFieldsParser
+        val securetFieldsConfig = Sets.newHashSet("TABLE1.A", "TABLE1.B");
+        var visitorAdapter = MySqlSensitiveFieldsParser
                 .parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
@@ -890,8 +883,8 @@ public class MySqlSensitiveFieldsParserTest {
     @Test
     public void testUpdate() {
         String sql = "update table1 t1 set t1.a = ?, t1.b = ?, t1.c = ?";
-        final Set<String> securetFieldsConfig = Sets.newHashSet("TABLE1.A", "TABLE1.B");
-        MySqlSensitiveFieldsParser visitorAdapter = MySqlSensitiveFieldsParser
+        val securetFieldsConfig = Sets.newHashSet("TABLE1.A", "TABLE1.B");
+        var visitorAdapter = MySqlSensitiveFieldsParser
                 .parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
@@ -911,8 +904,8 @@ public class MySqlSensitiveFieldsParserTest {
     @Test
     public void testProcedure() {
         String sql = "{call abc.myproc(?,?,?)}";
-        final Set<String> securetFieldsConfig = Sets.newHashSet("ABC.MYPROC.2");
-        MySqlSensitiveFieldsParser visitorAdapter = MySqlSensitiveFieldsParser
+        val securetFieldsConfig = Sets.newHashSet("ABC.MYPROC.2");
+        var visitorAdapter = MySqlSensitiveFieldsParser
                 .parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
@@ -932,9 +925,8 @@ public class MySqlSensitiveFieldsParserTest {
     String hintSql = "/*** bind(1,2) result(1) ***/ select 1 from dual";
 
     @Test
-    public void testHintSql() throws Exception {
-        MySqlSensitiveFieldsParser visitor = MySqlSensitiveFieldsParser
-                .parseSql(hintSql, Sets.newHashSet(""));
+    public void testHintSql() {
+        val visitor = MySqlSensitiveFieldsParser.parseSql(hintSql, Sets.newHashSet(""));
 
         assertEquals(Sets.newHashSet(1, 2), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(1), visitor.getSecureResultIndices());
@@ -960,9 +952,8 @@ public class MySqlSensitiveFieldsParserTest {
 
 
     @Test
-    public void testFuncSql() throws Exception {
-        MySqlSensitiveFieldsParser visitor = MySqlSensitiveFieldsParser
-                .parseSql(funcSql, Sets.newHashSet("TF_B_BESPEAK_REG.PCARD_CODE"));
+    public void testFuncSql() {
+        val visitor = MySqlSensitiveFieldsParser.parseSql(funcSql, Sets.newHashSet("TF_B_BESPEAK_REG.PCARD_CODE"));
 
         assertEquals(Sets.newHashSet(1), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(3), visitor.getSecureResultIndices());
@@ -1047,9 +1038,9 @@ public class MySqlSensitiveFieldsParserTest {
             "               AND N.PARTITION_ID(+) = O.PARTITION_ID";
 
     @Test
-    public void testSubQueryIn() throws Exception {
-        MySqlSensitiveFieldsParser visitor = MySqlSensitiveFieldsParser
-                .parseSql(subQuery, Sets.newHashSet("TF_B_ORDER_POST.POST_ADDR", "TD_B_COMMPARA.PARA_CODE2",
+    public void testSubQueryIn() {
+        val visitor = MySqlSensitiveFieldsParser.parseSql(subQuery,
+                Sets.newHashSet("TF_B_ORDER_POST.POST_ADDR", "TD_B_COMMPARA.PARA_CODE2",
                         "TF_B_ORDER.ORDER_ID", "TF_B_ORDER_POST.CITY_CODE", "TD_B_COMMPARA.PARAM_CODE"));
 
         assertEquals(Sets.newHashSet(1, 2, 4, 7, 9), visitor.getSecureBindIndices());
@@ -1064,9 +1055,8 @@ public class MySqlSensitiveFieldsParserTest {
             ") as t2 where t2.rn > ? ";
 
     @Test
-    public void testMyPage() throws Exception {
-        MySqlSensitiveFieldsParser visitor = MySqlSensitiveFieldsParser
-                .parseSql(myPagEQL, Sets.newHashSet("TABLENAME.B"));
+    public void testMyPage() {
+        val visitor = MySqlSensitiveFieldsParser.parseSql(myPagEQL, Sets.newHashSet("TABLENAME.B"));
 
         assertEquals(Sets.newHashSet(1), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(2), visitor.getSecureResultIndices());
@@ -1076,9 +1066,8 @@ public class MySqlSensitiveFieldsParserTest {
     String starSql = "select 'a', t.* from (select a,b,c from tab) t ";
 
     @Test
-    public void testStartSql() throws Exception {
-        MySqlSensitiveFieldsParser visitor = MySqlSensitiveFieldsParser
-                .parseSql(starSql, Sets.newHashSet("TAB.B"));
+    public void testStartSql() {
+        val visitor = MySqlSensitiveFieldsParser.parseSql(starSql, Sets.newHashSet("TAB.B"));
 
         assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(3), visitor.getSecureResultIndices());
@@ -1112,9 +1101,8 @@ public class MySqlSensitiveFieldsParserTest {
             "       AND ROWNUM < 2 ";
 
     @Test
-    public void testZjSql() throws Exception {
-        MySqlSensitiveFieldsParser visitor = MySqlSensitiveFieldsParser
-                .parseSql(zjSql, Sets.newHashSet("TF_B_BESPEAK_INFO.PSPT_NO"));
+    public void testZjSql() {
+        val visitor = MySqlSensitiveFieldsParser.parseSql(zjSql, Sets.newHashSet("TF_B_BESPEAK_INFO.PSPT_NO"));
 
         assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(3), visitor.getSecureResultIndices());
@@ -1157,9 +1145,8 @@ public class MySqlSensitiveFieldsParserTest {
             "  AND   O.ORDER_ID =        N.ORDER_ID(+)";
 
     @Test
-    public void testWhcIntervalAliasSql() throws Exception {
-        MySqlSensitiveFieldsParser visitor = MySqlSensitiveFieldsParser
-                .parseSql(whcSql, Sets.newHashSet("TF_B_ORDER_POST.POST_ADDR"));
+    public void testWhcIntervalAliasSql() {
+        val visitor = MySqlSensitiveFieldsParser.parseSql(whcSql, Sets.newHashSet("TF_B_ORDER_POST.POST_ADDR"));
 
         assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(13), visitor.getSecureResultIndices());
@@ -1170,7 +1157,7 @@ public class MySqlSensitiveFieldsParserTest {
     String intervalSql = "SELECT 1 AS INTERVAL FROM DUAL";
 
     @Test
-    public void testInterval() throws Exception {
+    public void testInterval() {
         new MySqlStatementParser(intervalSql).parseStatementList();
     }
 
@@ -1261,9 +1248,9 @@ public class MySqlSensitiveFieldsParserTest {
             "WHERE ROWNUM <= 5";
 
     @Test
-    public void testPsptNoSql() throws Exception {
-        MySqlSensitiveFieldsParser visitor = MySqlSensitiveFieldsParser
-                .parseSql(psptNoSql, Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO"));
+    public void testPsptNoSql() {
+        val visitor = MySqlSensitiveFieldsParser.parseSql(psptNoSql,
+                Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO"));
 
         assertEquals(Sets.newHashSet(9), visitor.getSecureBindIndices());
         assertEquals(Sets.newHashSet(), visitor.getSecureResultIndices());
@@ -1313,9 +1300,8 @@ public class MySqlSensitiveFieldsParserTest {
             "         M.MENU_ID ASC";
 
     @Test
-    public void testMenuSql() throws Exception {
-        MySqlSensitiveFieldsParser visitor = MySqlSensitiveFieldsParser
-                .parseSql(menuSql, Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO"));
+    public void testMenuSql() {
+        val visitor = MySqlSensitiveFieldsParser.parseSql(menuSql, Sets.newHashSet("TF_B_ORDER_NETIN.PSPT_NO"));
 
         assertNull(visitor);
     }
@@ -1344,9 +1330,8 @@ public class MySqlSensitiveFieldsParserTest {
             "        AND ROWNUM < 2";
 
     @Test
-    public void testAlias() throws Exception {
-        MySqlSensitiveFieldsParser visitor = MySqlSensitiveFieldsParser
-                .parseSql(aliasSql, Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
+    public void testAlias() {
+        val visitor = MySqlSensitiveFieldsParser.parseSql(aliasSql, Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
 
 
         assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
@@ -1380,9 +1365,8 @@ public class MySqlSensitiveFieldsParserTest {
             "   AND ROWNUM < 2";
 
     @Test
-    public void testAlias2() throws Exception {
-        MySqlSensitiveFieldsParser visitor = MySqlSensitiveFieldsParser
-                .parseSql(aliasSql2, Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
+    public void testAlias2() {
+        val visitor = MySqlSensitiveFieldsParser.parseSql(aliasSql2, Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
 
 
         assertEquals(Sets.newHashSet(), visitor.getSecureBindIndices());
@@ -1395,8 +1379,8 @@ public class MySqlSensitiveFieldsParserTest {
 
     @Test
     public void testPartition() {
-        MySqlSensitiveFieldsParser visitor = MySqlSensitiveFieldsParser
-                .parseSql(partitionSql, Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
+        val visitor = MySqlSensitiveFieldsParser.parseSql(partitionSql,
+                Sets.newHashSet("TF_B_BESPEAK_INFO.LINK_ADDR", "TF_B_BESPEAK_INFO.PSPT_NO"));
         assertNull(visitor);
     }
 

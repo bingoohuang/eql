@@ -1,7 +1,11 @@
 eql
 ====
+[![Build Status](https://travis-ci.org/bingoohuang/eql.svg?branch=master)](https://travis-ci.org/bingoohuang/eql)
+[![Coverage Status](https://coveralls.io/repos/github/bingoohuang/eql/badge.svg?branch=master)](https://coveralls.io/github/bingoohuang/eql?branch=master)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.bingoohuang/eql/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/com.github.bingoohuang/eql/)
+[![License](http://img.shields.io/:license-apache-brightgreen.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
-An easy framework of java JDBC to be an alternative to ibatis/mybatis.
+An easy framework of java JDBC to be an alternative to ibatis/mybatis.[中文版](ChineseReadme.md)
 
 I don't like XML in ibatis.
 + excuse 1:
@@ -15,7 +19,7 @@ I don't like XML in ibatis.
 ]]>
 </select>
 ```
-Wooh, for a simple sql of only three lines, we need add a CDATA block to use **>** (I always forget how to write CDATA, and every time I have to lookup XML CDATA reference). It's so bad. And also the **select** is redundant because the SQL itself is telling us it is a SELECT SQL and not some others. 
+Wooh, for a simple sql of only three lines, we need add a CDATA block to use **>** (I always forget how to write CDATA, and every time I have to lookup XML CDATA reference). It's so bad. And also the **select** is redundant because the SQL itself is telling us it is a SELECT SQL and not some others.
 
 + excuse 2:
 
@@ -54,7 +58,7 @@ There is no else in its dynamic. I have to write like:
 
 I don't like XML. I like free text and freedom. And so I created EQL which is really very easy.
 
-#One minute tutorial
+# One minute tutorial
 * copy [eql-DEFAULT.properties](https://github.com/bingoohuang/eql/blob/master/src/test/resources/eql/eql-DEFAULT.properties) to your classpath eql and do some changes for your database connection info such as url, password and username.
 * create com/xxx/Demo.java.
 * create com/xxx/Demo.eql(***keep the same package and base filename***) in classpath.
@@ -62,7 +66,7 @@ I don't like XML. I like free text and freedom. And so I created EQL which is re
 
 ```java
 String str = new Eql().selectFirst("demo").execute();
-``` 
+```
 
 * write an eql in Demo.eql
 
@@ -73,7 +77,7 @@ select 'X' from dual
 
 * that's all. and you see it is very simple.
 
-#Return one row
+# Return one row
 
 ```java
 Map<String, String> row = new Eql().selectFirst("oneRow").execute();
@@ -84,7 +88,7 @@ Map<String, String> row = new Eql().selectFirst("oneRow").execute();
 select 'X', 'Y' from dual
 ```
 
-#Return a Javabean
+# Return a Javabean
 
 ```java
 XYBean xy = new Eql().selectFirst("javabean").execute();
@@ -95,7 +99,7 @@ XYBean xy = new Eql().selectFirst("javabean").execute();
 select 'X', 'Y' from dual
 ```
 
-#Return rows
+# Return rows
 
 ```java
 List<XYBean> xys = new Eql().select("rows").
@@ -110,7 +114,7 @@ union
 select 'A' X, 'B' Y from dual
 ```
 
-#With parameters in sequence
+# With parameters in sequence
 
 * example 1
 
@@ -156,7 +160,7 @@ where 'x' = '#2#'
 and 'y' = '#1#'
 ```
 
-#With parameters by properties name
+# With parameters by properties name
 
 * example 1
 
@@ -202,6 +206,19 @@ select 'X' from dual
 where 'a' = '#_1#'
 and 'b' = '#_2#'
 ```
+
+In above example, the _1 and _2 are used, they are called built-in parameters.
+More built-in parameters list here:
+1. `_time` current timestamp, type: `java.sql.Timestamp`
+2. `_date` current date, type:`java.util.Date`
+3. `_host` current hostname
+4. `_ip` current ip
+5. `_params` currrent params array
+6. `_paramsCount` length of current params array
+7. `_1`,`_2`,`_3`,... the param in sequence
+8. `_dynamics` current dynamics array
+9. `_dynamicsCount` lenght of current dynamics array
+10. `_databaseId`, oracle/mysql/h2/db2/sqlserver
 
 # Dynamic sql
 
@@ -457,7 +474,7 @@ for (int i = 0; i < 10; ++i) {
     int ret = eql.insert("insertPrizeBingoo")
            .params(orderNo, "Olympic", "" + prizeItem, userId)
            .execute();
-    
+
     assertEquals(0, ret);
 }
 
@@ -522,7 +539,7 @@ public static class AsResult {
     private String state;
     private String remark;
     private int seq;
-    
+
     // setters ang getters
 }
 ```
@@ -580,7 +597,7 @@ And then in java code
 String str = new Eql("diamond").selectFirst("diamondDemo").execute();
 System.out.println(str);
 ```
-     
+
 # Reuse jdbc statements to select/update repeatedly.
 
 ```java
@@ -672,7 +689,7 @@ Eqll.choose(new EqlPropertiesConfig(
 
 Supported configs are listed below:
 
-## **connection.impl**   
+## **connection.impl**
 + Meaning: Full qualified class name(FQCN) that implemented `org.n3r.eql.trans.EqlConnection` interface.
 + Default: When jndiName is set, use `org.n3r.eql.trans.EqlJndiConnection`, otherwise `org.n3r.eql.trans.EqlSimpleConnection`.
 + Samples: `org.n3r.eql.trans.EqlC3p0Connection` or your custom implementation.
@@ -739,7 +756,7 @@ Supported configs are listed below:
 
 # Integrated with [diamond-client](https://github.com/bingoohuang/diamond-miner)
 ## Read connection configuration from diamond
-* Add a diamond stone: 
+* Add a diamond stone:
 
 ```
 group=EqlConfig,dataId=DEFAULT,content=
@@ -895,7 +912,7 @@ public interface StudentEqler {
 
     @Sql("insert into eql_student values(#studentId#, #name#, #age#)")
     int addStudent(Student student);
-    
+
     @Sql("insert into eql_student values(#a#, #b#, #c#)")
     int addStudentAnotherWay(@NamedParam("a") int studentId, @NamedParam("b") String name, @NamedParam("c") int age);
 
@@ -945,7 +962,7 @@ public void test() {
                     "Student{studentId=2, name='huang', age=124}, " +
                     "Student{studentId=3, name='dingoo', age=125}]"
     )));
-    
+
     Student student1 = eqler.queryStudent(1);
     assertThat(student1.toString(), is(equalTo("Student{studentId=1, name='bingoo', age=123}")));
 
@@ -959,4 +976,126 @@ public void test() {
 
 # TODO
 + Inline comment such as `/* iff ... */` is parsed by regular expression, and this method will not ignore `/* ... */` in the literal string such as `'literal string /* if xxx */'`.
+
+# FAQ
+## MySQLNonTransientConnectionException
+```
+com.mysql.jdbc.exceptions.jdbc4.MySQLNonTransientConnectionException: Communications link failure during rollback(). Transaction resolution unknown.
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)
+	at com.mysql.jdbc.Util.handleNewInstance(Util.java:377)
+	at com.mysql.jdbc.Util.getInstance(Util.java:360)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:956)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:935)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:924)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:870)
+	at com.mysql.jdbc.ConnectionImpl.rollback(ConnectionImpl.java:4606)
+	at org.n3r.eql.trans.SimpleDataSource.popConnection(SimpleDataSource.java:638)
+	at org.n3r.eql.trans.SimpleDataSource.getConnection(SimpleDataSource.java:207)
+	at org.n3r.eql.trans.EqlSimpleConnection.getConnection(EqlSimpleConnection.java:17)
+	at org.n3r.eql.trans.EqlJdbcTran.getConn(EqlJdbcTran.java:58)
+	at org.n3r.eql.Eql.createConn(Eql.java:105)
+	at org.n3r.eql.Eql.execute(Eql.java:157)
+```
+
+Try use url like  `jdbc:mysql://127.0.0.1:13306/dba?useUnicode=true&&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=3000&autoReconnect=true` instead of `jdbc:mysql://127.0.0.1:13306/dba`
+
+# FAQ
+## java.lang.NullPointerException
+A single primitive return type like int/long/short will cause NPE when SQL results no rows. 
+In this situation, the related wrapper type like Integer/Long/Short should be used instead.
+```java
+@Test
+public void returnInteger() {
+    Integer intValue = new Eql("h2").limit(1)
+            .returnType(Integer.class).execute("select 1 where 2 > 3");
+    assertThat(intValue).isNull();
+}
+
+@Test(expected = NullPointerException.class)
+public void returnInt() {
+    int intValue = new Eql("h2").limit(1)
+            .returnType(int.class).execute("select 1 where 2 > 3");
+}
+```
+## IDEA plugin 
+[eql-plugin](https://github.com/Bpazy/eql-plugin)
+
+# docker
+## MySQL
+
+1. `docker pull mysql:5.6`
+2. `docker run -p 13306:3306 --name mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql:5.6`
+3. `mysql -uroot -pmy-secret-pw  -h127.0.0.1 -P13306` 或者进入容器 `docker exec -it mysql bash`， 执行`mysql -uroot -pmy-secret-pw`
+4. ```sql
+create database dba;
+create database dbb;
+create database dbc;
+
+```
+
+## ORACLE
+1. `docker pull wnameless/oracle-xe-11g`
+2. `docker run -d -p 49160:22 -p 49161:1521 -e ORACLE_ALLOW_REMOTE=true wnameless/oracle-xe-11g`
+3. download oracle jdbc from [oracle website](http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html)
+4. `mvn install:install-file -Dfile=ojdbc6.jar -DgroupId=com.oracle -DartifactId=ojdbc6 -Dversion=11.2.0.4.0 -Dpackaging=jar`
+Connect database with following setting:
+
+```
+hostname: localhost
+port: 49161
+sid: xe
+username: system
+password: oracle
+Password for SYS & SYSTEM
+
+Login by SSH
+ssh root@localhost -p 49160
+password: admin
+Support custom DB Initialization
+```
+
+# OGNL 相关知识
+eql默认使用OGNL表达式来做动态条件SQL的判断，OGNL表达式可以参见[ognl language guide](https://commons.apache.org/proper/commons-ognl/language-guide.html).
+## 注意项
+`'a'` 表示单个字符a，要表示字符串a，需要使用双引号`"a"`;
+`'ab'`和`"ab""` 都可以表示字符串ab。
+
+## OGNL has the following kinds of constants:
+
+1. String literals, as in Java (with the addition of single quotes): delimited by single- or double-quotes, with the full set of character escapes;
+2. Character literals, also as in Java: delimited by single-quotes, also with the full set of escapes;
+3. Numeric literals, with a few more kinds than Java. In addition to Java's ints, longs, floats and doubles, OGNL lets you specify BigDecimals with a "b" or "B" suffix, and BigIntegers with an "h" or "H" suffix (think "huge"---we chose "h" for BigIntegers because it does not interfere with hexadecimal digits);
+4. Boolean (true and false) literals;
+5. The null literal.
+
+If you want to compare variable with string in dynamic sql, be careful with single or double quotes.
+
+##Testing code:
+```java
+@SneakyThrows
+public static void main(String[] args) {
+    val map = ImmutableMap.of(
+            "a", "1",
+            "b", "11",
+            "c", 0,
+            "d", "0");
+    out.println(Ognl.getValue("a == '1'", map)); // false
+    out.println(Ognl.getValue("a == 1", map)); // true
+    out.println(Ognl.getValue("a == \"1\"", map)); // true
+
+    out.println(Ognl.getValue("b == '11'", map)); // true
+    out.println(Ognl.getValue("b == 11", map)); // true
+
+    out.println(Ognl.getValue("c == \"0\"", map)); // true
+    out.println(Ognl.getValue("c == '0'", map)); // false
+    out.println(Ognl.getValue("c == 0", map)); // true
+
+    out.println(Ognl.getValue("d == \"0\"", map)); // true
+    out.println(Ognl.getValue("d == '0'", map)); // false
+    out.println(Ognl.getValue("d == 0", map)); // true
+}
+```
 

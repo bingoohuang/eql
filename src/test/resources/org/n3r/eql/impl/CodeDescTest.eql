@@ -15,7 +15,7 @@ INSERT INTO EQL_DICT VALUES('TTT', 'TEST', '2', '已完成');
 INSERT INTO EQL_DICT VALUES('TTT', 'TEST', '3', '已失败');
 INSERT INTO EQL_DICT VALUES('TTT', 'TEST', '_', '未识别');
 
--- [updatexx]
+-- [updatexx NoWhere]
 DELETE FROM EQL_DICT;
 INSERT INTO EQL_DICT VALUES('TTT', 'TEST', '1', '进行中xx');
 INSERT INTO EQL_DICT VALUES('TTT', 'TEST', '2', '已完成xx');

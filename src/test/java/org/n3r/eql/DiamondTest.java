@@ -6,7 +6,7 @@ import org.junit.Test;
 public class DiamondTest {
     @Test
     @Ignore
-    public void test1() throws InterruptedException {
+    public void test1() {
         // while () {
         String str = new Eql("diamond").selectFirst("diamondDemo").execute();
 //        System.out.println(str);

@@ -14,16 +14,6 @@ public class S {
         return stringValue.replaceAll("'", "''");
     }
 
-    public static String cleanQuote(String option) {
-        if (option == null) return "";
-
-        String ret = option;
-        if (option.startsWith("\"")) ret = ret.substring(1);
-        if (option.endsWith("\"")) ret = ret.substring(0, ret.length() - 1);
-
-        return ret;
-    }
-
     public static boolean isNotEmpty(String s) {
         return s != null && s.length() > 0;
     }
@@ -119,12 +109,16 @@ public class S {
         return Strings.repeat("" + ch, times);
     }
 
+    public static boolean equals(String s1, String s2) {
+        return s1 != null ? s1.equals(s2) : s2 == null;
+    }
+
     public static boolean equalsIgnoreCase(String s1, String s2) {
         return s1 != null ? s1.equalsIgnoreCase(s2) : s2 == null;
     }
 
     public static boolean containsIgnoreCase(String string, String value) {
-        return string == null ? false : string.toUpperCase().contains(value.toUpperCase());
+        return string != null && string.toUpperCase().contains(value.toUpperCase());
     }
 
     public static int indexOfBlank(CharSequence cs) {
@@ -135,8 +129,12 @@ public class S {
         return -1;
     }
 
+    public static boolean startsWith(String str, String sub) {
+        return str != null && str.startsWith(sub);
+    }
+
     public static boolean endsWith(String str, String end) {
-        return str != null ? str.endsWith(end) : false;
+        return str != null && str.endsWith(end);
     }
 
     public static String upperCase(String str) {
@@ -181,5 +179,22 @@ public class S {
 
     public static String wrap(Object s, char wrapChar) {
         return "" + wrapChar + s + wrapChar;
+    }
+
+    public static String unQuote(String s1, String quote) {
+        if (s1 == null) return null;
+
+        String sub = s1;
+        int doubleQuote = 0;
+        if (s1.startsWith(quote)) {
+            sub = s1.substring(quote.length());
+            ++doubleQuote;
+        }
+        if (sub.endsWith(quote)) {
+            sub = sub.substring(0, sub.length() - quote.length());
+            ++doubleQuote;
+        }
+
+        return doubleQuote == 2 ? sub : s1;
     }
 }

@@ -1,13 +1,12 @@
 package org.n3r.eql.parser;
 
+import lombok.Value;
+
 import java.util.List;
 
+@Value
 public class InParser implements PartParser {
     private final String inParamsContainer;
-
-    public InParser(String inParamsContainer) {
-        this.inParamsContainer = inParamsContainer;
-    }
 
     @Override
     public EqlPart createPart() {

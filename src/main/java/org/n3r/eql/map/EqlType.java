@@ -24,6 +24,17 @@ public enum EqlType {
         return false;
     }
 
+    public boolean isUpdateDeleteStmt() {
+        switch (this) {
+            case UPDATE:
+            case DELETE:
+                return true;
+            default:
+                break;
+        }
+        return false;
+    }
+
 
     public boolean isDdl() {
         switch (this) {

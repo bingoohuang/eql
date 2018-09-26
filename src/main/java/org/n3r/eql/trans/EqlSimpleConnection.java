@@ -1,24 +1,19 @@
 package org.n3r.eql.trans;
 
 import com.google.common.collect.Maps;
+import lombok.SneakyThrows;
 import org.n3r.eql.config.EqlConfig;
-import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.S;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Map;
 
 public class EqlSimpleConnection extends AbstractEqlConnection {
     private SimpleDataSource dataSource;
 
-    @Override
+    @Override @SneakyThrows
     public Connection getConnection(String dbName) {
-        try {
-            return dataSource.getConnection();
-        } catch (SQLException e) {
-            throw Fucks.fuck(e);
-        }
+        return dataSource.getConnection();
     }
 
     @Override

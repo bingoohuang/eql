@@ -24,11 +24,11 @@ public class GetConnectionTest {
 
     @Test
     public void getJndiConnection() throws SQLException {
-        Connection connection = new Eql("jndi").getConnection();
+        Connection connection = new Eql().getConnection();
         assertThat(connection, is(notNullValue()));
         connection.close();
 
-        connection = new Eql("jndi").getConnection();
+        connection = new Eql().getConnection();
         assertThat(connection, is(notNullValue()));
         connection.close();
     }

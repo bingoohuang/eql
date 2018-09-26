@@ -19,7 +19,8 @@ import java.util.Map;
  * // Invoke methods using the call() method:
  * .call("toString")
  * // Retrieve the wrapped object
- *</code>
+ * </code>
+ *
  * @author Lukas Eder
  */
 
@@ -164,9 +165,9 @@ public class Reflect {
 
     private Object convertValue(Field field, Object unwrapValue) {
         if (field.getType().isEnum()) {
-            Class<? > type = field.getType();
+            Class<?> type = field.getType();
             if (unwrapValue instanceof String) {
-                return Enum.valueOf((Class<Enum>) type, (String)unwrapValue );
+                return Enum.valueOf((Class<Enum>) type, (String) unwrapValue);
 
             }
         }
@@ -188,7 +189,7 @@ public class Reflect {
      * @see #field(String)
      */
     public <T> T get(String name) throws ReflectException {
-        return field(name).<T>get();
+        return field(name).get();
     }
 
     /**
@@ -457,7 +458,7 @@ public class Reflect {
         final InvocationHandler handler = new InvocationHandler() {
             @SuppressWarnings("null")
             @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            public Object invoke(Object proxy, Method method, Object[] args) {
                 String name = method.getName();
 
                 // Actual method name matches always come first

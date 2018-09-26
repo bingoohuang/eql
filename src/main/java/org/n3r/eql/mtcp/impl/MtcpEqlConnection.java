@@ -1,15 +1,14 @@
 package org.n3r.eql.mtcp.impl;
 
+import lombok.SneakyThrows;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.mtcp.MtcpDataSourceHandler;
 import org.n3r.eql.trans.AbstractEqlConnection;
-import org.n3r.eql.util.Fucks;
 
 import javax.sql.DataSource;
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.SQLException;
 
 public class MtcpEqlConnection extends AbstractEqlConnection {
     DataSource dataSource;
@@ -21,13 +20,9 @@ public class MtcpEqlConnection extends AbstractEqlConnection {
         dataSource = new MtcpDataSourceHandler(eqlConfig).newMtcpDataSource();
     }
 
-    @Override
+    @Override @SneakyThrows
     public Connection getConnection(String dbName) {
-        try {
-            return dataSource.getConnection();
-        } catch (SQLException e) {
-            throw Fucks.fuck(e);
-        }
+        return dataSource.getConnection();
     }
 
     @Override

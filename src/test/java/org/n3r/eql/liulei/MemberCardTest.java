@@ -1,16 +1,18 @@
 package org.n3r.eql.liulei;
 
-
+import com.github.bingoohuang.westid.WestId;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
+import lombok.val;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.n3r.eql.Eql;
-import org.n3r.idworker.Id;
+import org.n3r.eql.eqler.EqlerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -30,7 +32,7 @@ MemberCardTest.testInsertMultipleRows  1s 379ms
 MemberCardTest.testRawMultipleRows        779ms
  */
 public class MemberCardTest {
-    final static long cardId = Id.next();
+    final static long cardId = WestId.next();
     final static List<MemberCard> memberCards = createMemberCards();
 
     @BeforeClass public static void beforeClass() {
@@ -41,7 +43,7 @@ public class MemberCardTest {
         new Eql("dba").execute();
     }
 
-    public static final int SIZE = 52 /* 52 weeks per year */ * 10 /* 100 years */;
+    public static final int SIZE = 52 /* 52 weeks per year */ * 2 /* 100 years */;
 
     @Test public void testAddRecords() {
         for (MemberCard memberCard : memberCards) {
@@ -56,6 +58,41 @@ public class MemberCardTest {
 
     @Test public void testInsertMultipleRows() {
         insertOneTime("testInsertMultipleRows");
+    }
+
+    @Test public void testInsertMultipleRowsInDao() {
+        val dao = EqlerFactory.getEqler(MemberCardDao.class);
+        dao.insertMultipleRows(memberCards);
+        checkSize();
+    }
+
+    @Test public void insertMultipleRowsFengyuReportedNull() {
+        val dao = EqlerFactory.getEqler(MemberCardDao.class);
+        try {
+            dao.insertMultipleRowsFengyuReportedBug(null);
+            Assert.fail();
+        } catch (Exception ex) {
+            assertThat(ex.getMessage()).contains("You have an error in your SQL syntax;");
+        }
+        checkSize(0);
+    }
+
+    @Test public void insertMultipleRowsFengyuReportedBug() {
+        val dao = EqlerFactory.getEqler(MemberCardDao.class);
+        dao.insertMultipleRowsFengyuReportedBug(memberCards);
+        checkSize();
+    }
+
+    @Test public void testInsertMultipleRowsInDao2() {
+        val dao = EqlerFactory.getEqler(MemberCardDao.class);
+        dao.insertMultipleRows2(memberCards);
+        checkSize();
+    }
+
+    @Test public void testIterateAddRecordsInDao() {
+        val dao = EqlerFactory.getEqler(MemberCardDao.class);
+        dao.iterateAddRecords(memberCards);
+        checkSize();
     }
 
     public void insertOneTime(String sqlId) {
@@ -104,8 +141,13 @@ public class MemberCardTest {
     }
 
     private void checkSize() {
-        int countRecords = new Eql("dba").params(cardId).selectFirst("countRecords").execute();
-        assertThat(countRecords).isEqualTo(SIZE);
+        checkSize(SIZE);
+    }
+
+    private void checkSize(int size) {
+        int countRecords = new Eql("dba").params(cardId)
+                .selectFirst("countRecords").execute();
+        assertThat(countRecords).isEqualTo(size);
     }
 
     String sql = "insert into member_card_week_times " +

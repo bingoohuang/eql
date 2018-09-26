@@ -2,14 +2,15 @@ package org.n3r.eql.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.SneakyThrows;
+import lombok.var;
+import lombok.val;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.util.Closes;
 import org.n3r.eql.util.EqlUtils;
-import org.n3r.eql.util.Fucks;
 import org.n3r.eql.util.Logs;
-import org.slf4j.Logger;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -46,7 +47,7 @@ public class EqlBatch {
     }
 
     public int addBatch(EqlRun eqlRun) throws SQLException {
-        PreparedStatement ps = batchedMap.get(eqlRun.getRunSql());
+        var ps = batchedMap.get(eqlRun.getRunSql());
         if (ps == null) {
             ps = EqlUtils.prepareSQL(sqlClassPath, eqlConfig, eqlRun, sqlId, tagSqlId);
             batchedMap.put(eqlRun.getRunSql(), ps);
@@ -62,39 +63,42 @@ public class EqlBatch {
                 ? executeBatch(false) : 0;
     }
 
-    public int executeBatch()  {
+    public int executeBatch() {
         return executeBatch(true);
     }
 
-    public int executeBatch(boolean cleanup)  {
+    @SneakyThrows
+    public int executeBatch(boolean cleanup) {
         try {
             int totalRowCount = 0;
-            for (PreparedStatement ps : batchedPs) {
+            for (val ps : batchedPs) {
                 int[] rowCounts = ps.executeBatch();
                 for (int j = 0; j < rowCounts.length; j++)
-                    if (rowCounts[j] == Statement.SUCCESS_NO_INFO) ; // NOTHING TO DO
-                    else if (rowCounts[j] == Statement.EXECUTE_FAILED) throw new EqlExecuteException(
-                            "The batched statement at index " + j + " failed to execute.");
+                    if (rowCounts[j] == Statement.SUCCESS_NO_INFO)
+                        ; // NOTHING TO DO
+                    else if (rowCounts[j] == Statement.EXECUTE_FAILED)
+                        throw new EqlExecuteException(
+                                "The batched statement at index " + j + " failed to execute.");
                     else totalRowCount += rowCounts[j];
             }
 
             totalBatches += totalRowCount;
 
-            Logger eqlLogger = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "executeBatch");
-            eqlLogger.debug("current batches {} total batches {}", totalRowCount, totalBatches);
+            val eqlLog = Logs.createLogger(eqlConfig, sqlClassPath, sqlId, tagSqlId, "executeBatch");
+            eqlLog.debug("current batches {} total batches {}", totalRowCount, totalBatches);
             currentBatches = 0;
 
             return totalBatches;
         } catch (SQLException ex) {
             cleanupBatch();
-            throw Fucks.fuck(ex);
+            throw ex;
         } finally {
             if (cleanup) cleanupBatch();
         }
     }
 
     public void cleanupBatch() {
-        for (PreparedStatement ps : batchedPs)
+        for (val ps : batchedPs)
             Closes.closeQuietly(ps);
 
         batchedPs.clear();

@@ -1,6 +1,7 @@
 package org.n3r.eql.parser;
 
 import com.google.common.collect.Lists;
+import lombok.val;
 import org.n3r.eql.ex.EqlConfigException;
 import org.n3r.eql.map.EqlDynamic;
 import org.n3r.eql.param.EqlParamPlaceholder;
@@ -49,24 +50,30 @@ public class DynamicParser {
 
         PlaceholderType placeHoldertype = PlaceholderType.UNSET;
         for (String placeHolder : placeHolders) {
-            EqlParamPlaceholder paramPlaceholder = new EqlParamPlaceholder();
+            val paramPlaceholder = new EqlParamPlaceholder();
             paramPlaceholders.add(paramPlaceholder);
             paramPlaceholder.setPlaceholder(placeHolder);
 
-            if (placeHolder.length() == 0) paramPlaceholder.setPlaceholderType(PlaceholderType.AUTO_SEQ);
-            else if (S.isInteger(placeHolder)) {
+            if (placeHolder.length() == 0) {
+                paramPlaceholder.setPlaceholderType(PlaceholderType.AUTO_SEQ);
+            } else if (S.isInteger(placeHolder)) {
                 paramPlaceholder.setPlaceholderType(PlaceholderType.MANU_SEQ);
                 paramPlaceholder.setSeq(Integer.valueOf(placeHolder));
-            } else paramPlaceholder.setPlaceholderType(PlaceholderType.VAR_NAME);
+            } else {
+                paramPlaceholder.setPlaceholderType(PlaceholderType.VAR_NAME);
+            }
 
             placeHoldertype = paramPlaceholder.getPlaceholderType();
         }
 
-        for (EqlParamPlaceholder paramPlaceholder : paramPlaceholders)
-            if (placeHoldertype != paramPlaceholder.getPlaceholderType())
-                throw new EqlConfigException("[" + rawSql + "]中定义的SQL动态替换设置类型不一致");
+        for (val pPlaceholder : paramPlaceholders) {
+            if (placeHoldertype == pPlaceholder.getPlaceholderType()) continue;
+
+            throw new EqlConfigException("[" + rawSql + "]中定义的SQL动态替换设置类型不一致");
+        }
 
         dynamicSql.setPlaceholdertype(placeHoldertype);
-        dynamicSql.setPlaceholders(paramPlaceholders.toArray(new EqlParamPlaceholder[0]));
+        val placeholders = paramPlaceholders.toArray(new EqlParamPlaceholder[0]);
+        dynamicSql.setPlaceholders(placeholders);
     }
 }

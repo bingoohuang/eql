@@ -7,6 +7,5 @@ public class C3p0Test {
     public void test() {
         new Eql("c3p0").update("test").execute();
         new Eql("c3p0").update("data").params("abc").execute();
-
     }
 }

@@ -23,10 +23,10 @@ public class IffParserTest {
         EqlBlock eqlBlock = map.get("lookup");
         DynamicSql dynamicSql = (DynamicSql) eqlBlock.getSqls().get(0);
         assertThat(dynamicSql.getParts().size(), is(3));
-        assertThat(((LiteralPart)dynamicSql.getParts().part(0)).getSql(), is("select 1\n"));
-        assertThat(((IffPart)dynamicSql.getParts().part(1)).getExpr(), is("a == 1"));
-        assertThat(((IffPart)dynamicSql.getParts().part(1)).getPart().getSql(), is("xxx\n"));
-        assertThat(((IffPart)dynamicSql.getParts().part(2)).getExpr(), is("b == 1"));
-        assertThat(((IffPart)dynamicSql.getParts().part(2)).getPart().getSql(), is("yyy\n"));
+        assertThat(((LiteralPart) dynamicSql.getParts().part(0)).getSql(), is("select 1\n"));
+        assertThat(((IffPart) dynamicSql.getParts().part(1)).getExpr(), is("a == 1"));
+        assertThat(((IffPart) dynamicSql.getParts().part(1)).getPart().getSql(), is("xxx\n"));
+        assertThat(((IffPart) dynamicSql.getParts().part(2)).getExpr(), is("b == 1"));
+        assertThat(((IffPart) dynamicSql.getParts().part(2)).getPart().getSql(), is("yyy\n"));
     }
 }

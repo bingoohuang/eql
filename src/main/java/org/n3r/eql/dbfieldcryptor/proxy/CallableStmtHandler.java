@@ -1,38 +1,34 @@
 package org.n3r.eql.dbfieldcryptor.proxy;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.n3r.eql.dbfieldcryptor.SensitiveCryptor;
 import org.n3r.eql.dbfieldcryptor.parser.SensitiveFieldsParser;
 import org.n3r.eql.util.O;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.sql.CallableStatement;
 
-class CallableStmtHandler implements InvocationHandler {
-    private final Logger logger = LoggerFactory.getLogger(CallableStmtHandler.class);
+import static java.lang.reflect.Proxy.newProxyInstance;
+
+@Slf4j @AllArgsConstructor class CallableStmtHandler implements InvocationHandler {
     private final CallableStatement stmt;
     private final SensitiveFieldsParser parser;
-
     private final SensitiveCryptor cryptor;
 
-    public CallableStmtHandler(CallableStatement stmt, SensitiveFieldsParser parser,
-                               SensitiveCryptor cryptor) {
-        this.stmt = stmt;
-        this.parser = parser;
-        this.cryptor = cryptor;
-    }
-
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invoke(
+            Object proxy,
+            Method method,
+            Object[] args) throws Throwable {
         if (O.in(method.getName(), "setString", "setObject")
                 && parser.inBindIndices((Integer) args[0])) {
             try {
-                args[1] = args[1] == null ? null : cryptor.encrypt(args[1].toString());
+                if (args[1] != null)
+                    args[1] = cryptor.encrypt(args[1].toString());
             } catch (Exception e) {
-                logger.warn("Encrypt parameter #{}# error", args[1]);
+                log.warn("Encrypt parameter #{}# error", args[1]);
             }
             return method.invoke(stmt, args);
         }
@@ -43,7 +39,7 @@ class CallableStmtHandler implements InvocationHandler {
                 Object result = method.invoke(stmt, args);
                 return result != null ? cryptor.decrypt("" + result) : result;
             } catch (Exception e) {
-                logger.warn("Decrypt parameter #{}# error", args[1]);
+                log.warn("Decrypt parameter #{}# error", args[1]);
             }
         }
 
@@ -52,7 +48,7 @@ class CallableStmtHandler implements InvocationHandler {
 
 
     public CallableStatement createCallableStatement() {
-        return (CallableStatement) Proxy.newProxyInstance(getClass().getClassLoader(),
+        return (CallableStatement) newProxyInstance(getClass().getClassLoader(),
                 new Class<?>[]{CallableStatement.class}, this);
     }
 }

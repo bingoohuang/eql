@@ -1,5 +1,7 @@
 package org.n3r.eql.dbfieldcryptor.proxy;
 
+import lombok.AllArgsConstructor;
+import lombok.val;
 import org.n3r.eql.DbDialect;
 import org.n3r.eql.dbfieldcryptor.SensitiveCryptor;
 import org.n3r.eql.dbfieldcryptor.parser.ParserCache;
@@ -13,40 +15,37 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
+@AllArgsConstructor
 public class ConnectionHandler implements InvocationHandler {
-    private final ParserCache parserCache;
     private final Connection connection;
     private final SensitiveCryptor cryptor;
+    private final ParserCache parserCache;
     private final DbDialect dbDialect;
 
-    public ConnectionHandler(Connection connection, SensitiveCryptor cryptor, ParserCache parserCache, DbDialect dbDialect) {
-        this.connection = connection;
-        this.cryptor = cryptor;
-        this.parserCache = parserCache;
-        this.dbDialect = dbDialect;
-    }
-
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invoke(
+            Object proxy,
+            Method method,
+            Object[] args) throws Throwable {
         SensitiveFieldsParser parser = null;
-        String methodName = method.getName();
+        val methodName = method.getName();
         if (O.in(methodName, "prepareStatement", "prepareCall")) {
-            String sql = (String) args[0];
+            val sql = (String) args[0];
             parser = parserCache.getParser(dbDialect, sql);
             if (parser != null) args[0] = parser.getSql();
         }
 
-        Object invoke = method.invoke(connection, args);
+        val invoke = method.invoke(connection, args);
 
         if (parser == null) return invoke;
 
         if ("prepareStatement".equals(methodName)) {
-            PreparedStatement ps = (PreparedStatement) invoke;
-            PreparedStmtHandler stmtHandler = new PreparedStmtHandler(ps, parser, cryptor);
+            val ps = (PreparedStatement) invoke;
+            val stmtHandler = new PreparedStmtHandler(ps, parser, cryptor);
             return stmtHandler.createPreparedStatementProxy();
         } else if ("prepareCall".equals(methodName)) {
-            CallableStatement cs = (CallableStatement) invoke;
-            CallableStmtHandler stmtHandler = new CallableStmtHandler(cs, parser, cryptor);
+            val cs = (CallableStatement) invoke;
+            val stmtHandler = new CallableStmtHandler(cs, parser, cryptor);
             return stmtHandler.createCallableStatement();
         }
 

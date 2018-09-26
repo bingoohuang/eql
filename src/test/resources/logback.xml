@@ -6,7 +6,7 @@
         </encoder>
     </appender>
 
-    <root level="DEBUG">
+    <root level="WARN">
         <appender-ref ref="Console"/>
     </root>
 
@@ -14,9 +14,11 @@
         <appender-ref ref="Console"/>
     </logger>
 
-    <logger name="eql.org.n3r.eql.SimpleInDynamicCondition" level="INFO" additivity="false">
+    <logger name="eql.org.n3r.eql.SimpleInDynamicCondition" level="WARN" additivity="false">
         <appender-ref ref="Console"/>
     </logger>
+
+    <logger name="org.n3r.diamond.client" level="OFF"></logger>
 
 </configuration>
 

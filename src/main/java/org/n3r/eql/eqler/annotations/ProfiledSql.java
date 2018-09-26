@@ -3,7 +3,10 @@ package org.n3r.eql.eqler.annotations;
 import java.lang.annotation.*;
 
 @Documented
-@Target(ElementType.TYPE)
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Diagnose {
+public @interface ProfiledSql {
+    String[] profile() default {};
+
+    String[] sql();
 }

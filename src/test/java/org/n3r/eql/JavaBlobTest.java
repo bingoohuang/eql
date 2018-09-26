@@ -1,11 +1,12 @@
 package org.n3r.eql;
 
 import com.google.common.base.Charsets;
+import lombok.Data;
+import lombok.val;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public class JavaBlobTest {
     @BeforeClass
@@ -14,53 +15,31 @@ public class JavaBlobTest {
     }
 
     @Test
-    //@Ignore
     public void testOracleBlob() {
-        new Eqll().id("insertBlob").params("中华人民共和国").execute();
+        val china = "中华人民共和国";
+
+        new Eqll().id("insertBlob").params(china).execute();
         byte[] bytes = new Eqll().id("selectBlob").limit(1).execute();
-        assertThat(new String(bytes, Charsets.UTF_8), is("中华人民共和国"));
+        assertThat(new String(bytes, Charsets.UTF_8)).isEqualTo(china);
 
         String ret = new Eqll().id("selectBlobString").limit(1).execute();
-        assertThat(ret, is("中华人民共和国"));
+        assertThat(ret).isEqualTo(china);
 
         AsResult asResult = new Eqll().id("selectBlobAsResult").limit(1).execute();
-        assertThat(asResult.getSeq(), is(1));
-        assertThat(asResult.getRemark(), is("中华人民共和国"));
+        assertThat(asResult.getSeq()).isEqualTo(1);
+        assertThat(asResult.getRemark()).isEqualTo(china);
 
-        Integer effectedRows = new Eqll().id("updateBlob").params("台湾省").execute();
-        assertThat(effectedRows, is(1));
+        String taiwan = "台湾省";
+        Integer effectedRows = new Eqll().id("updateBlob").params(taiwan).execute();
+        assertThat(effectedRows).isEqualTo(1);
         ret = new Eqll().id("selectBlobString").limit(1).execute();
-        assertThat(ret, is("台湾省"));
+        assertThat(ret).isEqualTo(taiwan);
     }
 
+    @Data
     public static class AsResult {
         private String state;
         private String remark;
         private int seq;
-
-        public String getState() {
-            return state;
-        }
-
-        public void setState(String state) {
-            this.state = state;
-        }
-
-        public String getRemark() {
-            return remark;
-        }
-
-        public void setRemark(String remark) {
-            this.remark = remark;
-        }
-
-        public int getSeq() {
-            return seq;
-        }
-
-        public void setSeq(int seq) {
-            this.seq = seq;
-        }
-
     }
 }

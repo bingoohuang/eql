@@ -1,16 +1,15 @@
 package org.n3r.eql;
 
+import lombok.SneakyThrows;
 import org.n3r.eql.impl.EqlRsRetriever;
 import org.n3r.eql.map.EqlRun;
 import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.util.Closes;
-import org.n3r.eql.util.Fucks;
 import org.slf4j.Logger;
 
 import java.io.Closeable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 
 public class ESelectStmt implements Closeable, EStmt {
     private ResultSet resultSet;
@@ -28,35 +27,30 @@ public class ESelectStmt implements Closeable, EStmt {
         executeQuery(params);
     }
 
+    @SneakyThrows
     public void executeQuery(Object... params) {
         resultSetNext = true;
         rowNum = 0;
-        try {
-            eqlRun.setParams(params);
-            new EqlParamsBinder().prepareBindParams(false, eqlRun);
 
-            eqlRun.bindParams(preparedStatement, sqlClassPath);
-            resultSet = preparedStatement.executeQuery();
-            if (fetchSize > 0) resultSet.setFetchSize(fetchSize);
-        } catch (SQLException e) {
-            throw Fucks.fuck(e);
-        }
+        eqlRun.setParams(params);
+        new EqlParamsBinder().prepareBindParams(false, eqlRun);
+
+        eqlRun.bindParams(preparedStatement, sqlClassPath);
+        resultSet = preparedStatement.executeQuery();
+        if (fetchSize > 0) resultSet.setFetchSize(fetchSize);
     }
 
     @SuppressWarnings("unchecked")
+    @SneakyThrows
     public <T> T next() {
         if (!resultSetNext) return null;
 
-        try {
-            T rowBean = (T) rsRetriever.selectRow(resultSet, ++rowNum);
-            if (rowBean == null) {
-                resultSetNext = false;
-                closeRs();
-            }
-            return rowBean;
-        } catch (SQLException e) {
-            throw Fucks.fuck(e);
+        T rowBean = (T) rsRetriever.selectRow(resultSet, ++rowNum);
+        if (rowBean == null) {
+            resultSetNext = false;
+            closeRs();
         }
+        return rowBean;
     }
 
     public void closeRs() {

@@ -1,14 +1,13 @@
 package org.n3r.eql.map;
 
+import lombok.AllArgsConstructor;
+
 import java.math.BigDecimal;
 import java.sql.*;
 
+@AllArgsConstructor
 public class ResultSetRs implements RsAware {
     private final ResultSet rs;
-
-    public ResultSetRs(ResultSet rs) {
-        this.rs = rs;
-    }
 
     @Override
     public ResultSetMetaData getMetaData() throws SQLException {

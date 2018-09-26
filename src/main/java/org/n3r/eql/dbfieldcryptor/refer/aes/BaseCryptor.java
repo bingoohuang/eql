@@ -1,6 +1,7 @@
 package org.n3r.eql.dbfieldcryptor.refer.aes;
 
-import org.n3r.eql.util.Fucks;
+import lombok.Getter;
+import lombok.SneakyThrows;
 import org.n3r.eql.util.S;
 
 import javax.crypto.Cipher;
@@ -15,7 +16,7 @@ public abstract class BaseCryptor {
     /*
      * 加解密密钥.
      */
-    private String key;
+    @Getter String key;
 
     /**
      * 默认构造函数.
@@ -48,16 +49,12 @@ public abstract class BaseCryptor {
      * @param data 需要加密的字符串
      * @return 已经加密的字符串
      */
+    @SneakyThrows
     public String encrypt(String data) {
-        try {
-            byte[] cleartext = S.toBytes(data);
-            byte[] ciphertext = getCipher(true).doFinal(cleartext);
+        byte[] cleartext = S.toBytes(data);
+        byte[] ciphertext = getCipher(true).doFinal(cleartext);
 
-            return DatatypeConverter.printBase64Binary(ciphertext);
-        } catch (Exception e) {
-            throw Fucks.fuck(e);
-        }
-
+        return DatatypeConverter.printBase64Binary(ciphertext);
     }
 
     /**
@@ -66,24 +63,11 @@ public abstract class BaseCryptor {
      * @param data 需要解密的字符串
      * @return 解密后的字符串
      */
+    @SneakyThrows
     public String decrypt(String data) {
-        try {
-            byte[] cleartext = DatatypeConverter.parseBase64Binary(data);
-            byte[] ciphertext = getCipher(false).doFinal(cleartext);
+        byte[] cleartext = DatatypeConverter.parseBase64Binary(data);
+        byte[] ciphertext = getCipher(false).doFinal(cleartext);
 
-            return S.bytesToStr(ciphertext);
-        } catch (Exception e) {
-            throw Fucks.fuck(e);
-        }
-    }
-
-
-    /**
-     * 获取密钥.
-     *
-     * @return 密钥
-     */
-    public String getKey() {
-        return key;
+        return S.bytesToStr(ciphertext);
     }
 }

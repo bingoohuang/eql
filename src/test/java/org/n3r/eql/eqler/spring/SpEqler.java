@@ -1,15 +1,14 @@
 package org.n3r.eql.eqler.spring;
 
 import org.n3r.eql.EqlPage;
-import org.n3r.eql.diamond.Dql;
-import org.n3r.eql.eqler.annotations.Diagnose;
 import org.n3r.eql.eqler.annotations.EqlerConfig;
+import org.n3r.eql.eqler.annotations.ProfiledSql;
+import org.n3r.eql.eqler.annotations.ProfiledSqls;
 import org.n3r.eql.eqler.annotations.Sql;
 
 import java.util.List;
 
-@Diagnose
-@EqlerConfig(value = "mysql", eql = Dql.class)
+@EqlerConfig(value = "h2", createClassFileForDiagnose = true)
 public interface SpEqler {
     int queryOne();
 
@@ -17,5 +16,11 @@ public interface SpEqler {
     String queryLower();
 
     @Sql("select 'a' as a union all select 'b' as a union all select 'c' as a")
-    List<String> queryLowers(EqlPage eqlPage);
+    List<ABean> queryLowers(EqlPage eqlPage);
+
+    @ProfiledSqls({
+            @ProfiledSql(profile = "dev", sql = "select 'devdev'"),
+            @ProfiledSql(profile = "prod", sql = "select 'prodprod'")
+    })
+    String queryProfileName();
 }

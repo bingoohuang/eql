@@ -4,11 +4,9 @@ import org.n3r.eql.trans.spring.annotation.EqlTransactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
 @Service
 public class EqlTranService {
-    @Autowired
-    private EqlTranEqler eqlTranEqler;
+    @Autowired EqlTranEqler eqlTranEqler;
 
     @EqlTransactional
     public void addWithTranError() {

@@ -52,7 +52,7 @@ public class Mtcps {
                 String paramValue = params.remove(requiredProp);
                 if (paramValue == null) throw new RuntimeException(requiredProp + " is required");
 
-                parsed.append(template.substring(fromIndex, leftBracePos));
+                parsed.append(template, fromIndex, leftBracePos);
                 fromIndex = rightBracePos + 1;
                 parsed.append(paramValue);
                 continue;
@@ -74,7 +74,7 @@ public class Mtcps {
                     }
                 }
 
-                parsed.append(template.substring(fromIndex, leftBracketPos));
+                parsed.append(template, fromIndex, leftBracketPos);
                 fromIndex = rightBracePos + 1;
                 parsed.append(usedPropsExpr);
 

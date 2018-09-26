@@ -120,9 +120,7 @@ public class CodeDescTest {
 
             if (code != codeDesc.code) return false;
             if (meaning != null ? !meaning.equals(codeDesc.meaning) : codeDesc.meaning != null) return false;
-            if (name != null ? !name.equals(codeDesc.name) : codeDesc.name != null) return false;
-
-            return true;
+            return name != null ? name.equals(codeDesc.name) : codeDesc.name == null;
         }
 
         @Override

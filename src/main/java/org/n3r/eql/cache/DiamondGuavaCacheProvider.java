@@ -3,9 +3,9 @@ package org.n3r.eql.cache;
 import com.google.common.base.Optional;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.Miner;
-import org.n3r.diamond.client.Minerable;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 
 import java.util.concurrent.Callable;
@@ -20,18 +20,18 @@ public class DiamondGuavaCacheProvider implements EqlCacheProvider {
 
     @Override
     public Optional<Object> getCache(EqlCacheKey cacheKey) {
-        final EqlUniqueSqlId uniquEQLId = cacheKey.getUniquEQLId();
-        Optional<String> cachedSqlIdVersion = cachEQLIdVersion.getIfPresent(uniquEQLId);
+        val uniqueSQLId = cacheKey.getUniqueSQLId();
+        val cachedSqlIdVersion = cachEQLIdVersion.getIfPresent(uniqueSQLId);
         if (cachedSqlIdVersion == null) return null;
 
-        String sqlIdVersion = getSqlIdCacheVersion(uniquEQLId);
+        val sqlIdVersion = getSqlIdCacheVersion(uniqueSQLId);
         if (!StringUtils.equals(sqlIdVersion, cachedSqlIdVersion.orNull())) {
-            cache.invalidate(uniquEQLId);
-            cachEQLIdVersion.put(uniquEQLId, Optional.fromNullable(sqlIdVersion));
+            cache.invalidate(uniqueSQLId);
+            cachEQLIdVersion.put(uniqueSQLId, Optional.fromNullable(sqlIdVersion));
             return null;
         }
 
-        Cache<EqlCacheKey, Optional<Object>> subCache = cache.getIfPresent(uniquEQLId);
+        val subCache = cache.getIfPresent(uniqueSQLId);
         if (subCache == null) return null;
 
         return subCache.getIfPresent(cacheKey);
@@ -39,17 +39,13 @@ public class DiamondGuavaCacheProvider implements EqlCacheProvider {
 
     @Override
     public void setCache(final EqlCacheKey cacheKey, Object result) {
-        final EqlUniqueSqlId uniquEQLId = cacheKey.getUniquEQLId();
+        val uniqueSQLId = cacheKey.getUniqueSQLId();
         try {
-            Cache<EqlCacheKey, Optional<Object>> subCache = cache.get(uniquEQLId,
-                    new Callable<Cache<EqlCacheKey, Optional<Object>>>() {
-                        @Override
-                        public Cache<EqlCacheKey, Optional<Object>> call() throws Exception {
-                            String sqlIdVersion = getSqlIdCacheVersion(uniquEQLId);
-                            cachEQLIdVersion.put(uniquEQLId, Optional.fromNullable(sqlIdVersion));
-                            Cache<EqlCacheKey, Optional<Object>> subCache = CacheBuilder.newBuilder().build();
-                            return subCache;
-                        }
+            val subCache = cache.get(uniqueSQLId,
+                    () -> {
+                        val sqlIdVersion = getSqlIdCacheVersion(uniqueSQLId);
+                        cachEQLIdVersion.put(uniqueSQLId, Optional.fromNullable(sqlIdVersion));
+                        return CacheBuilder.newBuilder().build();
                     });
 
             subCache.put(cacheKey, Optional.fromNullable(result));
@@ -59,9 +55,9 @@ public class DiamondGuavaCacheProvider implements EqlCacheProvider {
     }
 
     private String getSqlIdCacheVersion(EqlUniqueSqlId uniquEQLId) {
-        final String dataId = uniquEQLId.getSqlClassPath().replaceAll("/", ".");
-        Minerable sqlFileProperties = new Miner().getMiner(EQL_CACHE, dataId);
-        String key = uniquEQLId.getSqlId() + ".cacheVersion";
+        val dataId = uniquEQLId.getSqlClassPath().replaceAll("/", ".");
+        val sqlFileProperties = new Miner().getMiner(EQL_CACHE, dataId);
+        val key = uniquEQLId.getSqlId() + ".cacheVersion";
         return sqlFileProperties.getString(key);
     }
 

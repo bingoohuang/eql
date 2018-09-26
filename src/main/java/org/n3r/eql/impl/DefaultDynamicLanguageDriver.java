@@ -133,7 +133,7 @@ public class DefaultDynamicLanguageDriver implements DynamicLanguageDriver {
 
     private String mergeEndLfs(String line) {
         int to = line.length() - 1;
-        while (to > 0 && to - 1 >= 0) {
+        while (to - 1 >= 0) {
             char c1 = line.charAt(to);
             char c2 = line.charAt(to - 1);
             if (c1 == c2 && c2 == '\n') --to;

@@ -1,4 +1,5 @@
 -- [test onerr=resume]
+drop table c3p0;
 create table c3p0 (name varchar2(32));
 
 -- [data]

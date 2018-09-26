@@ -1,26 +1,34 @@
 package org.n3r.eql.util;
 
-import java.lang.reflect.Method;
+import lombok.experimental.UtilityClass;
+import lombok.val;
+
 import java.lang.reflect.Modifier;
 
+@UtilityClass
 public class Enums {
-    public static Object valueOff(Class<Enum> returnType, String value) {
-        Object object = invokeValueOff(returnType, value);
+    @SuppressWarnings("unchecked")
+    public Object valueOff(Class<Enum> returnType, String value) {
+        val object = invokeValueOff(returnType, value);
         if (object != null) return object;
 
         return Enum.valueOf(returnType, value);
     }
 
-    private static Object invokeValueOff(Class<Enum> returnType, String value) {
-        try {
-            Method valueOffMethod = returnType.getMethod("valueOff", new Class<?>[]{String.class});
-            if (valueOffMethod != null && Modifier.isStatic(valueOffMethod.getModifiers())
-                    && valueOffMethod.getReturnType().isAssignableFrom(returnType)) {
-                return valueOffMethod.invoke(null, value);
-            }
+    private Object invokeValueOff(Class<Enum> returnType, String value) {
+        for (val method : returnType.getMethods()) {
+            if (!Modifier.isStatic(method.getModifiers())) continue;
+            if (!method.getName().equals("valueOff")) continue;
+            if (method.getParameterTypes().length != 1) continue;
+            if (method.getParameterTypes()[0] != String.class) continue;
+            if (!method.getReturnType().isAssignableFrom(returnType)) continue;
 
-        } catch (Exception e) {
-            // ignore
+            try {
+                return method.invoke(null, value);
+            } catch (Exception e) {
+                // ignore
+            }
+            break;
         }
 
         return null;

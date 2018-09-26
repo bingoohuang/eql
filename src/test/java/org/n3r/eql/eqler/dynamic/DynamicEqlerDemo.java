@@ -19,17 +19,20 @@ public class DynamicEqlerDemo implements DynamicEqler {
         return null;
     }
 
-    public Map<String, String> echoNamed(@Dynamic(name = "hello") String hello, @Param("world") String world, @SqlId String id) {
+    public Map<String, String> echoNamed(
+            @Dynamic(name = "hello") String hello, @Param("world") String world, @SqlId String id) {
         return new Eql().id(id).execute();
     }
 
     @Override
-    public Map<String, String> echoNamedWithSqlId(@Dynamic(name = "hello") String hello, @Param("world") String world, @SqlId String id) {
+    public Map<String, String> echoNamedWithSqlId(
+            @Dynamic(name = "hello") String hello, @Param("world") String world, @SqlId String id) {
         return null;
     }
 
     @Override
-    public Map<String, String> echoShareNamed(@Param("hello") @Dynamic(sole = false, name = "hello") String hello, @Param("world") String world) {
+    public Map<String, String> echoShareNamed(
+            @Param("hello") @Dynamic(sole = false, name = "hello") String hello, @Param("world") String world) {
         return null;
     }
 

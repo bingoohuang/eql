@@ -113,7 +113,7 @@ public class RuleParserTest {
         RuleParser ruleParser = new RuleParser();
         RulesSet rulesSet = ruleParser.parse(
                 "rule(4) val(.person.sex)   map(0:dba.person_f, rule->5)\n" +
-                "rule(5) mod(.person.id, 3) map(0:dbb.person_m, 1:dbc.person_m)");
+                        "rule(5) mod(.person.id, 3) map(0:dbb.person_m, 1:dbc.person_m)");
 
         RealPartition realPartition = rulesSet.find(new MatrixTableFieldValue("person", "sex", "0"));
         assertThat(realPartition.databaseName, is("dba"));

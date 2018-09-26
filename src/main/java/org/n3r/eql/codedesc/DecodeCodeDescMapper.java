@@ -1,12 +1,11 @@
 package org.n3r.eql.codedesc;
 
 import com.google.common.base.Splitter;
-
-import java.util.List;
+import lombok.val;
 
 public class DecodeCodeDescMapper extends DefaultCodeDescMapper {
     public DecodeCodeDescMapper(String valuesStr) {
-        List<String> values = Splitter.on(',').trimResults().splitToList(valuesStr);
+        val values = Splitter.on(',').trimResults().splitToList(valuesStr);
 
         int i = 0, ii = values.size();
         for (; i + 1 < ii; i += 2) {

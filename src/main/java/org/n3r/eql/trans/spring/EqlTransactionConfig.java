@@ -13,13 +13,13 @@ public class EqlTransactionConfig {
     }
 
     @Bean
-    public EqlTransactionAdvisor EqlTranAdvisorCreator(){
+    public EqlTransactionAdvisor EqlTranAdvisorCreator() {
         return new EqlTransactionAdvisor();
     }
 
 
     @Bean
-    public EqlTransactionInterceptor EqlTranInterceptorCreator(){
+    public EqlTransactionInterceptor EqlTranInterceptorCreator() {
         return new EqlTransactionInterceptor();
     }
 }

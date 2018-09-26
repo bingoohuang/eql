@@ -13,3 +13,6 @@ select 'x' from demo where name like #:LeftLike#
 
 -- [rightLikeDemo]
 select 'x' from demo where name like #:RightLike#
+
+-- [likeWithEscape]
+select 'x' from demo where name like #:Like# escape '|'

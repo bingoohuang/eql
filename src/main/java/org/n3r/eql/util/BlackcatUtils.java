@@ -1,7 +1,16 @@
 package org.n3r.eql.util;
 
+import com.github.bingoohuang.blackcat.instrument.callback.Blackcat;
+import com.github.bingoohuang.blackcat.instrument.utils.Collections;
+import com.github.bingoohuang.westjson.WestJson;
+import lombok.experimental.UtilityClass;
+
+import java.util.Collection;
+
+@UtilityClass
+@SuppressWarnings("unchecked")
 public class BlackcatUtils {
-    public static boolean classExists(String className) {
+    public boolean classExists(String className) {
         try {
             Class.forName(className);
             return true;
@@ -10,14 +19,28 @@ public class BlackcatUtils {
         }
     }
 
+    public final boolean HasBlackcat = classExists(
+            "com.github.bingoohuang.blackcat.instrument.callback.Blackcat");
 
-    public static boolean HasBlackcat = classExists(
-            "com.github.bingoohuang.blackcat.javaagent.callback.Blackcat");
-
-    public static void log(String msgType, String pattern, Object... args) {
+    public void trace(String sqlId, String printSql,
+                             String traceParams, String evalSql, Object execRet) {
         if (!HasBlackcat) return;
 
-        com.github.bingoohuang.blackcat.javaagent.callback
-                .Blackcat.log(msgType, pattern, args);
+        String paramsAndPrepared = "[]".equals(traceParams) ? ""
+                : ", Params:" + traceParams + ", Prepared:" + printSql;
+        Blackcat.trace("SQL",
+                "ID:" + sqlId
+                        + ", SQL:" + evalSql
+                        + paramsAndPrepared
+                        + ", Result:" + compressResult(execRet)
+        );
+    }
+
+    private Object compressResult(Object execRet) {
+        if (!(execRet instanceof Collection)) {
+            return new WestJson().json(execRet, WestJson.UNQUOTED);
+        }
+
+        return Collections.compressResult((Collection) execRet);
     }
 }

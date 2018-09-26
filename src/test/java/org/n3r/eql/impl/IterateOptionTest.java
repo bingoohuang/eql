@@ -113,9 +113,7 @@ public class IterateOptionTest {
             IdName idName = (IdName) o;
 
             if (id != idName.id) return false;
-            if (name != null ? !name.equals(idName.name) : idName.name != null) return false;
-
-            return true;
+            return name != null ? name.equals(idName.name) : idName.name == null;
         }
 
         @Override

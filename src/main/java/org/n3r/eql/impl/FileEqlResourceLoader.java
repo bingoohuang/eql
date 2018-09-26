@@ -5,40 +5,37 @@ import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
+import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.n3r.eql.base.EqlResourceLoader;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.C;
-import org.n3r.eql.util.Fucks;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-import static org.n3r.eql.impl.EqlResourceLoaderHelper.updateFileCache;
-
+@Slf4j @NoArgsConstructor
 public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
-    static Logger log = LoggerFactory.getLogger(FileEqlResourceLoader.class);
-    static Cache<String, Optional<Map<String, EqlBlock>>> fileCache;
-    static LoadingCache<EqlUniqueSqlId, Optional<EqlBlock>> sqlCache;
-
-    static {
-        fileCache = CacheBuilder.newBuilder().build();
-        sqlCache = EqlResourceLoaderHelper.buildSqlCache(fileCache);
-    }
-
-    public FileEqlResourceLoader() {
-    }
+    private static final Cache<String, Optional<Map<String, EqlBlock>>>
+            fileCache = CacheBuilder.newBuilder().build();
+    private static final LoadingCache<EqlUniqueSqlId, Optional<EqlBlock>>
+            sqlCache = EqlResourceLoaderHelper.buildSqlCache(fileCache);
 
     @Override
-    public EqlBlock loadEqlBlock(String sqlClassPath, String sqlId) {
-        load(this, sqlClassPath);
+    public EqlBlock loadEqlBlock(String classPath, String sqlId) {
+        val blocks = load(this, classPath); // insure file cache built
+        if (blocks == null) {
+            throw new RuntimeException("unable to find sql file " + classPath);
+        }
 
-        Optional<EqlBlock> eqlBlock = sqlCache.getUnchecked(new EqlUniqueSqlId(sqlClassPath, sqlId));
+        val eqlUniqueSqlId = new EqlUniqueSqlId(classPath, sqlId);
+        val eqlBlock = sqlCache.getUnchecked(eqlUniqueSqlId);
         if (eqlBlock.isPresent()) return eqlBlock.get();
 
-        throw new RuntimeException("unable to find sql id " + sqlId);
+        throw new RuntimeException("unable to find sql id " + eqlUniqueSqlId);
     }
 
     @Override
@@ -46,29 +43,24 @@ public class FileEqlResourceLoader extends AbstractEqlResourceLoader {
         return load(this, classPath);
     }
 
-    private Map<String, EqlBlock> load(final EqlResourceLoader eqlResourceLoader,
+    @SneakyThrows
+    private Map<String, EqlBlock> load(final EqlResourceLoader resLoader,
                                        final String sqlClassPath) {
-        Callable<Optional<Map<String, EqlBlock>>> valueLoader;
-        valueLoader = new Callable<Optional<Map<String, EqlBlock>>>() {
-            @Override
-            public Optional<Map<String, EqlBlock>> call() throws Exception {
-                String sqlContent = C.classResourceToString(sqlClassPath);
-                if (sqlContent == null) {
-                    log.warn("classpath sql {} not found", sqlClassPath);
-                    return Optional.absent();
-                }
-
-                return Optional.of(updateFileCache(sqlContent,
-                        eqlResourceLoader, sqlClassPath, eqlLazyLoad));
+        Callable<Optional<Map<String, EqlBlock>>> valueLoader = () -> {
+            val sqlContent = C.classResourceToString(sqlClassPath);
+            if (sqlContent == null) {
+                log.warn("classpath sql {} not found", sqlClassPath);
+                return Optional.absent();
             }
+
+            return Optional.of(EqlResourceLoaderHelper.updateFileCache(
+                    sqlContent, resLoader, sqlClassPath, eqlLazyLoad));
         };
 
         try {
             return fileCache.get(sqlClassPath, valueLoader).orNull();
         } catch (ExecutionException e) {
-            throw Fucks.fuck(Throwables.getRootCause(e));
+            throw Throwables.getRootCause(e);
         }
     }
-
-
 }

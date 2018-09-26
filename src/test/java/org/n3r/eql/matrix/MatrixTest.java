@@ -1,10 +1,7 @@
 package org.n3r.eql.matrix;
 
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.rules.Timeout;
 import org.n3r.eql.Eql;
 import org.n3r.eql.EqlTran;
 import org.n3r.eql.Eqll;
@@ -14,8 +11,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class MatrixTest {
-    @Rule
-    public TestRule globalTimeout = new Timeout(1000);
+//    @Rule
+//    public TestRule globalTimeout = new Timeout(10000);
 
 
     @BeforeClass
@@ -34,9 +31,9 @@ public class MatrixTest {
 
     @Test
     public void test1() {
-        new Eql("matrix").id("addPerson").params("a001", "0", "order").execute();
-        new Eql("matrix").id("addPerson").params("b001", "1", "bingoo").execute();
-        new Eql("matrix").id("addPerson").params("c001", "0", "huang").execute();
+        new Eql("matrix").id("addPerson").params("0", "a001", "order").execute();
+        new Eql("matrix").id("addPerson").params("1", "b001", "bingoo").execute();
+        new Eql("matrix").id("addPerson").params("0", "c001", "huang").execute();
 
         String name = new Eql("matrix").id("getPerson").params("a001").limit(1).execute();
         assertThat(name, is("order"));
@@ -58,7 +55,7 @@ public class MatrixTest {
 
         try {
             eqlTran.start();
-            mql.id("addPerson").params("a002", "0", "order123").execute();
+            mql.id("addPerson").params("0", "a002", "order123").execute();
             eqlTran.commit();
 
             String name = new Eql("matrix").id("getPerson").params("a002").limit(1).execute();

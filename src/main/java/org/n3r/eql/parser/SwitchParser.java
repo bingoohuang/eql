@@ -1,6 +1,7 @@
 package org.n3r.eql.parser;
 
 import com.google.common.collect.Lists;
+import lombok.val;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -33,19 +34,13 @@ public class SwitchParser implements PartParser {
         for (int ii = mergedLines.size(); i < ii; ++i) {
             String line = mergedLines.get(i);
 
-            String clearLine;
-            if (line.startsWith("--")) {
-                clearLine = ParserUtils.substr(line, "--".length());
-            } else {
-                Matcher matcher = ParserUtils.inlineComment.matcher(line);
-                if (matcher.matches()) {
-                    clearLine = matcher.group(1).trim();
-                } else {
-                    lastPart = new LiteralPart(line);
-                    multiPart.addPart(lastPart);
-                    continue;
-                }
+            val clearLineRet = TrimParser.cleanLine(line, multiPart);
+            if (clearLineRet._2 != null) {
+                lastPart = clearLineRet._2;
+                continue;
             }
+
+            val clearLine = clearLineRet._1;
 
             if ("end".equalsIgnoreCase(clearLine)) {
                 newCondition();

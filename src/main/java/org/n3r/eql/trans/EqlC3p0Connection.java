@@ -1,11 +1,10 @@
 package org.n3r.eql.trans;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import lombok.SneakyThrows;
 import org.n3r.eql.config.EqlConfig;
-import org.n3r.eql.util.Fucks;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 public class EqlC3p0Connection extends AbstractEqlConnection {
     ComboPooledDataSource cpds;
@@ -15,13 +14,9 @@ public class EqlC3p0Connection extends AbstractEqlConnection {
         cpds = new ComboPooledDataSource();
     }
 
-    @Override
+    @Override @SneakyThrows
     public Connection getConnection(String dbName) {
-        try {
-            return cpds.getConnection();
-        } catch (SQLException e) {
-            throw Fucks.fuck(e);
-        }
+        return cpds.getConnection();
     }
 
     @Override

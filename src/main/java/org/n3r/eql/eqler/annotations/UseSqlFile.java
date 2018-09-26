@@ -7,5 +7,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface UseSqlFile {
     String value() default "";
+
     Class<?> clazz() default Void.class;
 }

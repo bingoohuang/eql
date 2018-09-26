@@ -11,11 +11,11 @@ import static org.junit.Assert.assertThat;
 
 public class DqlTest {
     @Test
-    public void test() throws InterruptedException {
+    public void test() {
         MockDiamondServer.setUpMockServer();
         MockDiamondServer.setConfigInfo("EqlConfig", "DEFAULT",
                 "# 数据库连接信息\n" +
-                        "url=jdbc\\:mysql\\://192.168.99.100:13306/diamond?useUnicode\\=true&&characterEncoding\\=UTF-8&connectTimeout\\=1000&autoReconnect\\=true\n" +
+                        "url=jdbc:mysql://127.0.0.1:13306/dba?useUnicode=true&&characterEncoding=UTF-8&connectTimeout=30000&socketTimeout=30000&autoReconnect=true\n" +
                         "username=root\n" +
                         "password=my-secret-pw\n" +
                         "\n" +

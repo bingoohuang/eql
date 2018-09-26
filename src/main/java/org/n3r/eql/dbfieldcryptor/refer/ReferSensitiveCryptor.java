@@ -1,6 +1,6 @@
 package org.n3r.eql.dbfieldcryptor.refer;
 
-import org.n3r.eql.config.EqlConfig;
+import lombok.val;
 import org.n3r.eql.dbfieldcryptor.EqlSecretFieldsConnectionProxy;
 import org.n3r.eql.dbfieldcryptor.SensitiveCryptor;
 import org.n3r.eql.dbfieldcryptor.refer.aes.AesCryptor;
@@ -10,10 +10,10 @@ public class ReferSensitiveCryptor implements SensitiveCryptor {
     private AesCryptor aesCryptor;
 
     public ReferSensitiveCryptor() {
-        EqlConfig eqlConfig = EqlSecretFieldsConnectionProxy.threadLocal.get();
+        val eqlConfig = EqlSecretFieldsConnectionProxy.threadLocal.get();
         if (eqlConfig == null) return;
 
-        String password = eqlConfig.getStr("securetDatabaseFields.password");
+        val password = eqlConfig.getStr("securetDatabaseFields.password");
         if (S.isBlank(password)) return;
 
         this.aesCryptor = new AesCryptor(password);

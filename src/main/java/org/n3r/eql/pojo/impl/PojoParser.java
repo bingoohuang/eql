@@ -18,7 +18,7 @@ import java.util.List;
 public class PojoParser {
     static LoadingCache<Class<?>, String> creatEQLCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
         @Override
-        public String load(Class<?> pojoClass) throws Exception {
+        public String load(Class<?> pojoClass) {
             return parseCreatEQLWoCache(pojoClass);
         }
     });
@@ -65,7 +65,7 @@ public class PojoParser {
 
     static LoadingCache<Class<?>, String> readSqlCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
         @Override
-        public String load(Class<?> pojoClass) throws Exception {
+        public String load(Class<?> pojoClass) {
             return parseReadSqlWoCache(pojoClass);
         }
     });
@@ -101,7 +101,7 @@ public class PojoParser {
 
     static LoadingCache<Class<?>, String> updatEQLCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
         @Override
-        public String load(Class<?> pojoClass) throws Exception {
+        public String load(Class<?> pojoClass) {
             return parseUpdatEQLWoCache(pojoClass, "");
         }
     });
@@ -113,7 +113,7 @@ public class PojoParser {
     static public String PREFIX_FLAG = "_flag_";
     static LoadingCache<Class<?>, String> updatEQLCache2 = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
         @Override
-        public String load(Class<?> pojoClass) throws Exception {
+        public String load(Class<?> pojoClass) {
             return parseUpdatEQLWoCache(pojoClass, PREFIX_FLAG);
         }
     });
@@ -156,7 +156,7 @@ public class PojoParser {
 
     static LoadingCache<Class<?>, String> deletEQLCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, String>() {
         @Override
-        public String load(Class<?> pojoClass) throws Exception {
+        public String load(Class<?> pojoClass) {
             return parseDeletEQLWoCache(pojoClass);
         }
     });

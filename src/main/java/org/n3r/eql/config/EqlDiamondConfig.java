@@ -1,17 +1,17 @@
 package org.n3r.eql.config;
 
-import org.n3r.diamond.client.DiamondListenerAdapter;
+import lombok.val;
+import org.n3r.diamond.client.DiamondListener;
 import org.n3r.diamond.client.DiamondManager;
-import org.n3r.diamond.client.DiamondStone;
 import org.n3r.diamond.client.Miner;
 import org.n3r.eql.impl.DefaultEqlConfigDecorator;
 
 public class EqlDiamondConfig extends EqlPropertiesConfig
         implements EqlTranFactoryCacheLifeCycle {
     public static final String EQL_CONFIG_GROUP_NAME = "EqlConfig";
-    
+
     private String connectionName;
-    private DiamondListenerAdapter diamondListener;
+    private DiamondListener diamondListener;
     private DiamondManager diamondManager;
 
     public EqlDiamondConfig(String connectionName) {
@@ -22,13 +22,8 @@ public class EqlDiamondConfig extends EqlPropertiesConfig
     @Override
     public void onLoad() {
         diamondManager = new DiamondManager(EQL_CONFIG_GROUP_NAME, connectionName);
-        final EqlConfigDecorator eqlConfig = new DefaultEqlConfigDecorator(this);
-        diamondListener = new DiamondListenerAdapter() {
-            @Override
-            public void accept(DiamondStone diamondStone) {
-                EqlConfigManager.invalidateCache(eqlConfig);
-            }
-        };
+        val eqlConfig = new DefaultEqlConfigDecorator(this);
+        diamondListener = diamondStone -> EqlConfigManager.invalidateCache(eqlConfig);
 
         diamondManager.addDiamondListener(diamondListener);
     }

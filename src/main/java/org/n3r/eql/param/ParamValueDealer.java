@@ -1,5 +1,7 @@
 package org.n3r.eql.param;
 
+import lombok.Getter;
+import org.n3r.eql.param.EqlParamPlaceholder.Like;
 import org.n3r.eql.util.S;
 
 import java.sql.Timestamp;
@@ -7,19 +9,11 @@ import java.util.Date;
 
 public class ParamValueDealer {
     private EqlParamPlaceholder placeHolder;
-    private  Object boundParam;
-    private Object paramValue;
+    @Getter Object boundParam;
+    @Getter Object paramValue;
 
     public ParamValueDealer(EqlParamPlaceholder placeHolder) {
         this.placeHolder = placeHolder;
-    }
-
-    public Object getBoundParam() {
-        return boundParam;
-    }
-
-    public Object getParamValue() {
-        return paramValue;
     }
 
     public void dealSingleValue(Object value) {
@@ -27,45 +21,71 @@ public class ParamValueDealer {
         paramValue = value;
 
         if (value == null) {
-            // nothing to do
-        } else if (value instanceof Date) {
+            if (placeHolder != null && placeHolder.hasDefaultValue()) {
+                boundParam = placeHolder.getDefaultValue();
+            }
+            return;
+        }
+
+        if (value instanceof Date) {
             Timestamp date = new Timestamp(((Date) value).getTime());
             boundParam = S.toDateTimeStr(date);
             paramValue = date;
-        } else if (value.getClass().isEnum()) {
+            return;
+        }
+
+        if (value.getClass().isEnum()) {
             if (value instanceof InternalValueable) {
                 paramValue = ((InternalValueable) value).internalValue();
                 boundParam = paramValue;
+            } else {
+                boundParam = "" + value;
             }
-        } else {
-            if (placeHolder != null && value instanceof CharSequence) {
-                String strValue = value.toString();
-                if (placeHolder.isLob()) {
-                    paramValue = S.toBytes(strValue);
-                } else if (placeHolder.getLike() == EqlParamPlaceholder.Like.Like) {
-                    paramValue = tryAddLeftAndRightPercent(strValue);
-                } else if (placeHolder.getLike() == EqlParamPlaceholder.Like.RightLike) {
-                    paramValue = tryAddRightPercent(strValue);
-                } else if (placeHolder.getLike() == EqlParamPlaceholder.Like.LeftLike) {
-                    paramValue = tryAddLeftPercent(strValue);
-                } else if (placeHolder.isNumberColumn() && strValue.trim().length() == 0) {
-                    paramValue = null;
-                }
-            }
-
-            boundParam = paramValue;
+            return;
         }
+
+        if (placeHolder != null && value instanceof CharSequence) {
+            String strValue = value.toString();
+            if (placeHolder.isLob()) {
+                paramValue = S.toBytes(strValue);
+            } else if (placeHolder.getLike() == Like.Like) {
+                paramValue = tryAddLeftAndRightPercent(strValue);
+            } else if (placeHolder.getLike() == Like.RightLike) {
+                paramValue = tryAddRightPercent(strValue);
+            } else if (placeHolder.getLike() == Like.LeftLike) {
+                paramValue = tryAddLeftPercent(strValue);
+            } else if (placeHolder.isNumberColumn() && S.isBlank(strValue)) {
+                paramValue = null;
+            }
+        }
+
+        boundParam = paramValue;
     }
 
     private String tryAddLeftPercent(String strValue) {
-        return (strValue.startsWith("%") ? "" : "%") + strValue;
+        return addLeftPercent(strValue) + tryEscape(strValue);
     }
 
     private String tryAddRightPercent(String strValue) {
-        return strValue + (strValue.endsWith("%") ? "" : "%");
+        return tryEscape(strValue) + addRightPercent(strValue);
     }
 
     private String tryAddLeftAndRightPercent(String strValue) {
-        return (strValue.startsWith("%") ? "" : "%") + strValue + (strValue.endsWith("%") ? "" : "%");
+        return addLeftPercent(strValue) + tryEscape(strValue) + addRightPercent(strValue);
+    }
+
+    private String addLeftPercent(String strValue) {
+        return strValue.startsWith("%") ? (placeHolder.isEscape() ? "%" : "") : "%";
+    }
+
+    private String addRightPercent(String strValue) {
+        return strValue.endsWith("%") ? (placeHolder.isEscape() ? "%" : "") : "%";
+    }
+
+
+    private String tryEscape(String strValue) {
+        if (!placeHolder.isEscape()) return strValue;
+
+        return strValue.replaceAll("[%_]", placeHolder.getEscapeValue() + "$0");
     }
 }

@@ -1,38 +1,35 @@
 package org.n3r.eql.dbfieldcryptor.proxy;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.n3r.eql.dbfieldcryptor.SensitiveCryptor;
 import org.n3r.eql.dbfieldcryptor.parser.SensitiveFieldsParser;
 import org.n3r.eql.util.O;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-class PreparedStmtHandler implements InvocationHandler {
-    private final Logger logger = LoggerFactory.getLogger(PreparedStmtHandler.class);
+import static java.lang.reflect.Proxy.newProxyInstance;
 
+@Slf4j @AllArgsConstructor class PreparedStmtHandler implements InvocationHandler {
     private final PreparedStatement pstmt;
-    private final SensitiveCryptor cryptor;
     private final SensitiveFieldsParser parser;
-
-    public PreparedStmtHandler(PreparedStatement pStmt, SensitiveFieldsParser parser, SensitiveCryptor cryptor) {
-        this.pstmt = pStmt;
-        this.parser = parser;
-        this.cryptor = cryptor;
-    }
+    private final SensitiveCryptor cryptor;
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invoke(
+            Object proxy,
+            Method method,
+            Object[] args) throws Throwable {
         if (O.in(method.getName(), "setString", "setObject")
                 && parser.inBindIndices((Integer) args[0])) {
             try {
-                args[1] = args[1] == null ? null : cryptor.encrypt(args[1].toString());
+                if (args[1] != null)
+                    args[1] = cryptor.encrypt(args[1].toString());
             } catch (Exception e) {
-                logger.warn("Encrypt parameter #{}# error", args[1], e);
+                log.warn("Encrypt parameter #{}# error", args[1], e);
             }
         }
 
@@ -40,14 +37,15 @@ class PreparedStmtHandler implements InvocationHandler {
 
         if (O.in(method.getName(), "executeQuery", "getResultSet")
                 && parser.getSecureResultIndices().size() > 0) {
-            result = new ResultSetHandler((ResultSet) result, parser, cryptor).createResultSetProxy();
+            result = new ResultSetHandler((ResultSet) result, parser, cryptor)
+                    .createResultSetProxy();
         }
 
         return result;
     }
 
     public PreparedStatement createPreparedStatementProxy() {
-        return (PreparedStatement) Proxy.newProxyInstance(getClass().getClassLoader(),
+        return (PreparedStatement) newProxyInstance(getClass().getClassLoader(),
                 new Class<?>[]{PreparedStatement.class}, this);
     }
 }
