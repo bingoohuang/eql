@@ -128,10 +128,10 @@ public class MethodGenerator<T> implements Generatable {
             val methodParam = methodAllParam.getMethodParam(i);
             val dynamic = methodParam.getDynamic();
             if (dynamic == null) continue;
-            if (isBlank(dynamic.name())) continue;
+            if (isBlank(dynamic.value()) && isBlank(dynamic.name())) continue;
 
             mv.visitVarInsn(ALOAD, methodAllParam.getAsmLocalVarNamedDynamicIndex());
-            mv.visitLdcInsn(dynamic.name());
+            mv.visitLdcInsn(isBlank(dynamic.value()) ? dynamic.name() : dynamic.value());
 
             visitVar(i + 1 + methodParam.getOffset(), Type.getType(methodParam.getParamType()));
             mv.visitMethodInsn(INVOKEINTERFACE, p(Map.class), "put",
