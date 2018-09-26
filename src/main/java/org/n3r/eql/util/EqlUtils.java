@@ -148,6 +148,7 @@ public class EqlUtils {
 
         if (value instanceof Iterable) return (Iterable<?>) value;
         if (value.getClass().isArray()) return newArrayList((Object[]) value);
+        if (value instanceof Map) return ((Map) value).entrySet();
 
         throw new RuntimeException(collectionExpr + " in "
                 + eqlRun.getParamBean() + " is not an expression of a collection");
