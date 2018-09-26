@@ -23,6 +23,12 @@ public class ForTest {
 
         String str = new Eql().selectFirst("for1").params(map).execute();
         assertThat(str, is("x"));
+
+        Map<String, Object> map2 = Maps.newHashMap();
+        map2.put("map", ImmutableMap.of("a", "b", "x", "y"));
+
+        String str2 = new Eql().selectFirst("for2").params(map2).execute();
+        assertThat(str2, is("x"));
     }
 
     @Test

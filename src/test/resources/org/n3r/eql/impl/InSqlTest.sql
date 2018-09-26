@@ -11,3 +11,7 @@ SELECT NAME FROM EQL_IN WHERE ID IN (/* in _1 */)
 
 -- [testDynamic]
 SELECT NAME FROM $$ WHERE ID IN (/* in _1 */)
+
+
+-- [testMap]
+SELECT NAME FROM EQL_IN WHERE (ID, NAME) IN (/* in _1 */)

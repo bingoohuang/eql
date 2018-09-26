@@ -154,7 +154,17 @@ public class EqlUtils {
                 + eqlRun.getParamBean() + " is not an expression of a collection");
     }
 
+    public static String collectionExprString(String collectionExpr, EqlRun eqlRun) {
+        val evaluator = eqlRun.getEqlConfig().getExpressionEvaluator();
+        val value = evaluator.eval(collectionExpr, eqlRun);
+        if (value == null) return null;
 
+        if (value instanceof Iterable || value.getClass().isArray()) return collectionExpr;
+        if (value instanceof Map) return collectionExpr + ".entrySet().toArray()";
+
+        throw new RuntimeException(collectionExpr + " in "
+                + eqlRun.getParamBean() + " is not an expression of a collection");
+    }
 
     /*
      * Determine if SQLException#getSQLState() of the catched SQLException

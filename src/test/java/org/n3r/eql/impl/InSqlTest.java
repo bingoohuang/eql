@@ -1,6 +1,8 @@
 package org.n3r.eql.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -9,6 +11,7 @@ import org.n3r.eql.map.EqlRun;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.of;
@@ -54,6 +57,14 @@ public class InSqlTest {
         ids.add("1");
         ids.add("2");
         Eql eql = new Eql("h2").id("test").params(ids);
+        List<String> result = eql.execute();
+        assertThat(result, is(equalTo((List<String>) of("AA", "BB"))));
+    }
+
+    @Test
+    public void testMap() {
+        Map<String, String> ids = ImmutableMap.of("1", "AA", "2", "BB");
+        Eql eql = new Eql("h2").params(ids);
         List<String> result = eql.execute();
         assertThat(result, is(equalTo((List<String>) of("AA", "BB"))));
     }
