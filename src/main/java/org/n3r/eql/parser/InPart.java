@@ -28,7 +28,7 @@ public class InPart implements EqlPart {
             } else {
                 questions.append("(#")
                         .append(collectionExpr)
-                        .append('[').append(i).append("].key, ")
+                        .append('[').append(i).append("].key#, #")
                         .append(collectionExpr)
                         .append('[').append(i).append("].value#)");
             }
