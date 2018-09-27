@@ -164,11 +164,11 @@ public class EqlRun implements Cloneable {
             return (Boolean) boundParam ? "1" : "0";
         if (boundParam instanceof Number) return boundParam.toString();
         if (boundParam instanceof Date)
-            return '\'' + simpleDateFormat.format((Date) boundParam) + '\'';
+            return S.wrap(simpleDateFormat.format((Date) boundParam), '\'');
         if (boundParam instanceof byte[])
-            return '\'' + Hex.encode((byte[]) boundParam) + '\'';
+            return S.wrap(Hex.encode((byte[]) boundParam), '\'');
 
-        return '\'' + S.escapeSingleQuotes(boundParam.toString()) + '\'';
+        return S.wrap(S.escapeSingleQuotes(boundParam.toString()), '\'');
     }
 
     @Getter String runSql;
