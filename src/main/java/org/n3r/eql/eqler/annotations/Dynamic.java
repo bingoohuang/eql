@@ -18,5 +18,12 @@ public @interface Dynamic {
      *
      * @return 用做命名dynamic参数
      */
+    String value() default "";
+
+    /**
+     * alias for value().
+     *
+     * @return alias for value().
+     */
     String name() default "";
 }

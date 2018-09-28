@@ -8,6 +8,7 @@ import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.util.S;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,14 +22,15 @@ public class ForPart implements EqlPart {
     private String separator;
     private String close;
 
-    static Pattern PARAM_PATTERN = Pattern.compile("#\\s*(.+?)\\s*#");
-    static Pattern DYNAMIC_PATTERN = Pattern.compile("\\$\\s*(.+?)\\s*\\$");
+    private static Pattern PARAM_PATTERN = Pattern.compile("#\\s*(.+?)\\s*#");
+    private static Pattern DYNAMIC_PATTERN = Pattern.compile("\\$\\s*(.+?)\\s*\\$");
 
     @Override
     public String evalSql(EqlRun eqlRun) {
         val items = EqlUtils.evalCollection(collection, eqlRun);
         if (items == null) return "";
 
+        val collectionExpr = EqlUtils.collectionExprString(collection, eqlRun);
         val preContext = eqlRun.getExecutionContext();
         val context = new HashMap<String, Object>(preContext);
         eqlRun.setExecutionContext(context);
@@ -44,8 +46,8 @@ public class ForPart implements EqlPart {
             context.put(item, itemObj);
 
             String sql = part.evalSql(eqlRun);
-            sql = processParams(PARAM_PATTERN, '#', itemPattern, indexPattern, i, sql);
-            sql = processParams(DYNAMIC_PATTERN, '$', itemPattern, indexPattern, i, sql);
+            sql = processParams(PARAM_PATTERN, '#', itemPattern, indexPattern, collectionExpr, i, sql);
+            sql = processParams(DYNAMIC_PATTERN, '$', itemPattern, indexPattern, collectionExpr, i, sql);
 
             if (i > 0 && S.isNotBlank(sql)) str.append(separator);
 
@@ -60,10 +62,10 @@ public class ForPart implements EqlPart {
 
     private String processParams(Pattern pattern, char ch,
                                  Pattern itemPattern, Pattern indexPattern,
-                                 int idx, String sql) {
+                                 String collectionExpr, int idx, String sql) {
         int startIndex = 0;
         StringBuilder str = new StringBuilder();
-        String colItem = collection + "[" + idx + "]";
+        String colItem = collectionExpr + "[" + idx + "]";
 
         Matcher matcher = pattern.matcher(sql);
         while (matcher.find()) {

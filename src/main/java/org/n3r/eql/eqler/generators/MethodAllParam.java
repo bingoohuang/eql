@@ -111,7 +111,7 @@ public class MethodAllParam {
                 throw new RuntimeException(
                         "@DynamicParam(sole=true) and @NamedParam can not co-exists");
 
-            if (isBlank(dynamic.name()))
+            if (isBlank(dynamic.value()) && isBlank(dynamic.name()))
                 methodParam.setSeqDynamicIndex(seqDynamicsCount++);
             else methodParam.setSeqDynamicIndex(namedDynamicCount++);
 

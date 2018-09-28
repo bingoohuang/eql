@@ -8,6 +8,14 @@ WHERE 'x' in
 #item#
 -- end
 
+-- [for2]
+SELECT 'x'
+FROM DUAL
+WHERE 'x' in
+-- for item=item index=index collection=map open=( separator=, close=)
+#item.key#, #item.value#
+-- end
+
 -- [findPageAddressInfo]
 SELECT id, NAME, email, phone
 FROM MVC_ADDRESS_INFO

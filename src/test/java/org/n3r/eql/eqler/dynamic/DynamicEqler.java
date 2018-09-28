@@ -20,7 +20,7 @@ public interface DynamicEqler {
             @SqlId String id);
 
     Map<String, String> echoNamedWithSqlId(
-            @Dynamic(name = "hello") String hello,
+            @Dynamic("hello") String hello,
             @Param("world") String world,
             @SqlId String id);
 
