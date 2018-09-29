@@ -4,7 +4,7 @@
 
     <groupId>com.github.bingoohuang</groupId>
     <artifactId>eql</artifactId>
-    <version>0.1.6-SNAPSHOT</version>
+    <version>0.1.7-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>easy sql</name>
@@ -49,10 +49,11 @@
     </developers>
 
     <dependencies>
+
         <dependency>
-            <groupId>com.jakewharton.fliptables</groupId>
+            <groupId>com.github.bingoohuang</groupId>
             <artifactId>fliptables</artifactId>
-            <version>1.0.2</version>
+            <version>0.0.2</version>
             <optional>true</optional>
         </dependency>
         <dependency>

@@ -1,6 +1,6 @@
 package org.n3r.eql.util;
 
-import com.jakewharton.fliptables.FlipTableConverters;
+import com.github.bingoohuang.FlipTable;
 import lombok.val;
 import lombok.var;
 import org.apache.commons.lang3.StringUtils;
@@ -12,7 +12,7 @@ import java.util.List;
 
 public class Logs {
     public static final boolean HAS_FLIP_TABLE_CONVERTERS
-            = BlackcatUtils.classExists("com.jakewharton.fliptables.FlipTableConverters");
+            = BlackcatUtils.classExists("com.github.bingoohuang.FlipTable");
 
 
     public static void logResult(EqlConfig eqlConfig, String sqlClassPath, Object execRet, String sqlId, String tagSqlId) {
@@ -35,14 +35,14 @@ public class Logs {
         if (size > logMaxRows) {
             List logRows = list.subList(0, logMaxRows);
             if (HAS_FLIP_TABLE_CONVERTERS) {
-                String table = FlipTableConverters.fromIterable(logRows, logRows.get(0).getClass());
+                String table = FlipTable.of(logRows);
                 logger.debug("first {}/{} rows: \n{}", logMaxRows, size, table);
             } else {
                 logger.debug("first {}/{} rows: {}", logMaxRows, size, logRows);
             }
         } else {
             if (HAS_FLIP_TABLE_CONVERTERS) {
-                String table = FlipTableConverters.fromIterable(list, list.get(0).getClass());
+                String table = FlipTable.of(list);
                 logger.debug("total {} rows: \n{}", size, table);
             } else {
                 logger.debug("total {} rows: {}", size, list);
