@@ -41,4 +41,17 @@ public class ReplaceSqlTest {
                 .execute();
         assertThat(rows, is(equalTo(2)));
     }
+
+    @Test
+    public void test3() {
+        int rows = new Eql("mysql")
+                .params(of("id", 3, "data", "Old", "ts", new Timestamp(System.currentTimeMillis())))
+                .execute();
+        assertThat(rows, is(equalTo(1)));
+
+        rows = new Eql("mysql")
+                .params(of("id", 3, "data", "New", "ts", new Timestamp(System.currentTimeMillis())))
+                .execute();
+        assertThat(rows, is(equalTo(2)));
+    }
 }

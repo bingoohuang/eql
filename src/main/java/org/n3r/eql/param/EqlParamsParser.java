@@ -208,9 +208,10 @@ public class EqlParamsParser {
         if (leftBracket < 0 || rightBracket < 0) return null;
 
         // 分割insert into xxxtable(a,b,c,d)中的字段列表部分(括弧内)
-        String fieldsStr = rawSql.substring(leftBracket + 1, rightBracket);
-        Splitter splitter = Splitter.on(',').trimResults().omitEmptyStrings();
-        String[] fields = Iterables.toArray(splitter.split(fieldsStr), String.class);
+        val fieldsStr = rawSql.substring(leftBracket + 1, rightBracket);
+        val splitter = Splitter.on(',').trimResults().omitEmptyStrings();
+        val originalFields = Iterables.toArray(splitter.split(fieldsStr), String.class);
+        String[] fields = cleanupFieldNames(originalFields);
         // 计算当前#?#是第几个
         val valuePos = rawSql.toUpperCase().indexOf("VALUES");
 
@@ -226,6 +227,37 @@ public class EqlParamsParser {
         }
 
         return null;
+    }
+
+    private String[] cleanupFieldNames(String[] originalFields) {
+        for (int i = 0; i < originalFields.length; ++i) {
+            originalFields[i] = unquote(originalFields[i]);
+        }
+        return originalFields;
+    }
+
+    public static String unquote(String s1) {
+        if (s1 == null) return null;
+
+        String sub;
+        int doubleQuote = 0;
+        char ch = s1.charAt(0);
+        if (ch == '`' || ch == '\'' || ch == '\"') {
+            sub = s1.substring(1);
+            ++doubleQuote;
+        } else {
+            return s1;
+        }
+
+        if (sub.length() > 1) {
+            char ch2 = sub.charAt(sub.length() - 1);
+            if (ch == ch2) {
+                sub = sub.substring(0, sub.length() - 1);
+                ++doubleQuote;
+            }
+        }
+
+        return doubleQuote == 2 ? sub : s1;
     }
 
     private String inferVarNameInUpdateSQL(String rawSql, int startPos, int endPos) {
@@ -283,7 +315,7 @@ public class EqlParamsParser {
             } else {
                 throw new EqlConfigException(
                         "[" + (eqlUniqueSQLId != null ? eqlUniqueSQLId.getSqlId() : templateSQL)
-                        + "] with different param binding types");
+                                + "] with different param binding types");
             }
         }
 
