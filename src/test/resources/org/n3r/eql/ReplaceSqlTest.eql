@@ -17,5 +17,5 @@ REPLACE INTO test_replace_sql(id, data, ts)
 VALUES (#?#, #?#, #?#)
 
 -- [test3]
-REPLACE INTO test_replace_sql(`id`, "data", 'ts')
+REPLACE INTO test_replace_sql(`id`, data, ts)
 VALUES (#?#, #?#, #?#)
