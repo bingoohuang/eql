@@ -19,3 +19,6 @@ VALUES (#?#, #?#, #?#)
 -- [test3]
 REPLACE INTO test_replace_sql(`id`, data, ts)
 VALUES (#?#, #?#, #?#)
+
+-- [test4]
+update test_replace_sql set `data` = #?#, `ts` = #?# where `id` = #?#
