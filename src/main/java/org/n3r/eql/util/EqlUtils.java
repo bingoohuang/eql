@@ -103,7 +103,7 @@ public class EqlUtils {
             return returnSql.substring(0, sql.length() - "AND".length());
 
         if (S.endsWith(upper, "OR"))
-            return returnSql.substring(0, sql.length() - "AND".length());
+            return returnSql.substring(0, sql.length() - "OR".length());
 
         return returnSql;
     }
@@ -138,7 +138,11 @@ public class EqlUtils {
         int queryTimeout = getConfigInt(eqlConfig, "query.timeout.seconds", 60);
         if (queryTimeout <= 0) queryTimeout = 60;
 
-        stmt.setQueryTimeout(queryTimeout);
+        try {
+            stmt.setQueryTimeout(queryTimeout);
+        } catch (Exception ignore) {
+            
+        }
     }
 
     public static Iterable<?> evalCollection(String collectionExpr, EqlRun eqlRun) {
