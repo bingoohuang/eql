@@ -469,18 +469,14 @@ public abstract class SensitiveFieldsParser {
         val subParser = new OracleSensitiveFieldsParser(secureFields, sql);
         subParser.parseSelectQuery(subQuery);
 
-        switch (mode) {
-            case FROM:
-                val bindAndVariant = new BindVariant(subParser.getVariantIndex(),
-                        subParser.getSecureBindIndices());
-                subQueryBindAndVariantOfFrom.add(bindAndVariant);
-                break;
-
-            case SELECT:
-                for (Integer index : subParser.getSecureBindIndices())
-                    this.secureBindIndices.add(variantIndex + index);
-                variantIndex += subParser.getVariantIndex();
-                break;
+        if (mode == QueryBelongs.FROM) {
+            val bindAndVariant = new BindVariant(subParser.getVariantIndex(),
+                    subParser.getSecureBindIndices());
+            subQueryBindAndVariantOfFrom.add(bindAndVariant);
+        } else if (mode == QueryBelongs.SELECT) {
+            for (Integer index : subParser.getSecureBindIndices())
+                this.secureBindIndices.add(variantIndex + index);
+            variantIndex += subParser.getVariantIndex();
         }
 
         return subParser;

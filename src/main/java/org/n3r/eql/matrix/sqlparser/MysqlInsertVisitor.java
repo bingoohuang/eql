@@ -7,7 +7,7 @@ import com.google.common.collect.Lists;
 import lombok.val;
 
 public class MysqlInsertVisitor extends MysqlMatrixVisitor {
-
+    @Override
     public boolean visit(MySqlInsertStatement x) {
         String tableName = x.getTableName().getSimpleName();
 

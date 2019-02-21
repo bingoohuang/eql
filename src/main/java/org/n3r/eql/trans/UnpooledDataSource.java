@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 @NoArgsConstructor
 public class UnpooledDataSource implements DataSource {
     @Getter @Setter private Properties driverProperties;
-    private static Map<String, Driver> registeredDrivers = new ConcurrentHashMap<String, Driver>();
+    private static Map<String, Driver> registeredDrivers = new ConcurrentHashMap<>();
 
     @Getter @Setter private String driverClass;
     @Getter @Setter private String url;

@@ -568,7 +568,7 @@ public class SimpleDataSource implements DataSource {
 
         while (conn == null) {
             synchronized (POOL_LOCK) {
-                if (idleConnections.size() > 0) {
+                if (!idleConnections.isEmpty()) {
                     // Pool has available connection
                     conn = (SimplePooledConnection) idleConnections.remove(0);
                     if (log.isDebugEnabled()) {

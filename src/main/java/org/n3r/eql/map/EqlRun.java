@@ -96,7 +96,7 @@ public class EqlRun implements Cloneable {
 
     private void createEvalSql(int index, String sqlClassPath, EqlConfigDecorator eqlConfig,
                                String tagSqlId, String msg) {
-        val hasBoundParams = boundParams != null && boundParams.size() > 0;
+        val hasBoundParams = boundParams != null && !boundParams.isEmpty();
 
         if (hasBoundParams) {
             val log = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "params");

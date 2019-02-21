@@ -18,14 +18,9 @@ public class ESelectStmt implements Closeable, EStmt {
     private EqlRsRetriever rsRetriever;
     private int rowNum;
     private EqlRun eqlRun;
-    private Logger logger;
     private Object[] params;
     private int fetchSize;
     private String sqlClassPath;
-
-    public void executeQuery() {
-        executeQuery(params);
-    }
 
     @SneakyThrows
     public void executeQuery(Object... params) {
@@ -86,7 +81,6 @@ public class ESelectStmt implements Closeable, EStmt {
 
     @Override
     public void setLogger(Logger logger) {
-        this.logger = logger;
     }
 
     @Override

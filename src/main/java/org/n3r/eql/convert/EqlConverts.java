@@ -20,7 +20,7 @@ public class EqlConverts {
             RsAware rs, int index,
             Collection<EqlConvertAnn<EqlConvert>> eqlConvertAnns, Object value
     ) {
-        if (eqlConvertAnns.size() > 0) {
+        if (!eqlConvertAnns.isEmpty()) {
             val originalValue = Rs.getResultSetValue(rs, index, null);
             value = convert(eqlConvertAnns, originalValue);
         }

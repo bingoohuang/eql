@@ -36,7 +36,7 @@ import static java.lang.reflect.Proxy.newProxyInstance;
         Object result = method.invoke(pstmt, args);
 
         if (O.in(method.getName(), "executeQuery", "getResultSet")
-                && parser.getSecureResultIndices().size() > 0) {
+                && !parser.getSecureResultIndices().isEmpty()) {
             result = new ResultSetHandler((ResultSet) result, parser, cryptor)
                     .createResultSetProxy();
         }

@@ -3,7 +3,7 @@ package org.n3r.eql.trans;
 import org.n3r.eql.EqlTran;
 
 public class EqlTranThreadLocal {
-    static ThreadLocal<EqlTran> eqlTranLocal = new ThreadLocal<EqlTran>();
+    static ThreadLocal<EqlTran> eqlTranLocal = new ThreadLocal<>();
 
     public static void set(EqlTran eqlTran) {
         eqlTranLocal.set(eqlTran);

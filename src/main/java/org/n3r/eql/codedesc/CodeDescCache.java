@@ -5,6 +5,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.Miner;
@@ -17,6 +18,7 @@ import org.n3r.eql.param.EqlParamsBinder;
 import org.n3r.eql.parser.EqlBlock;
 import org.n3r.eql.util.EqlUtils;
 
+@Slf4j
 public class CodeDescCache {
     public static final String EQL_CACHE = "EQL.CACHE.DESC";
     static Cache<EqlUniqueSqlId, Optional<String>> cachEQLIdVersion
@@ -123,8 +125,7 @@ public class CodeDescCache {
 
             return mapper;
         } catch (Exception ex) {
-            ex.printStackTrace();
-            // ignore
+            log.warn("error", ex);
         }
 
         return null;

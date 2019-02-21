@@ -27,7 +27,7 @@ public class EqlParamsBinder {
         this.eqlRun = eqlRun;
 
         eqlRun.setIterateOption(hasIterateOption);
-        boundParams = new ArrayList<Object>();
+        boundParams = new ArrayList<>();
 
         switch (eqlRun.getPlaceHolderType()) {
             case UNSET: // Only occurs when all parameters are optioned by :context or :contextOnly

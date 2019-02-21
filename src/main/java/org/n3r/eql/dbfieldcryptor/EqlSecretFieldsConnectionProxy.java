@@ -26,7 +26,7 @@ public class EqlSecretFieldsConnectionProxy implements EqlConnection {
         eqlConnection = createEqlConnection(eqlConfig, PROXY_CONNECTION_IMPL);
         eqlConnection.initialize(eqlConfig);
 
-        threadLocal = new ThreadLocal<EqlConfig>();
+        threadLocal = new ThreadLocal<>();
         threadLocal.set(eqlConfig);
 
         String secretFieldsConfigableImpl = eqlConfig.getStr(SECRET_FIELDS_CONFIGABLE_IMPL);
@@ -57,9 +57,8 @@ public class EqlSecretFieldsConnectionProxy implements EqlConnection {
         DbDialect dbDialect = DbDialect.parseDbType(connection);
 
         if (parserCache == null || sensitiveCryptor == null) return null;
-        Connection connectionProxy = new ConnectionHandler(connection, sensitiveCryptor,
+        return new ConnectionHandler(connection, sensitiveCryptor,
                 parserCache, dbDialect).createConnectionProxy();
-        return connectionProxy;
     }
 
     @Override

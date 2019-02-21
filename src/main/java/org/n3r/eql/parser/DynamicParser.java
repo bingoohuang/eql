@@ -14,7 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DynamicParser {
-    private static Pattern DYNAMIC_PATTERN = Pattern.compile("'?\\$(.*?)\\$'?");
+    private static final Pattern DYNAMIC_PATTERN = Pattern.compile("'?\\$(.*?)\\$'?");
     private EqlDynamic dynamicSql;
     private String rawSql;
 
@@ -46,7 +46,7 @@ public class DynamicParser {
     }
 
     private void parsePlaceholders(List<String> placeHolders) {
-        List<EqlParamPlaceholder> paramPlaceholders = new ArrayList<EqlParamPlaceholder>();
+        List<EqlParamPlaceholder> paramPlaceholders = new ArrayList<>();
 
         PlaceholderType placeHoldertype = PlaceholderType.UNSET;
         for (String placeHolder : placeHolders) {

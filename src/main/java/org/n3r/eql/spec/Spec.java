@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Spec {
     private String name;
-    private List<String> params = new ArrayList<String>();
+    private List<String> params = new ArrayList<>();
 
     public String getName() {
         return name;

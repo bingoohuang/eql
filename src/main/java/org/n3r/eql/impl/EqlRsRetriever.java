@@ -69,7 +69,7 @@ public class EqlRsRetriever {
 
     @SneakyThrows
     private Object selectList(ResultSet rs) {
-        List<Object> result = new ArrayList<Object>();
+        List<Object> result = new ArrayList<>();
 
         val singleColumn = rs.getMetaData().getColumnCount() == 1;
         val rowMapper = getRowMapper(rs.getMetaData());
