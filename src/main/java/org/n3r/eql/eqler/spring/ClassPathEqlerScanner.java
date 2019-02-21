@@ -75,12 +75,12 @@ public class ClassPathEqlerScanner extends ClassPathBeanDefinitionScanner {
     protected boolean checkCandidate(String beanName, BeanDefinition beanDefinition) throws IllegalStateException {
         if (super.checkCandidate(beanName, beanDefinition)) {
             return true;
-        } else {
-            logger.warn("Skipping EqlerFactoryBean with name '" + beanName
-                    + "' and '" + beanDefinition.getBeanClassName() + "' eqlerInterface"
-                    + ". Bean already defined with the same name!");
-            return false;
         }
+
+        logger.warn("Skipping EqlerFactoryBean with name '" + beanName
+                + "' and '" + beanDefinition.getBeanClassName() + "' eqlerInterface"
+                + ". Bean already defined with the same name!");
+        return false;
     }
 
 }
