@@ -89,7 +89,7 @@ public class MtcpDataSourceHandler implements InvocationHandler {
         stat.append("Total " + shrunk + "/" + mtcpCache.size()
                 + " were shrunk.").append(EqlUtils.LINE_SEPARATOR);
 
-        Files.write(stat.toString(), dest, Charsets.UTF_8);
+        Files.asCharSink(dest, Charsets.UTF_8).write(stat);
     }
 
     private LoadingCache<String, DataSourceConfigurator> createMtcpCache(EqlConfig eqlConfig) {

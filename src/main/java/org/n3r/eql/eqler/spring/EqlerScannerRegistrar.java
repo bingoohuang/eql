@@ -9,6 +9,7 @@ import org.n3r.eql.eqler.annotations.EqlerConfig;
 
 
 public class EqlerScannerRegistrar extends XyzScannerRegistrar {
+    @SuppressWarnings("unchecked")
     public EqlerScannerRegistrar() {
         super(EqlerScan.class, EqlerFactoryBean.class, Eqler.class, EqlerConfig.class);
     }
