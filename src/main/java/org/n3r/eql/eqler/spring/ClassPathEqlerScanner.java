@@ -9,12 +9,8 @@ import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
-import org.springframework.core.type.classreading.MetadataReader;
-import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.core.type.filter.TypeFilter;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -29,12 +25,7 @@ public class ClassPathEqlerScanner extends ClassPathBeanDefinitionScanner {
      * those annotated with the annotationClass
      */
     public void registerFilters() {
-        addExcludeFilter(new TypeFilter() {
-            @Override
-            public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory) {
-                return !metadataReader.getClassMetadata().isInterface();
-            }
-        });
+        addExcludeFilter((metadataReader, metadataReaderFactory) -> !metadataReader.getClassMetadata().isInterface());
         addIncludeFilter(new AnnotationTypeFilter(Eqler.class));
         addIncludeFilter(new AnnotationTypeFilter(EqlerConfig.class));
     }
@@ -46,7 +37,7 @@ public class ClassPathEqlerScanner extends ClassPathBeanDefinitionScanner {
      */
     @Override
     public Set<BeanDefinitionHolder> doScan(String... basePackages) {
-        Set<BeanDefinitionHolder> beanDefinitions = super.doScan(basePackages);
+        val beanDefinitions = super.doScan(basePackages);
 
         if (beanDefinitions.isEmpty()) {
             logger.warn("No eqler was found in '" + Arrays.toString(basePackages) + "' package. Please check your configuration.");
@@ -61,8 +52,8 @@ public class ClassPathEqlerScanner extends ClassPathBeanDefinitionScanner {
 
                 // the mapper interface is the original class of the bean
                 // but, the actual class of the bean is MapperFactoryBean
-                definition.getPropertyValues().add("eqlerInterface", definition.getBeanClassName());
-                definition.setBeanClass(EqlerFactoryBean.class);
+                definition.getPropertyValues().add("xyzInterface", definition.getBeanClassName());
+                definition.setBeanClass(EqlerScannerRegistrar.EqlerFactoryBean.class);
             }
         }
 
@@ -84,12 +75,12 @@ public class ClassPathEqlerScanner extends ClassPathBeanDefinitionScanner {
     protected boolean checkCandidate(String beanName, BeanDefinition beanDefinition) throws IllegalStateException {
         if (super.checkCandidate(beanName, beanDefinition)) {
             return true;
-        } else {
-            logger.warn("Skipping EqlerFactoryBean with name '" + beanName
-                    + "' and '" + beanDefinition.getBeanClassName() + "' eqlerInterface"
-                    + ". Bean already defined with the same name!");
-            return false;
         }
+
+        logger.warn("Skipping EqlerFactoryBean with name '" + beanName
+                + "' and '" + beanDefinition.getBeanClassName() + "' eqlerInterface"
+                + ". Bean already defined with the same name!");
+        return false;
     }
 
 }

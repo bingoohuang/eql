@@ -5,11 +5,7 @@ import com.google.common.collect.Maps;
 import java.util.Map;
 
 public class EqlContext {
-    private static ThreadLocal<Map<String, Object>> threadLocalMap = new ThreadLocal<Map<String, Object>>() {
-        @Override protected Map<String, Object> initialValue() {
-            return Maps.newHashMap();
-        }
-    };
+    private static ThreadLocal<Map<String, Object>> threadLocalMap = ThreadLocal.withInitial(() -> Maps.newHashMap());
 
     public static void put(String name, Object value) {
         getMap().put(name, value);

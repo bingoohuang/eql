@@ -28,7 +28,7 @@ public class SpecParser {
         StringBuilder name = new StringBuilder();
         StringBuilder param = new StringBuilder();
         ParamQuoteState paramQuoteState = ParamQuoteState.None;
-        ArrayList<Spec> specsDefs = new ArrayList<Spec>();
+        ArrayList<Spec> specsDefs = new ArrayList<>();
         Spec spec = null;
         int i = 0;
         char ch = ' ';

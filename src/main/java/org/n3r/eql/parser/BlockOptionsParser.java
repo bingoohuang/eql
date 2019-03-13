@@ -10,7 +10,7 @@ public class BlockOptionsParser {
 
     public static Map<String, String> parseOptions(
             String optionsStr, OptionValueParser... optionValueParsers) {
-        HashMap<String, String> options = new HashMap<String, String>();
+        HashMap<String, String> options = new HashMap<>();
         if (optionsStr == null) return options;
 
         Matcher matcher = OPTION_PATTERN.matcher(optionsStr);

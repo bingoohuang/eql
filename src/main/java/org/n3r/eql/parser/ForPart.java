@@ -8,13 +8,13 @@ import org.n3r.eql.util.EqlUtils;
 import org.n3r.eql.util.S;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @AllArgsConstructor
 public class ForPart implements EqlPart {
-    @Getter private MultiPart part;
+    @Getter
+    private MultiPart part;
     private String item;
     private String index;
     private String collection;

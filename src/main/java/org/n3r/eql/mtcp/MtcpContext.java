@@ -6,8 +6,8 @@ public class MtcpContext {
     public static final String TENANT_ID = "tenantId";
     public static final String TENANT_CODE = "tenantCode";
 
-    private static ThreadLocal<String> tenantIdLocal = new InheritableThreadLocal<String>();
-    private static ThreadLocal<String> tenantCodeLocal = new InheritableThreadLocal<String>();
+    private static ThreadLocal<String> tenantIdLocal = new InheritableThreadLocal<>();
+    private static ThreadLocal<String> tenantCodeLocal = new InheritableThreadLocal<>();
 
 
     public static void setTenantId(String tenantId) {

@@ -53,14 +53,6 @@ public class HostAddress {
         return ip;
     }
 
-    private static String left(String string, int len) {
-        return string.length() <= len ? string : string.substring(0, len);
-    }
-
-    public static void main(String[] args) {
-        System.out.println(HostAddress.getIp());
-        System.out.println(HostAddress.getHost());
-    }
 
     public static String hostname() {
         Process proc = null;

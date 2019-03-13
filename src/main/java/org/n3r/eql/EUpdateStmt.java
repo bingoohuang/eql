@@ -14,14 +14,13 @@ public class EUpdateStmt implements Closeable, EStmt {
     private boolean autoCommit = true;
     private PreparedStatement preparedStatement;
     private EqlRun eqlRun;
-    private Logger logger;
     private EqlTran eqlTran;
     private Object[] params;
     private String sqlClassPath;
 
     @Override
     public void close() {
-
+        // nothing to close
     }
 
     public int update() {
@@ -67,7 +66,6 @@ public class EUpdateStmt implements Closeable, EStmt {
 
     @Override
     public void setLogger(Logger logger) {
-        this.logger = logger;
     }
 
     @Override

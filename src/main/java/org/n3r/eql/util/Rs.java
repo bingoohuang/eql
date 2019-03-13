@@ -55,12 +55,10 @@ public class Rs {
         if (String.class.equals(requiredType)) {
             val metaData = rs.getMetaData();
             int columnType = metaData != null ? metaData.getColumnType(index) : Types.VARCHAR;
-            switch (columnType) {
-                case Types.BLOB: // CLOB is treated as String.
-                    value = S.bytesToStr(rs.getBytes(index));
-                    break;
-                default:
-                    value = S.trim(rs.getString(index));
+            if (columnType == Types.BLOB) { // CLOB is treated as String.
+                value = S.bytesToStr(rs.getBytes(index));
+            } else {
+                value = S.trim(rs.getString(index));
             }
         } else if (boolean.class.equals(requiredType) || Boolean.class.equals(requiredType)) {
             value = rs.getBoolean(index);

@@ -1,5 +1,6 @@
 package org.n3r.eql.eqler.spring;
 
+import lombok.val;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.PropertyValues;
@@ -93,7 +94,7 @@ public class EqlerScannerConfigurer implements BeanDefinitionRegistryPostProcess
             processPropertyPlaceHolders();
         }
 
-        ClassPathEqlerScanner scanner = new ClassPathEqlerScanner(registry);
+        val scanner = new ClassPathEqlerScanner(registry);
         scanner.setResourceLoader(this.applicationContext);
         scanner.setBeanNameGenerator(this.nameGenerator);
         scanner.registerFilters();

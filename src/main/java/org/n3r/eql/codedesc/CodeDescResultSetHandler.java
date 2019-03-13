@@ -24,7 +24,7 @@ public class CodeDescResultSetHandler implements InvocationHandler {
     final String sqlClassPath;
     final EqlRun currEqlRun;
     final ResultSet resultSet;
-    final Map<String, Integer> codeIndex = new HashMap<String, Integer>();
+    final Map<String, Integer> codeIndex = new HashMap<>();
     private String tagSqlId;
 
     public CodeDescResultSetHandler(EqlRun currEqlRun, EqlConfigDecorator eqlConfig, String sqlClassPath, ResultSet resultSet, List<CodeDesc> codeDescs, String tagSqlId) {

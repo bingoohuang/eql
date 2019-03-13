@@ -39,10 +39,10 @@ public class EqlBlockParser {
     }
 
     private void addSql(EqlBlock block, List<String> oneSqlLines) {
-        if (oneSqlLines.size() == 0) return;
+        if (oneSqlLines.isEmpty()) return;
         if (isAllComments(oneSqlLines)) return;
 
-        Sql sql = sqlParseDelay ? new DelaySql(dynamicLanguageDriver, block, new ArrayList<String>(oneSqlLines))
+        Sql sql = sqlParseDelay ? new DelaySql(dynamicLanguageDriver, block, new ArrayList<>(oneSqlLines))
                 : dynamicLanguageDriver.parse(block, oneSqlLines);
         if (sql != null) sqls.add(sql);
         oneSqlLines.clear();
@@ -57,7 +57,7 @@ public class EqlBlockParser {
             linesWoLineComments.add(line);
         }
 
-        if (linesWoLineComments.size() == 0) return true;
+        if (linesWoLineComments.isEmpty()) return true;
 
         String join = Joiner.on('\n').join(linesWoLineComments);
         Matcher matcher = ParserUtils.inlineComment.matcher(join);

@@ -234,7 +234,7 @@ public class Reflect {
      * @return A map containing field names and wrapped values.
      */
     public Map<String, Reflect> fields() {
-        Map<String, Reflect> result = new LinkedHashMap<String, Reflect>();
+        Map<String, Reflect> result = new LinkedHashMap<>();
 
         for (Field field : type().getFields()) {
             if (!isClass ^ Modifier.isStatic(field.getModifiers())) {

@@ -70,7 +70,6 @@ public class SwitchParser implements PartParser {
 
                 lastPart = partParser.createPart();
                 multiPart.addPart(lastPart);
-                newCondition();
             } else if (lastPart instanceof LiteralPart) {
                 ((LiteralPart) lastPart).appendComment(line);
             }

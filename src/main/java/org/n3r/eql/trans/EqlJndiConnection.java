@@ -44,7 +44,7 @@ public class EqlJndiConnection extends AbstractEqlConnection {
 
     @SneakyThrows
     private void createDataSource(String jndiName, String initial, String url) {
-        Hashtable<String, String> context = new Hashtable<String, String>();
+        Hashtable<String, String> context = new Hashtable<>();
         if (S.isNotEmpty(url)) context.put("java.naming.provider.url", url);
         if (S.isNotEmpty(initial))
             context.put("java.naming.factory.initial", initial);

@@ -15,7 +15,7 @@ public class EqlFileGlobalSettings {
             EqlCacheSettings.processCacheModel(sqlClassPath, cacheModelSetting);
         } else if (globalSettingKeyValue.keyStartsWith("desc")) {
             KeyValue cacheModelSetting = globalSettingKeyValue.removeKeyPrefix("desc");
-            CodeDescSettings.processSetting(sqlClassPath, cacheModelSetting);
+            CodeDescSettings.processSetting(cacheModelSetting);
         } else {
             log.warn("unrecognized global settings {} ", globalSettings);
         }

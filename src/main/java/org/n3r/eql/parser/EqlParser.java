@@ -181,7 +181,7 @@ public class EqlParser {
     }
 
     private void parsePreviousBlock() {
-        if (block != null && sqlLines != null && sqlLines.size() > 0) {
+        if (block != null && sqlLines != null && !sqlLines.isEmpty()) {
             new EqlBlockParser(dynamicLanguageDriver, sqlParseDelay).parse(block, sqlLines);
 
             block = null;

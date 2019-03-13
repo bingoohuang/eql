@@ -3,3 +3,7 @@
 target
 *.class
 .DS_Store
+.settings
+.project
+.classpath
+.factorypath

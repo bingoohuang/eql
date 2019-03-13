@@ -25,7 +25,7 @@ public class O {
     public static <T> T populate(
             T object, Map<String, String> map,
             PropertyValueFilter... propertyValueFilters) {
-        Map<String, String> params = new HashMap<String, String>(map);
+        Map<String, String> params = new HashMap<>(map);
         for (Method method : object.getClass().getMethods()) {
             if (!isSetterMethod(method)) continue;
 

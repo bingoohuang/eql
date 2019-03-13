@@ -9,7 +9,7 @@ import org.n3r.eql.util.S;
 public class CodeDescSettings {
     static Cache<String, CodeDescMapper> codeDescCache = CacheBuilder.newBuilder().build();
 
-    public static void processSetting(String sqlClassPath, KeyValue codeDescSetting) {
+    public static void processSetting(KeyValue codeDescSetting) {
         codeDescCache.put(codeDescSetting.getKey(), parseCodeDescMapper(codeDescSetting.getValue()));
     }
 

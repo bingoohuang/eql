@@ -37,12 +37,8 @@ public class EqlMatrixConnection implements EqlConnection {
         dataSourceCache = CacheBuilder.newBuilder().build(new CacheLoader<String, DruidDataSource>() {
             @Override
             public DruidDataSource load(final String database) {
-                return O.populate(new DruidDataSource(), params, new PropertyValueFilter() {
-                    @Override
-                    public String filter(String propertyValue) {
-                        return parseParameter(propertyValue, database);
-                    }
-                });
+                return O.populate(new DruidDataSource(), params,
+                        (PropertyValueFilter) propertyValue -> parseParameter(propertyValue, database));
             }
         });
     }
@@ -55,7 +51,7 @@ public class EqlMatrixConnection implements EqlConnection {
                 }
             });
 
-    static ThreadLocal<String> dbNameTL = new ThreadLocal<String>();
+    static ThreadLocal<String> dbNameTL = new ThreadLocal<>();
 
     public static void chooseDbName(String dbName) {
         dbNameTL.set(dbName);

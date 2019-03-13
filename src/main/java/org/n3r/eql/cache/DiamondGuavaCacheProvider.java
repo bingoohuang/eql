@@ -8,7 +8,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.n3r.diamond.client.Miner;
 import org.n3r.eql.impl.EqlUniqueSqlId;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 public class DiamondGuavaCacheProvider implements EqlCacheProvider {

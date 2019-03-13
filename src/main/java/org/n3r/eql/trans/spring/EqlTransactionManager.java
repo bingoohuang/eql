@@ -61,7 +61,7 @@ public class EqlTransactionManager {
         nested.get().incrementAndGet();    // 记录嵌套事务
 
         val map = eqlTranLocal.get();
-        if (map != null) return; //throw new RuntimeException("already started");
+        if (map != null) return; // throw new RuntimeException("already started");
 
         eqlTranLocal.set(new HashMap<>());
     }

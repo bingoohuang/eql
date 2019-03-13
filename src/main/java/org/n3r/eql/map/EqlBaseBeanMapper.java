@@ -47,7 +47,7 @@ public class EqlBaseBeanMapper {
             mappedFields.put(field.getName().toLowerCase(), field);
             List<EqlConvertAnn<EqlConvert>> ecas = Lists.newArrayList();
             EqlConverts.searchEqlConvertAnns(field, ecas, EqlConvert.class);
-            if (ecas.size() > 0) converters.putAll(field.getName(), ecas);
+            if (!ecas.isEmpty()) converters.putAll(field.getName(), ecas);
         }
     }
 

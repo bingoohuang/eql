@@ -47,15 +47,13 @@ public class MtcpDataSourceHandler implements InvocationHandler {
         mtcpCache = createMtcpCache(eqlConfig);
         scheduler = Executors.newSingleThreadScheduledExecutor();
 
-        scheduler.scheduleWithFixedDelay(() ->
-                mtcpCache.cleanUp(), 10, 10, TimeUnit.MINUTES);
-        scheduler.scheduleWithFixedDelay(() ->
-                shrink(), 10, 10, TimeUnit.SECONDS);
+        scheduler.scheduleWithFixedDelay(mtcpCache::cleanUp, 10, 10, TimeUnit.MINUTES);
+        scheduler.scheduleWithFixedDelay(this::shrink, 10, 10, TimeUnit.SECONDS);
 
         metricsRegistry = new MetricRegistry();
 
         metricsRegistry.register(name(MtcpDataSourceHandler.class.getSimpleName(), "cacheCount"),
-                (Gauge<Long>) () -> mtcpCache.size());
+                (Gauge<Long>) mtcpCache::size);
 
         // TODO: Metric Reported should be configurated from outside.
 //        ConsoleReporter reporter = ConsoleReporter.forRegistry(metricsRegistry).build();
@@ -91,7 +89,7 @@ public class MtcpDataSourceHandler implements InvocationHandler {
         stat.append("Total " + shrunk + "/" + mtcpCache.size()
                 + " were shrunk.").append(EqlUtils.LINE_SEPARATOR);
 
-        Files.write(stat.toString(), dest, Charsets.UTF_8);
+        Files.asCharSink(dest, Charsets.UTF_8).write(stat);
     }
 
     private LoadingCache<String, DataSourceConfigurator> createMtcpCache(EqlConfig eqlConfig) {

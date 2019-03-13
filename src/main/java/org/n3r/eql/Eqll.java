@@ -8,12 +8,7 @@ import org.n3r.eql.impl.DefaultEqlConfigDecorator;
 import org.n3r.eql.util.EqlPropertiesConfigFactory;
 
 public class Eqll extends Eql {
-    static ThreadLocal<EqlConfig> eqlConfigLocal = new ThreadLocal<EqlConfig>() {
-        @Override
-        protected EqlConfig initialValue() {
-            return EqlConfigCache.getEqlConfig(Eql.DEFAULT_CONN_NAME);
-        }
-    };
+    static ThreadLocal<EqlConfig> eqlConfigLocal = ThreadLocal.withInitial(() -> EqlConfigCache.getEqlConfig(Eql.DEFAULT_CONN_NAME));
 
     public static void choose(String eqlConfigName) {
         choose(EqlPropertiesConfigFactory.parseEqlProperties(eqlConfigName));

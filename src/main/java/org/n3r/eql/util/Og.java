@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import ognl.NoSuchPropertyException;
 import ognl.Ognl;
+import ognl.OgnlContext;
 import ognl.OgnlException;
 
 import java.util.Map;
@@ -20,7 +21,10 @@ public class Og {
                 if (map != null) return map;
             }
 
-            return Ognl.getValue(expr, new OgRoot(mergeProperties));
+            val memberAccess = new DefaultMemberAccess(true);
+            val context = new OgnlContext(null, null, memberAccess);
+
+            return Ognl.getValue(expr, context, new OgRoot(mergeProperties));
         } catch (NoSuchPropertyException e) { // ignore
         } catch (OgnlException e) {
             if (!e.getMessage().contains("source is null for getProperty"))

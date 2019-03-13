@@ -96,7 +96,7 @@ public class EqlRun implements Cloneable {
 
     private void createEvalSql(int index, String sqlClassPath, EqlConfigDecorator eqlConfig,
                                String tagSqlId, String msg) {
-        val hasBoundParams = boundParams != null && boundParams.size() > 0;
+        val hasBoundParams = boundParams != null && !boundParams.isEmpty();
 
         if (hasBoundParams) {
             val log = Logs.createLogger(eqlConfig, sqlClassPath, getSqlId(), tagSqlId, "params");
@@ -164,11 +164,11 @@ public class EqlRun implements Cloneable {
             return (Boolean) boundParam ? "1" : "0";
         if (boundParam instanceof Number) return boundParam.toString();
         if (boundParam instanceof Date)
-            return '\'' + simpleDateFormat.format((Date) boundParam) + '\'';
+            return S.wrap(simpleDateFormat.format((Date) boundParam), '\'');
         if (boundParam instanceof byte[])
-            return '\'' + Hex.encode((byte[]) boundParam) + '\'';
+            return S.wrap(Hex.encode((byte[]) boundParam), '\'');
 
-        return '\'' + S.escapeSingleQuotes(boundParam.toString()) + '\'';
+        return S.wrap(S.escapeSingleQuotes(boundParam.toString()), '\'');
     }
 
     @Getter String runSql;

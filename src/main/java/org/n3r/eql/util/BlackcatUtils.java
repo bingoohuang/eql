@@ -19,12 +19,12 @@ public class BlackcatUtils {
         }
     }
 
-    public final boolean HasBlackcat = classExists(
+    public final boolean HAS_BLACKCAT = classExists(
             "com.github.bingoohuang.blackcat.instrument.callback.Blackcat");
 
     public void trace(String sqlId, String printSql,
                              String traceParams, String evalSql, Object execRet) {
-        if (!HasBlackcat) return;
+        if (!HAS_BLACKCAT) return;
 
         String paramsAndPrepared = "[]".equals(traceParams) ? ""
                 : ", Params:" + traceParams + ", Prepared:" + printSql;

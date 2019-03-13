@@ -51,9 +51,6 @@ public class RangeFunction extends SingleFieldBaseFunction {
         }
     }
 
-    private static class LongRange {
-    }
-
     private static class Tuple<T1, T2, T3> {
         public T1 _1;
         public T2 _2;
@@ -66,7 +63,7 @@ public class RangeFunction extends SingleFieldBaseFunction {
         }
 
         public static <T1, T2, T3> Tuple<T1, T2, T3> make(T1 t1, T2 t2, T3 t3) {
-            return new Tuple<T1, T2, T3>(t1, t2, t3);
+            return new Tuple<>(t1, t2, t3);
         }
     }
 }
