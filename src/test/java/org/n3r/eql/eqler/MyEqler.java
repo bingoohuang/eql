@@ -6,7 +6,7 @@ import org.n3r.eql.eqler.annotations.*;
 import java.util.List;
 import java.util.Map;
 
-@EqlerConfig(value = "mysql"/*, eql= Dql.class*/)
+@MyEqlerConfig
 public interface MyEqler {
     String queryOne();
 

@@ -10,7 +10,14 @@ import org.n3r.eql.EqlTran;
 import org.n3r.eql.EqlTranable;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.eqler.OnErr;
-import org.n3r.eql.eqler.annotations.*;
+import org.n3r.eql.eqler.annotations.EqlMapper;
+import org.n3r.eql.eqler.annotations.EqlerConfig;
+import org.n3r.eql.eqler.annotations.ProfiledSql;
+import org.n3r.eql.eqler.annotations.ProfiledSqls;
+import org.n3r.eql.eqler.annotations.Sql;
+import org.n3r.eql.eqler.annotations.SqlId;
+import org.n3r.eql.eqler.annotations.SqlOptions;
+import org.n3r.eql.eqler.annotations.UseSqlFile;
 import org.n3r.eql.impl.EqlBatch;
 import org.n3r.eql.map.EqlRowMapper;
 import org.n3r.eql.pojo.annotations.EqlId;
@@ -20,9 +27,14 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.n3r.eql.util.Asms.p;
@@ -42,8 +54,8 @@ public class MethodGenerator<T> implements Generatable {
     public MethodGenerator(ClassWriter classWriter, Method method, Class<T> eqlerClass) {
         this.method = method;
         this.eqlerClass = eqlerClass;
-        val methodEqlerConfig = method.getAnnotation(EqlerConfig.class);
-        val classEqlerConfig = eqlerClass.getAnnotation(EqlerConfig.class);
+        val methodEqlerConfig = parseEqlerConfig(method);
+        val classEqlerConfig = parseEqlerConfig(eqlerClass);
         this.eqlerConfig = methodEqlerConfig != null ? methodEqlerConfig : classEqlerConfig;
         this.eqlClassName = this.eqlerConfig != null ? Type.getInternalName(this.eqlerConfig.eql()) : EQL;
         this.classUseSqlFile = eqlerClass.getAnnotation(UseSqlFile.class);
@@ -554,9 +566,23 @@ public class MethodGenerator<T> implements Generatable {
         return methodAllParam;
     }
 
-
     private void visitIntInsn(int i) {
         if (i <= 5) mv.visitInsn(ICONST_0 + i);
         else mv.visitIntInsn(BIPUSH, i);
+    }
+
+    private EqlerConfig parseEqlerConfig(AnnotatedElement annotatedElement) {
+        val eqlerConfig = annotatedElement.getAnnotation(EqlerConfig.class);
+        if (null != eqlerConfig) return eqlerConfig;
+
+        val annotations = annotatedElement.getAnnotations();
+        for (val annotation : annotations) {
+            if (annotation.toString().startsWith("@java.lang.")) continue;
+            val annotationEqlerConfig = annotation
+                    .annotationType().getAnnotation(EqlerConfig.class);
+            if (null != annotationEqlerConfig) return annotationEqlerConfig;
+        }
+
+        return null;
     }
 }
