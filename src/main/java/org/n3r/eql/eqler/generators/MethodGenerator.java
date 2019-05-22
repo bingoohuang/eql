@@ -27,7 +27,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
@@ -54,8 +53,8 @@ public class MethodGenerator<T> implements Generatable {
     public MethodGenerator(ClassWriter classWriter, Method method, Class<T> eqlerClass) {
         this.method = method;
         this.eqlerClass = eqlerClass;
-        val methodEqlerConfig = parseEqlerConfig(method);
-        val classEqlerConfig = parseEqlerConfig(eqlerClass);
+        val methodEqlerConfig = Generatable.parseEqlerConfig(method);
+        val classEqlerConfig = Generatable.parseEqlerConfig(eqlerClass);
         this.eqlerConfig = methodEqlerConfig != null ? methodEqlerConfig : classEqlerConfig;
         this.eqlClassName = this.eqlerConfig != null ? Type.getInternalName(this.eqlerConfig.eql()) : EQL;
         this.classUseSqlFile = eqlerClass.getAnnotation(UseSqlFile.class);
@@ -571,18 +570,4 @@ public class MethodGenerator<T> implements Generatable {
         else mv.visitIntInsn(BIPUSH, i);
     }
 
-    private EqlerConfig parseEqlerConfig(AnnotatedElement annotatedElement) {
-        val eqlerConfig = annotatedElement.getAnnotation(EqlerConfig.class);
-        if (null != eqlerConfig) return eqlerConfig;
-
-        val annotations = annotatedElement.getAnnotations();
-        for (val annotation : annotations) {
-            if (annotation.toString().startsWith("@java.lang.")) continue;
-            val annotationEqlerConfig = annotation
-                    .annotationType().getAnnotation(EqlerConfig.class);
-            if (null != annotationEqlerConfig) return annotationEqlerConfig;
-        }
-
-        return null;
-    }
 }

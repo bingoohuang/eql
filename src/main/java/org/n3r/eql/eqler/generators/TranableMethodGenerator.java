@@ -25,9 +25,7 @@ public class TranableMethodGenerator<T>  implements Generatable{
         this.methodName = method.getName();
         this.cw = classWriter;
 
-        val eqlerConfig = eqlerClass.getAnnotation(EqlerConfig.class);
-        this.eqlerConfig = eqlerConfig != null ?
-                eqlerConfig : eqlerClass.getAnnotation(EqlerConfig.class);
+        this.eqlerConfig = Generatable.parseEqlerConfig(eqlerClass);
         this.eqlClassName = eqlerConfig != null ?
                 Type.getInternalName(eqlerConfig.eql()) : p(Eql.class);
     }
