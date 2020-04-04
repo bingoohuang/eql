@@ -36,3 +36,83 @@ SELECT * FROM BLOG
     -- end
     AND dosya_ref is NULL
 -- end
+
+
+-- [saveModels]
+update tf_b_busi_order
+-- trim prefix=SET suffixOverrides=,
+    -- isNotEmpty CHANNEL_SEQID
+        CHANNEL_SEQID = #CHANNEL_SEQID#,
+    -- end
+    -- isNotEmpty BUSINESS_TYPE
+        BUSINESS_TYPE = #BUSINESS_TYPE#,
+    -- end
+    -- isNotEmpty BUSINESS_SEQID
+        BUSINESS_SEQID = #BUSINESS_SEQID#,
+    -- end
+    -- isNotEmpty BUSINESS_NAME
+        BUSINESS_NAME = #BUSINESS_NAME#,
+    -- end
+    -- isNotEmpty CUSTOM_ID
+        CUSTOM_ID = #CUSTOM_ID#,
+    -- end
+    -- isNotEmpty USER_NUMBER
+        USER_NUMBER = #USER_NUMBER#,
+    -- end
+    -- isNotEmpty PROVINCE_CODE
+        PROVINCE_CODE = #PROVINCE_CODE#,
+    -- end
+    -- isNotEmpty CITY_CODE
+        CITY_CODE = #CITY_CODE#,
+    -- end
+    -- isNotEmpty NET_TYPE
+        NET_TYPE = #NET_TYPE#,
+    -- end
+    -- isNotEmpty PAY_TYPE
+        PAY_TYPE = #PAY_TYPE#,
+    -- end
+    -- isNotEmpty UPDATE_TIME
+        UPDATE_TIME = #UPDATE_TIME#,
+    -- end
+    -- isNotEmpty FINISH_TIME
+        FINISH_TIME = #FINISH_TIME#,
+    -- end
+    -- isNotEmpty ORDER_STATUS
+        ORDER_STATUS = #ORDER_STATUS#,
+    -- end
+    -- isNotEmpty USER_IP
+        USER_IP = #USER_IP#,
+    -- end
+    -- isNotEmpty EFACE_CODE
+        EFACE_CODE = #EFACE_CODE#,
+    -- end
+    -- isNotEmpty RSP_CODE
+        RSP_CODE = #RSP_CODE#,
+    -- end
+    -- isNotEmpty RESP_CODE
+        RESP_CODE = #RESP_CODE#,
+    -- end
+    -- isNotEmpty RESP_DESC
+        RESP_DESC = #RESP_DESC#,
+    -- end
+    -- isNotEmpty TRANSIDO
+        TRANSIDO = #TRANSIDO#,
+    -- end
+    -- isNotEmpty UNICODE
+        ERROR_CODE = #UNICODE#,
+    -- end
+    -- isNotEmpty RESERVED1
+        RESERVED1 = #RESERVED1#,
+    -- end
+    -- isNotEmpty RESERVED2
+        RESERVED2 = #RESERVED2#,
+    -- end
+    -- isNotEmpty RESERVED3
+        RESERVED3 = #RESERVED3#,
+    -- end
+    -- isNotEmpty RESERVED4
+        RESERVED4 = #RESERVED4#,
+    -- end
+-- end
+where
+busi_orderid = #BUSI_ORDERID#
