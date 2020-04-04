@@ -5,7 +5,7 @@ import lombok.SneakyThrows;
 import org.n3r.eql.util.S;
 
 import javax.crypto.Cipher;
-import javax.xml.bind.DatatypeConverter;
+import java.util.Base64;
 
 /**
  * 基础加密解密类.
@@ -16,7 +16,8 @@ public abstract class BaseCryptor {
     /*
      * 加解密密钥.
      */
-    @Getter String key;
+    @Getter
+    String key;
 
     /**
      * 默认构造函数.
@@ -54,7 +55,7 @@ public abstract class BaseCryptor {
         byte[] cleartext = S.toBytes(data);
         byte[] ciphertext = getCipher(true).doFinal(cleartext);
 
-        return DatatypeConverter.printBase64Binary(ciphertext);
+        return Base64.getEncoder().encodeToString(ciphertext);
     }
 
     /**
@@ -65,7 +66,7 @@ public abstract class BaseCryptor {
      */
     @SneakyThrows
     public String decrypt(String data) {
-        byte[] cleartext = DatatypeConverter.parseBase64Binary(data);
+        byte[] cleartext = Base64.getDecoder().decode(data);
         byte[] ciphertext = getCipher(false).doFinal(cleartext);
 
         return S.bytesToStr(ciphertext);
