@@ -3,7 +3,6 @@ package org.n3r.eql.impl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.SneakyThrows;
-import lombok.var;
 import lombok.val;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.ex.EqlExecuteException;
@@ -47,7 +46,7 @@ public class EqlBatch {
     }
 
     public int addBatch(EqlRun eqlRun) throws SQLException {
-        var ps = batchedMap.get(eqlRun.getRunSql());
+        PreparedStatement ps = batchedMap.get(eqlRun.getRunSql());
         if (ps == null) {
             ps = EqlUtils.prepareSQL(sqlClassPath, eqlConfig, eqlRun, sqlId, tagSqlId);
             batchedMap.put(eqlRun.getRunSql(), ps);

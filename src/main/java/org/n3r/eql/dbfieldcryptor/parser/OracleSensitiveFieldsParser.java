@@ -8,7 +8,6 @@ import com.alibaba.druid.sql.dialect.oracle.visitor.OracleASTVisitorAdapter;
 import com.alibaba.druid.sql.parser.ParserException;
 import com.alibaba.druid.sql.visitor.SQLASTVisitor;
 import com.alibaba.druid.sql.visitor.SQLASTVisitorAdapter;
-import lombok.var;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
@@ -71,7 +70,7 @@ public class OracleSensitiveFieldsParser extends SensitiveFieldsParser {
 
 
     public static SensitiveFieldsParser parseSql(String sql, Set<String> secureFields) {
-        var fieldsParser = tryParseHint(sql, secureFields);
+        SensitiveFieldsParser fieldsParser = tryParseHint(sql, secureFields);
         if (fieldsParser == null) {
             val sqlStatement = parseSql(sql);
             val sensitiveFieldsParser = new OracleSensitiveFieldsParser(secureFields, sql);

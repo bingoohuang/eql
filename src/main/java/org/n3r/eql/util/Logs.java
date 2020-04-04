@@ -2,7 +2,6 @@ package org.n3r.eql.util;
 
 import com.github.bingoohuang.FlipTable;
 import lombok.val;
-import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.n3r.eql.config.EqlConfig;
 import org.slf4j.Logger;
@@ -51,7 +50,7 @@ public class Logs {
     }
 
     public static Logger createLogger(EqlConfig eqlConfig, String sqlClassPath, String sqlId, String tagSqlId, String tag) {
-        var loggerPrefix = eqlConfig.getStr("logger.prefix");
+        String loggerPrefix = eqlConfig.getStr("logger.prefix");
         if (S.isBlank(loggerPrefix) || loggerPrefix.equals("auto")) loggerPrefix = "eql";
         if (loggerPrefix.endsWith(".")) loggerPrefix = loggerPrefix.substring(0, loggerPrefix.length() - 1);
 
