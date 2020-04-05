@@ -14,7 +14,7 @@ before_install:
 language: java
 install: mvn install -DskipTests -Dgpg.skip
 jdk:
-- openjdk11
+- oraclejdk11
 sudo: false
 cache:
   directories:

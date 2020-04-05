@@ -345,6 +345,7 @@ mvn install:install-file -Dfile=ojdbc5.jar -DgroupId=com.oracle -DartifactId=ojd
                             <goal>jar</goal>
                         </goals>
                         <configuration>
+                            <show>public</show>
                             <source>${maven.compiler.source}</source>
                             <doclint>none</doclint>
                         </configuration>
