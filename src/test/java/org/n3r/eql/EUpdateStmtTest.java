@@ -25,6 +25,5 @@ public class EUpdateStmtTest {
 
         str = new Eql().selectFirst("selectStmt").params(4).execute();
         assertThat(str, is("Dingoo"));
-
     }
 }
