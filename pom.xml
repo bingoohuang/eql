@@ -26,7 +26,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <additionalparam>-Xdoclint:none</additionalparam>
     </properties>
     <licenses>
         <license>
@@ -338,6 +337,7 @@ mvn install:install-file -Dfile=ojdbc5.jar -DgroupId=com.oracle -DartifactId=ojd
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -346,7 +346,7 @@ mvn install:install-file -Dfile=ojdbc5.jar -DgroupId=com.oracle -DartifactId=ojd
                         </goals>
                         <configuration>
                             <source>${maven.compiler.source}</source>
-                            <additionalparam>${additionalparam}</additionalparam>
+                            <doclint>none</doclint>
                         </configuration>
                     </execution>
                 </executions>
