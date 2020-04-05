@@ -40,7 +40,6 @@ public abstract class BaseCryptor {
      *
      * @param isEncrypt 是否加密
      * @return Cipher对象
-     * @throws Exception
      */
     protected abstract Cipher getCipher(boolean isEncrypt);
 
