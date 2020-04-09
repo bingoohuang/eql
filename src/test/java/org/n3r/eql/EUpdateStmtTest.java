@@ -1,5 +1,6 @@
 package org.n3r.eql;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
