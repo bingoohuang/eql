@@ -1,3 +1,9 @@
+dist: xenial
+
+
+language: java
+jdk: openjdk8
+
 services:
 - docker
 before_install:
@@ -11,10 +17,7 @@ before_install:
 - travis_wait sleep 10
 - docker top oracle
 - docker exec -it mysql mysql -u root -p'my-secret-pw' -s -e "create database dba;create database dbb;create database dbc;"
-language: java
 install: mvn install -DskipTests -Dgpg.skip
-jdk:
-- openjdk11
 sudo: false
 cache:
   directories:
