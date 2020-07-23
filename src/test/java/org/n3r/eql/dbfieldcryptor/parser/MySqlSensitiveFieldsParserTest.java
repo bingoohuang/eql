@@ -3,7 +3,6 @@ package org.n3r.eql.dbfieldcryptor.parser;
 import com.alibaba.druid.sql.dialect.mysql.parser.MySqlStatementParser;
 import com.alibaba.druid.sql.parser.SQLStatementParser;
 import com.google.common.collect.Sets;
-import lombok.var;
 import lombok.val;
 import org.junit.Assert;
 import org.junit.Test;
@@ -863,7 +862,7 @@ public class MySqlSensitiveFieldsParserTest {
     public void testInsert1() {
         String sql = "insert into table1(a, b, c) values(?, ?, ?)";
         val securetFieldsConfig = Sets.newHashSet("TABLE1.A", "TABLE1.B");
-        var visitorAdapter = MySqlSensitiveFieldsParser
+        SensitiveFieldsParser visitorAdapter = MySqlSensitiveFieldsParser
                 .parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
@@ -884,7 +883,7 @@ public class MySqlSensitiveFieldsParserTest {
     public void testUpdate() {
         String sql = "update table1 t1 set t1.a = ?, t1.b = ?, t1.c = ?";
         val securetFieldsConfig = Sets.newHashSet("TABLE1.A", "TABLE1.B");
-        var visitorAdapter = MySqlSensitiveFieldsParser
+        SensitiveFieldsParser visitorAdapter = MySqlSensitiveFieldsParser
                 .parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();
@@ -905,7 +904,7 @@ public class MySqlSensitiveFieldsParserTest {
     public void testProcedure() {
         String sql = "{call abc.myproc(?,?,?)}";
         val securetFieldsConfig = Sets.newHashSet("ABC.MYPROC.2");
-        var visitorAdapter = MySqlSensitiveFieldsParser
+        SensitiveFieldsParser visitorAdapter = MySqlSensitiveFieldsParser
                 .parseSql(sql, securetFieldsConfig);
 
         Set<Integer> securetResultIndice = visitorAdapter.getSecureResultIndices();

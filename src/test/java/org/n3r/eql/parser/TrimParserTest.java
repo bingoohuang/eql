@@ -153,5 +153,19 @@ SELECT * FROM BLOG
         eqlRuns = nestedCondition.createEqlRunsByEqls(null, eqlConfig, context, params, dynamics);
         runSql = eqlRuns.get(0).getRunSql();
         assertThat(runSql, is("SELECT * FROM BLOG\nWHERE ( subject LIKE ?\nOR file_id = ? ) AND dosya_ref is NULL"));
+
+        EqlBlock saveModels = map.get("saveModels");
+        bean = Maps.newHashMap();
+        bean.put("CHANNEL_SEQID", "123");
+        bean.put("BUSINESS_TYPE", "abc");
+        params = new Object[]{bean};
+        eqlRuns = saveModels.createEqlRunsByEqls(null, eqlConfig, context, params, dynamics);
+        runSql = eqlRuns.get(0).getRunSql();
+
+        assertThat(runSql, is("update tf_b_busi_order\n" +
+                "SET CHANNEL_SEQID = ?,\n" +
+                "BUSINESS_TYPE = ?\n" +
+                "where\n" +
+                "busi_orderid = ?"));
     }
 }

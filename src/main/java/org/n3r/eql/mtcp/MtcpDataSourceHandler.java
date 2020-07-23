@@ -10,7 +10,6 @@ import com.google.common.cache.RemovalListener;
 import com.google.common.io.Files;
 import lombok.SneakyThrows;
 import lombok.val;
-import lombok.var;
 import org.apache.commons.codec.Charsets;
 import org.n3r.eql.config.EqlConfig;
 import org.n3r.eql.mtcp.utils.Mtcps;
@@ -127,7 +126,7 @@ public class MtcpDataSourceHandler implements InvocationHandler {
 
     private DataSourceConfigurator createTenantDataSource(String tenantId) {
         val key = "dataSourceConfigurator.spec";
-        var impl = eqlConfig.getStr(key);
+        String impl = eqlConfig.getStr(key);
         if (S.isBlank(impl))
             impl = "@org.n3r.eql.mtcp.impl.DruidDataSourceConfigurator";
 

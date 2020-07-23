@@ -4,7 +4,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import lombok.var;
 import lombok.val;
 import org.n3r.eql.convert.EqlConvert;
 import org.n3r.eql.convert.EqlConvertAnn;
@@ -57,7 +56,7 @@ public class EqlBaseBeanMapper {
         val lowerCaseName = columnName.replaceAll(" ", "").toLowerCase();
         val none_ = lowerCaseName.replaceAll("_", "");
 
-        var pd = this.mappedProperties.get(lowerCaseName);
+        PropertyDescriptor pd = this.mappedProperties.get(lowerCaseName);
         if (pd == null) pd = this.mappedProperties.get(none_);
         if (pd != null) {
             Object value = Rs.getResultSetValue(rs, index, pd.getPropertyType());
@@ -69,7 +68,7 @@ public class EqlBaseBeanMapper {
             if (succ) return true;
         }
 
-        var field = this.mappedFields.get(lowerCaseName);
+        Field field = this.mappedFields.get(lowerCaseName);
         if (field == null) field = this.mappedFields.get(none_);
         if (field != null) {
             Object value = Rs.getResultSetValue(rs, index, field.getType());

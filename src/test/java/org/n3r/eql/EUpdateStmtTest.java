@@ -1,11 +1,19 @@
 package org.n3r.eql;
 
+import org.junit.Before;
 import org.junit.Test;
+
+import java.sql.Timestamp;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class EUpdateStmtTest {
+    @Before
+    public void before() {
+        new Eql().id("createTestTable").params(new Timestamp(1383122146000l)).execute();
+    }
+
     @Test
     public void test() {
         Eql eql = new Eql().id("updateStmt");
@@ -25,6 +33,5 @@ public class EUpdateStmtTest {
 
         str = new Eql().selectFirst("selectStmt").params(4).execute();
         assertThat(str, is("Dingoo"));
-
     }
 }

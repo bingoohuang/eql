@@ -16,7 +16,8 @@ public abstract class BaseCryptor {
     /*
      * 加解密密钥.
      */
-    @Getter String key;
+    @Getter
+    String key;
 
     /**
      * 默认构造函数.
@@ -39,7 +40,6 @@ public abstract class BaseCryptor {
      *
      * @param isEncrypt 是否加密
      * @return Cipher对象
-     * @throws Exception
      */
     protected abstract Cipher getCipher(boolean isEncrypt);
 
