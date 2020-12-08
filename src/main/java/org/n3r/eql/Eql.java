@@ -466,8 +466,11 @@ public class Eql {
 
                     val wrapRs = CodeDescs.codeDescWrap(currRun, eqlBlock,
                             eqlConfig, sqlClassPath, rs, tagSqlId);
-                    Object convertedValue = rsRetriever.convert(wrapRs, currRun);
-                    return convertedValue;
+                    if (currRun.isLastSelectSql()) {
+                        return rsRetriever.convert(wrapRs, currRun);
+                    } else {
+                        return new EqlRsRetriever().convert(wrapRs, currRun);
+                    }
                 }
 
                 if (currRun.getSqlType().isProcedure())
