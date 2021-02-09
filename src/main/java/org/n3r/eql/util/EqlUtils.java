@@ -102,13 +102,13 @@ public class EqlUtils {
         val returnSql = S.trimRight(sql);
         val upper = S.upperCase(returnSql);
         if (endWithWhere.matcher(upper).find())
-            return S.trimRight(returnSql.substring(0, sql.length() - "WHERE".length()));
+            return S.trimRight(returnSql.substring(0, returnSql.length() - "WHERE".length()));
 
         if (endWithAnd.matcher(upper).find())
-            return S.trimRight(returnSql.substring(0, sql.length() - "AND".length()));
+            return S.trimRight(returnSql.substring(0, returnSql.length() - "AND".length()));
 
         if (endWithOr.matcher(upper).find())
-            return S.trimRight(returnSql.substring(0, sql.length() - "OR".length()));
+            return S.trimRight(returnSql.substring(0, returnSql.length() - "OR".length()));
 
         return returnSql;
     }
