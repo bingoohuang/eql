@@ -105,7 +105,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>5.1.0.RELEASE</version>
+            <version>5.1.3.RELEASE</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -133,13 +133,13 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
-            <version>5.0.6.RELEASE</version>
+            <version>5.1.3.RELEASE</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>5.0.6.RELEASE</version>
+            <version>5.1.3.RELEASE</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -201,7 +201,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.24</version>
+            <version>8.0.16</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -232,7 +232,7 @@ mvn install:install-file -Dfile=ojdbc5.jar -DgroupId=com.oracle -DartifactId=ojd
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
