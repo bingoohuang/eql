@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -93,17 +94,21 @@ public class EqlUtils {
         return originParam;
     }
 
+    static Pattern endWithWhere = Pattern.compile("\\bWHERE$");
+    static Pattern endWithAnd = Pattern.compile("\\bAND$");
+    static Pattern endWithOr = Pattern.compile("\\bOR$");
+
     public static String trimLastUnusedPart(String sql) {
         val returnSql = S.trimRight(sql);
         val upper = S.upperCase(returnSql);
-        if (S.endsWith(upper, "WHERE"))
-            return returnSql.substring(0, sql.length() - "WHERE".length());
+        if (endWithWhere.matcher(upper).find())
+            return S.trimRight(returnSql.substring(0, sql.length() - "WHERE".length()));
 
-        if (S.endsWith(upper, "AND"))
-            return returnSql.substring(0, sql.length() - "AND".length());
+        if (endWithAnd.matcher(upper).find())
+            return S.trimRight(returnSql.substring(0, sql.length() - "AND".length()));
 
-        if (S.endsWith(upper, "OR"))
-            return returnSql.substring(0, sql.length() - "OR".length());
+        if (endWithOr.matcher(upper).find())
+            return S.trimRight(returnSql.substring(0, sql.length() - "OR".length()));
 
         return returnSql;
     }
@@ -141,7 +146,7 @@ public class EqlUtils {
         try {
             stmt.setQueryTimeout(queryTimeout);
         } catch (Exception ignore) {
-            
+
         }
     }
 
