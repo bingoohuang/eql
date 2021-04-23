@@ -15,6 +15,7 @@ import org.n3r.eql.util.Rs;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -59,10 +60,14 @@ public class EqlBaseBeanMapper {
         PropertyDescriptor pd = this.mappedProperties.get(lowerCaseName);
         if (pd == null) pd = this.mappedProperties.get(none_);
         if (pd != null) {
-            Object value = Rs.getResultSetValue(rs, index, pd.getPropertyType());
-
             val eqlConvertAnns = converters.get(pd.getName());
-            value = EqlConverts.convertValue(rs, index, eqlConvertAnns, value);
+            Object value;
+            if (!eqlConvertAnns.isEmpty()) {
+                val originalValue = Rs.getResultSetValue(rs, index, null);
+                value = EqlConverts.convert(eqlConvertAnns, originalValue);
+            } else {
+                value = Rs.getResultSetValue(rs, index, pd.getPropertyType());
+            }
 
             boolean succ = O.setProperty(mappedObject, pd, value);
             if (succ) return true;
@@ -71,10 +76,15 @@ public class EqlBaseBeanMapper {
         Field field = this.mappedFields.get(lowerCaseName);
         if (field == null) field = this.mappedFields.get(none_);
         if (field != null) {
-            Object value = Rs.getResultSetValue(rs, index, field.getType());
-
             val eqlConvertAnns = converters.get(field.getName());
-            value = EqlConverts.convertValue(rs, index, eqlConvertAnns, value);
+            Object value;
+            if (!eqlConvertAnns.isEmpty()) {
+                val originalValue = Rs.getResultSetValue(rs, index, null);
+                value = EqlConverts.convert(eqlConvertAnns, originalValue);
+            } else {
+                value = Rs.getResultSetValue(rs, index, field.getType());
+            }
+
             Reflect.on(mappedObject).set(field.getName(), value);
             return true;
         }

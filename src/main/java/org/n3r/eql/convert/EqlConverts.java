@@ -2,9 +2,7 @@ package org.n3r.eql.convert;
 
 import lombok.SneakyThrows;
 import lombok.val;
-import org.n3r.eql.map.RsAware;
 import org.n3r.eql.util.Ob;
-import org.n3r.eql.util.Rs;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
@@ -16,19 +14,8 @@ import java.util.Collection;
 import java.util.List;
 
 public class EqlConverts {
-    public static Object convertValue(
-            RsAware rs, int index,
-            Collection<EqlConvertAnn<EqlConvert>> eqlConvertAnns, Object value
-    ) {
-        if (!eqlConvertAnns.isEmpty()) {
-            val originalValue = Rs.getResultSetValue(rs, index, null);
-            value = convert(eqlConvertAnns, originalValue);
-        }
-        return value;
-    }
-
     @SneakyThrows
-    private static Object convert(
+    public static Object convert(
             Collection<EqlConvertAnn<EqlConvert>> eqlConvertAnns,
             Object value) {
         Object ret = value;
