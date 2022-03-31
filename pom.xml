@@ -105,7 +105,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>5.1.14.RELEASE</version>
+            <version>5.3.18</version>
             <optional>true</optional>
         </dependency>
         <dependency>
