@@ -14,7 +14,7 @@ before_install:
 # - docker inspect oracle
 # - docker ps -a
 - echo "Wait to allow Oracle to be initialized"
-- travis_wait sleep 10
+- sleep 10
 - docker top oracle
 - docker exec -it mysql mysql -u root -p'my-secret-pw' -s -e "create database dba;create database dbb;create database dbc;"
 install: mvn install -DskipTests -Dgpg.skip
