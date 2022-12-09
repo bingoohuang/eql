@@ -23,7 +23,7 @@ public class EqlerFactory {
     static {
         enhancers = StreamSupport
                 .stream(ServiceLoader.load(EqlerEnhancer.class).spliterator(), false)
-                .sorted(Comparator.comparingInt(EqlerEnhancer::getOrder))
+                .sorted(Comparator.comparingInt(EqlerEnhancer::getOrder).reversed())
                 .collect(Collectors.toList());
     }
 
