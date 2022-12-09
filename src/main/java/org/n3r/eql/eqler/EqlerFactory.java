@@ -9,14 +9,22 @@ import org.n3r.eql.eqler.enhancer.EqlerEnhancer;
 import org.n3r.eql.eqler.generators.ClassGenerator;
 import org.n3r.eql.ex.EqlConfigException;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.ServiceLoader;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @UtilityClass
 @SuppressWarnings("unchecked")
 public class EqlerFactory {
-    private static ServiceLoader<EqlerEnhancer> enhancerLoaders;
+    private static List<EqlerEnhancer> enhancers;
+
     static {
-        enhancerLoaders = ServiceLoader.load(EqlerEnhancer.class);
+        enhancers = StreamSupport
+                .stream(ServiceLoader.load(EqlerEnhancer.class).spliterator(), false)
+                .sorted(Comparator.comparingInt(EqlerEnhancer::getOrder))
+                .collect(Collectors.toList());
     }
 
     private Cache<Class, Object> eqlerCache = CacheBuilder.newBuilder().build();
@@ -37,9 +45,9 @@ public class EqlerFactory {
 
     private Object wrapWithEnhancer(Class eqlerClass, Object implObject) {
         Object enhancedObject = implObject;
-        for (val enhancerLoader : enhancerLoaders) {
-            if (enhancerLoader.isEnabled(eqlerClass)) {
-                enhancedObject = enhancerLoader.build(eqlerClass, implObject);
+        for (val enhancer : enhancers) {
+            if (enhancer.isEnabled(eqlerClass)) {
+                enhancedObject = enhancer.build(eqlerClass, enhancedObject);
             }
         }
         return enhancedObject;

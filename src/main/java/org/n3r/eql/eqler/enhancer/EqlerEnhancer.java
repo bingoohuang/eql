@@ -5,4 +5,8 @@ public interface EqlerEnhancer {
     boolean isEnabled(Class eqlerClass);
 
     Object build(Class eqlerClass, Object implObject);
+
+    default int getOrder() {
+        return 0;
+    }
 }
