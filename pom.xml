@@ -4,7 +4,7 @@
 
     <groupId>com.github.bingoohuang</groupId>
     <artifactId>eql</artifactId>
-    <version>0.1.19-SNAPSHOT</version>
+    <version>0.1.20-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>easy sql</name>
@@ -53,6 +53,11 @@
             <groupId>com.github.bingoohuang</groupId>
             <artifactId>java-utils</artifactId>
             <version>0.0.22</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>6.2</version>
         </dependency>
         <dependency>
             <groupId>com.github.bingoohuang</groupId>
@@ -307,7 +312,29 @@ mvn install:install-file -Dfile=ojdbc5.jar -DgroupId=com.oracle -DartifactId=ojd
                     </execution>
                 </executions>
             </plugin>
-
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skip>false</skip>
+                    <show>public</show>
+                    <charset>UTF-8</charset>
+                    <encoding>UTF-8</encoding>
+                    <docencoding>UTF-8</docencoding>
+                    <links>
+                        <link>http://docs.oracle.com/javase/6/docs/api</link>
+                    </links>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.eluder.coveralls</groupId>
                 <artifactId>coveralls-maven-plugin</artifactId>
@@ -381,4 +408,14 @@ mvn install:install-file -Dfile=ojdbc5.jar -DgroupId=com.oracle -DartifactId=ojd
             </plugins>
         </pluginManagement>
     </build>
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
